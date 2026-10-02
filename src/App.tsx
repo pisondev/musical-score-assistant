@@ -3,10 +3,15 @@ import { flushSync } from 'react-dom';
 import { engine } from './audio/engine';
 import {
   BASELINE_ID,
+  buildNoteEvents,
   buildPerformance,
   formatNoteName,
   INTRO_LAST_PHRASE,
   INTRO_OFF,
+  midiFileName,
+  noteNameToText,
+  toMidiFile,
+  type Hand,
   type IntroChoice,
 } from './core';
 import { library } from './library';
@@ -140,6 +145,29 @@ export function App() {
     window.print();
   }, []);
 
+  // The file holds what is on the sheet: the introduction, the chosen left hand,
+  // the key, the tempo, and only the hands that are switched on.
+  const downloadMidi = useCallback(() => {
+    if (!performance) return;
+    const { tempo, handMode } = usePlayer.getState();
+    const hands: Hand[] = handMode === 'both' ? ['right', 'left'] : [handMode];
+    const { song } = performance;
+    const bytes = toMidiFile(song, buildNoteEvents(song, performance.arrangement), {
+      tempo,
+      hands,
+    });
+    const url = URL.createObjectURL(new Blob([bytes.slice().buffer], { type: 'audio/midi' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = midiFileName(
+      song.meta.title,
+      performance.arrangement.name,
+      noteNameToText(song.meta.key),
+    );
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [performance]);
+
   const selectSong = (id: string) => {
     setSongId(id);
     setArrangementId(BASELINE_ID);
@@ -207,6 +235,7 @@ export function App() {
               onTranspose={transposeTo}
               soundingKey={performance.song.meta.key}
               onPrint={print}
+              onDownloadMidi={downloadMidi}
             />
             <IssueList
               song={performance.song}

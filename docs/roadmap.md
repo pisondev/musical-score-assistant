@@ -36,6 +36,7 @@ The web app itself never generates music; it displays, plays, and explains.
 - Playback with separate hands, tempo control, metronome with count-in, and looping.
 - Playhead highlighting on the score and automatic scrolling.
 - Printing and saving as PDF, laid out for A4.
+- MIDI download of the performance on the sheet.
 - A compact interface: drop-down menus for the options, and a guide that opens on request.
 - Validation of range, hand span, low close intervals, slash-chord bass, and melody clashes.
 
@@ -54,7 +55,7 @@ The web app itself never generates music; it displays, plays, and explains.
 
 ## Later
 
-- MusicXML or MIDI export.
+- MusicXML export.
 - Written endings and interludes, like the introduction.
 - Different arrangements per verse.
 - Practice with a MIDI keyboard that waits for the right notes.

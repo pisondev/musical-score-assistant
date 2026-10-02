@@ -11,7 +11,7 @@ import {
 import { useSettings, type Notation } from '../store/settings';
 import { cx } from './classnames';
 import { introName } from './intro-name';
-import { BookIcon, CheckIcon, MinusIcon, PlusIcon, PrinterIcon } from './icons';
+import { BookIcon, CheckIcon, DownloadIcon, MinusIcon, PlusIcon, PrinterIcon } from './icons';
 import { Popover } from './Popover';
 
 export const MAX_TRANSPOSE = 6;
@@ -44,6 +44,7 @@ interface ToolbarProps {
   /** The key after transposing. */
   soundingKey: NoteName;
   onPrint: () => void;
+  onDownloadMidi: () => void;
 }
 
 function LeftHandMenu({
@@ -293,6 +294,15 @@ export function Toolbar(props: ToolbarProps) {
       >
         <PrinterIcon width={18} height={18} />
         <span>Print / PDF</span>
+      </button>
+      <button
+        type="button"
+        className="button"
+        onClick={props.onDownloadMidi}
+        title="Download what is on the sheet as a MIDI file, at the current tempo"
+      >
+        <DownloadIcon width={18} height={18} />
+        <span>MIDI</span>
       </button>
     </div>
   );

@@ -110,6 +110,16 @@ export function PrinterIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function DownloadIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M12 4v11" />
+      <path d="M7.5 11l4.5 4.5 4.5-4.5" />
+      <path d="M5 20h14" />
+    </Icon>
+  );
+}
+
 export function BookIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon {...props}>

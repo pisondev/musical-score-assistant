@@ -52,6 +52,7 @@ in the command-line checker.
 | `keyboard.ts`    | Range of the target instrument, a 61-key keyboard                            |
 | `staff.ts`       | Staff notation for a row of slots: note values, ties, beams, accidentals     |
 | `mei.ts`         | Serializes a performance as MEI for the staff-notation engraver              |
+| `midi.ts`        | Writes a performance as a Standard MIDI File                                 |
 | `transpose.ts`   | Moves a song and an arrangement to another key                               |
 | `performance.ts` | Combines song, arrangement, introduction, and transposition                  |
 | `validate.ts`    | Playability and harmony checks                                               |
@@ -137,6 +138,9 @@ Layout notes:
   starts on a new system.
 - The playhead toggles a CSS class directly on the slot elements instead of re-rendering React
   components on every animation frame.
+- MIDI download: `midi.ts` writes the same note events the audio engine plays, so the file
+  matches what is heard: one conductor track with tempo, meter, and key, and one track per
+  hand. The ticks are the engine's own (480 per quarter note), so nothing is rounded.
 - Staff notation: `mei.ts` gives every note the id of the slot it stands for and every measure
   the id of its index. Verovio keeps those ids in the SVG, so the playhead, the highlight of the
   current measure, and click-to-seek work exactly as on the numbered sheet. The introduction and
@@ -165,6 +169,7 @@ before opening the app.
 - dynamics, transposition, introductions, and chord extensions;
 - staff notation (note values, ties, beams, accidentals, MEI output, and a render through the
   engraver), gap detection, and the keyboard range;
+- the MIDI writer, read back byte by byte;
 - sheet layout;
 - every committed song must load without errors or warnings.
 

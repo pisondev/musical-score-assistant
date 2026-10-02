@@ -10,7 +10,8 @@ export { formatChordSymbol, normalizeChordSymbol, parseChord, type Chord } from 
 export { DynamicsTimeline, type Hairpin } from './dynamics';
 export { findGaps, type Gap } from './gaps';
 export { KEYBOARD_HIGHEST, KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard';
-export { formatNoteName, midiToText, toneToText } from './notes';
+export { midiFileName, toMidiFile, type MidiOptions } from './midi';
+export { formatNoteName, midiToText, noteNameToText, toneToText } from './notes';
 export { buildPerformance, type Performance } from './performance';
 export { buildNoteEvents, buildSlotSpans, measureIndexAt } from './playback';
 export { parseSong } from './song';
