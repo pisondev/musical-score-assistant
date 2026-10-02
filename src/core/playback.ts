@@ -27,6 +27,18 @@ const VELOCITY: Record<Track, { downbeat: number; beat: number; offbeat: number 
 /** Fills are played a little under the melody they decorate. */
 const FILL_VELOCITY = { downbeat: 0.57, beat: 0.55, offbeat: 0.53 };
 
+/**
+ * The notes under the top note of a right-hand chord are played a little
+ * softer, so the melody stays in front of the chord that carries it.
+ */
+const UNDER_THE_TOP = 0.88;
+
+/**
+ * Time between two notes of a rolled chord, in ticks: about thirty
+ * milliseconds at a moderate tempo, and quicker when the music is.
+ */
+const ROLL_STEP = 16;
+
 const MIN_VELOCITY = 0.08;
 const MAX_VELOCITY = 1;
 
@@ -51,18 +63,19 @@ function eventsForTrack(
 
       const velocity =
         slot.start === 0 ? levels.downbeat : slot.start % beat === 0 ? levels.beat : levels.offbeat;
-      for (const pitch of slot.pitches) {
+      slot.pitches.forEach((pitch, position) => {
+        const under = track === 'right' && position < slot.pitches.length - 1;
         const event: NoteEvent = {
           track,
           tick: measure.startTick + slot.start,
           duration: slot.duration,
           midi: pitch.midi,
-          velocity,
+          velocity: under ? velocity * UNDER_THE_TOP : velocity,
           slotId: slot.id,
         };
         events.push(event);
         sounding.push(event);
-      }
+      });
     }
   }
   return events;
@@ -135,6 +148,46 @@ function sustainFills(
   }
 }
 
+/**
+ * Spreads the notes of rolled chords in time, from the lowest to the highest.
+ * In the left hand the bass keeps the beat and the other notes follow it. In
+ * the right hand the roll leads up to the beat, so the top note, which is the
+ * melody, arrives on time.
+ */
+function rollChords(events: NoteEvent[], song: Song, arrangement: Arrangement): void {
+  const rolled = new Set<string>();
+  const collect = (slots: Slot[] | undefined) => {
+    for (const slot of slots ?? []) if (slot.rolled && slot.pitches.length > 1) rolled.add(slot.id);
+  };
+  song.measures.forEach((measure, index) => {
+    collect(measure.slots);
+    collect(measure.fills);
+    collect(measure.voice);
+    collect(arrangement.measures[index].slots);
+  });
+  if (rolled.size === 0) return;
+
+  const chords = new Map<string, NoteEvent[]>();
+  for (const event of events) {
+    if (!rolled.has(event.slotId)) continue;
+    const chord = chords.get(event.slotId);
+    if (chord) chord.push(event);
+    else chords.set(event.slotId, [event]);
+  }
+  for (const chord of chords.values()) {
+    chord.sort((a, b) => a.midi - b.midi);
+    const last = chord.length - 1;
+    chord.forEach((event, position) => {
+      // A short chord is rolled more tightly, so the roll never eats into the note itself.
+      const step = Math.min(ROLL_STEP, Math.floor(event.duration / (3 * last)));
+      const shift = event.track === 'left' ? step * position : -step * (last - position);
+      const tick = Math.max(0, event.tick + shift);
+      event.duration -= tick - event.tick;
+      event.tick = tick;
+    });
+  }
+}
+
 /** The written notes of a performance, row by row. */
 function writtenRows(
   song: Song,
@@ -162,8 +215,8 @@ function writtenRows(
 }
 
 /**
- * The notes exactly as written: hold dots extend them, but no pedal and no
- * dynamics are applied. The sung melody, when the song carries one beside the
+ * The notes exactly as written: hold dots extend them, but no pedal, no
+ * rolled chords, and no dynamics are applied. The sung melody, when the song carries one beside the
  * right hand, becomes the track "voice".
  */
 export function buildWrittenNotes(song: Song, arrangement: Arrangement): NoteEvent[] {
@@ -177,6 +230,7 @@ export function buildNoteEvents(song: Song, arrangement: Arrangement): NoteEvent
   sustainLeftHand(left, song, arrangement);
   sustainFills(fills, [...melody, ...fills], song, arrangement);
   const events = [...melody, ...fills, ...left, ...voice];
+  rollChords(events, song, arrangement);
 
   const dynamics = new DynamicsTimeline(song.measures);
   for (const event of events) {

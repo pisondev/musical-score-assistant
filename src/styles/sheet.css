@@ -423,6 +423,24 @@
   border-radius: 50%;
 }
 
+/* A rolled chord: a wavy line in front of the stack, drawn as a stroke so that it prints. */
+.roll {
+  position: absolute;
+  left: -9px;
+  bottom: var(--dot-zone);
+  width: 5px;
+  height: calc(var(--roll-cells, 2) * var(--cell-height) - 2 * var(--dot-zone));
+  overflow: visible;
+}
+
+.roll path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
 /* Beams sit above the tallest stack of their beat. */
 .beam {
   position: absolute;

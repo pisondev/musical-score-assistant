@@ -125,6 +125,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `npm run check` lists the bridge, the key lift, and the endings of every song, and says which
   of them are not written yet.
 
+- Rolled chords. A stack written as `~<1 3 5>` is struck one note after the other, from the
+  bottom, about thirty milliseconds apart, in the playback, the MP3, and the MIDI file. The
+  numbered sheet draws a wavy line in front of it and staff notation the arpeggio line. The
+  endings and the final chords of "Amazing Grace" use them.
+
 - Hymnals. A song names the hymnal it is taken from with `book:` in its header (`KK` Kidung
   Keesaan, `PKJ` Pelengkap Kidung Jemaat, `KJ` Kidung Jemaat, `KPJ` Kidung Pasamuwan Jawi) and
   is cited as "PKJ 184" on its card, in the song menu, and above the sheet. The home page lists
@@ -152,6 +157,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The notes under the top note of a right-hand chord are played a little softer than the top,
+  so the melody stays in front.
 - A measure that was cut short for the pickup is completed with holds when a bridge, an
   interlude, or an ending follows it, so the meter stays intact.
 - The sheet is drawn in sections with headings (Intro, Song, Interlude, Ending); the loop menu,

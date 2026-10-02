@@ -91,6 +91,7 @@ that code; to give it a full name, add it to the list in `src/core/hymnals.ts`. 
 | `#` and `b`     | Sharp or flat, written before the digit                              | `#4` `b7`        |
 | `( )`           | Divides one beat evenly among its contents; may be nested            | `(3 4)`          |
 | `< >`           | Notes struck together, drawn as a vertical stack                     | `<3 5>`          |
+| `~< >`          | The same notes rolled: struck one after the other, from the bottom   | `~<1 3 5>`       |
 | `[C]`           | Chord that takes effect on the next note                             | `[F]3 . [C7]2 1` |
 | `{mf}`          | Dynamic mark that takes effect on the next note (see below)          | `{p}1 2 {<}3 4`  |
 | `?`             | Marks the preceding note as uncertain so it is listed by the checker | `5?`             |
@@ -114,6 +115,19 @@ Rules:
   the first full measure is measure 1. The last measure may be shorter as well.
 - Every other measure must add up exactly; otherwise the checker reports an error and the app
   marks the measure.
+
+### Rolled chords
+
+A stack written with `~` in front is a rolled chord, in either hand and in every kind of part:
+`~<1 5 1'>`. The sheet draws a wavy line in front of it, staff notation the arpeggio line. In
+playback and in the MIDI file its notes follow each other about thirty milliseconds apart, a
+little closer in fast music. In the left hand the lowest note keeps the beat and the others
+follow; in the right hand the roll leads up to the beat, so the top note, the melody, is on
+time.
+
+Roll a chord where it should bloom instead of strike: a long chord at the end of a phrase, the
+chords of an _Amen_, a final chord, a chord too wide to reach at once. Leave rhythmic chords
+solid.
 
 ### Dynamics
 

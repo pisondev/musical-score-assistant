@@ -104,6 +104,10 @@ Key ideas:
   changes, and the last notes of a right-hand fill until the right hand plays again (or until
   a chord arrives that they do not belong to). The sheet shows the written lengths; only the
   sound is longer.
+- **How a chord is struck.** A slot marked `rolled` stays one symbol on the sheet (with a wavy
+  line) and in the written notes the checker reads; `buildNoteEvents` spreads its notes in
+  time afterwards, so the audio engine and the MIDI writer need to know nothing about it. The
+  notes under the top note of a right-hand chord are played slightly softer than the top.
 - **Transposition keeps the digits.** Numbered notation is relative to "1", so transposing
   changes pitches, chord symbols, and the key, and leaves every written tone as it is.
 - **Dynamics are a timeline.** Level marks and hairpins from all measures form one timeline.

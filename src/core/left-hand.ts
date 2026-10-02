@@ -111,6 +111,7 @@ export function resolveLeftMeasure(
       beat: slot.beat,
       beams: slot.beams,
       tuplet: slot.tuplet,
+      rolled: slot.rolled || undefined,
     };
   });
 

@@ -61,6 +61,8 @@ export interface StaffEvent {
   /** Position within a triplet, when the event belongs to one. */
   triplet?: GroupPosition;
   lyric?: string;
+  /** True where a rolled chord is struck; it gets an arpeggio line in front of it. */
+  rolled?: boolean;
 }
 
 interface Chain {
@@ -70,6 +72,7 @@ interface Chain {
   duration: number;
   pitches: Pitch[];
   lyric?: string;
+  rolled?: boolean;
   /** Ids of the slots that begin inside the chain, by their start tick. */
   ids: Map<number, string>;
   /** True when the chain continues a note from the previous measure. */
@@ -198,6 +201,7 @@ function buildChains(slots: Slot[], carried: Pitch[] | null): Chain[] {
       duration: slot.duration,
       pitches: slot.kind === 'note' ? slot.pitches : [],
       lyric: slot.lyric,
+      rolled: slot.rolled,
       ids: new Map([[slot.start, slot.id]]),
       tiedFromPrevious: false,
       triplet,
@@ -285,6 +289,7 @@ export function engraveRow(
           tie,
           triplet: chain.triplet,
           lyric: index === 0 ? chain.lyric : undefined,
+          rolled: (index === 0 && chain.rolled && chain.pitches.length > 1) || undefined,
         };
         events.push(event);
       });

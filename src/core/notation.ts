@@ -8,6 +8,7 @@ import type { Barline, DynamicSign, Issue, SlotKind } from './types';
  *   # and b    sharpen or flatten the note (written before the digit)
  *   ( … )      splits one beat (or one parent unit) evenly among its contents
  *   < … >      notes struck together, written as a vertical stack
+ *   ~< … >     the same notes rolled: struck one after the other from the bottom
  *   [C]        a chord symbol that applies from the next note onward
  *   {mf}       a dynamic mark (pp p mp mf f ff); {<} and {>} start a hairpin
  *   ?          marks the preceding note as uncertain
@@ -30,6 +31,8 @@ export interface RawSlot {
   tuplet?: number;
   tones: RawTone[];
   uncertain: boolean;
+  /** True for stacked notes written with "~": a rolled chord. */
+  rolled: boolean;
   column: number;
 }
 
@@ -68,13 +71,21 @@ type Token =
   | { type: 'close'; column: number }
   | { type: 'chord'; symbol: string; column: number }
   | { type: 'dynamic'; sign: DynamicSign; column: number }
-  | { type: 'leaf'; kind: SlotKind; tones: RawTone[]; uncertain: boolean; column: number };
+  | {
+      type: 'leaf';
+      kind: SlotKind;
+      tones: RawTone[];
+      uncertain: boolean;
+      rolled: boolean;
+      column: number;
+    };
 
 interface LeafNode {
   type: 'leaf';
   kind: SlotKind;
   tones: RawTone[];
   uncertain: boolean;
+  rolled: boolean;
   column: number;
   chords: { symbol: string; column: number }[];
   dynamics: { sign: DynamicSign; column: number }[];
@@ -101,6 +112,8 @@ function parseTone(match: RegExpExecArray): RawTone {
 function tokenize(text: string, line: number, issues: Issue[]): Token[] {
   const tokens: Token[] = [];
   let index = 0;
+  // Set by "~" for the stack that follows it.
+  let rolled = false;
 
   const fail = (message: string, column: number) => {
     issues.push({ severity: 'error', message, line, column });
@@ -152,6 +165,10 @@ function tokenize(text: string, line: number, issues: Issue[]): Token[] {
         fail(`"{${sign}}" is not a dynamic mark; use pp, p, mp, mf, f, ff, < or >.`, column);
       }
       index = end + 1;
+    } else if (char === '~') {
+      if (text[index + 1] === '<') rolled = true;
+      else fail('"~" rolls a chord and must be followed by stacked notes: ~<1 3 5>.', column);
+      index += 1;
     } else if (char === '<') {
       const end = text.indexOf('>', index);
       if (end === -1) {
@@ -173,15 +190,23 @@ function tokenize(text: string, line: number, issues: Issue[]): Token[] {
         if (match[4] === '?') uncertain = true;
       }
       if (tones.length > 0) {
-        tokens.push({ type: 'leaf', kind: 'note', tones, uncertain, column });
+        tokens.push({ type: 'leaf', kind: 'note', tones, uncertain, rolled, column });
       }
+      rolled = false;
       index = end + 1;
     } else if (char === '.') {
-      tokens.push({ type: 'leaf', kind: 'hold', tones: [], uncertain: false, column });
+      tokens.push({
+        type: 'leaf',
+        kind: 'hold',
+        tones: [],
+        uncertain: false,
+        rolled: false,
+        column,
+      });
       index += 1;
     } else if (char === '0') {
       const uncertain = text[index + 1] === '?';
-      tokens.push({ type: 'leaf', kind: 'rest', tones: [], uncertain, column });
+      tokens.push({ type: 'leaf', kind: 'rest', tones: [], uncertain, rolled: false, column });
       index += uncertain ? 2 : 1;
     } else {
       const match = NOTE_PATTERN.exec(rest);
@@ -191,6 +216,7 @@ function tokenize(text: string, line: number, issues: Issue[]): Token[] {
           kind: 'note',
           tones: [parseTone(match)],
           uncertain: match[4] === '?',
+          rolled: false,
           column,
         });
         index += match[0].length;
@@ -242,6 +268,7 @@ function layOut(
         tuplet,
         tones: node.tones,
         uncertain: node.uncertain,
+        rolled: node.rolled,
         column: node.column,
       });
       return;
@@ -370,6 +397,7 @@ export function parseNotationLine(text: string, beat: number, line: number): Par
           kind: token.kind,
           tones: token.tones,
           uncertain: token.uncertain,
+          rolled: token.rolled,
           column: token.column,
           chords: pendingChords,
           dynamics: pendingDynamics,

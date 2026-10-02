@@ -175,6 +175,7 @@ export function buildRightHandPart(
       beat: slot.beat,
       beams: slot.beams,
       tuplet: slot.tuplet,
+      rolled: slot.rolled || undefined,
       uncertain: slot.uncertain || undefined,
     }));
 

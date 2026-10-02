@@ -69,6 +69,8 @@ export interface Slot {
   beams: number;
   /** Tuplet size when the slot belongs to an uneven division such as a triplet. */
   tuplet?: number;
+  /** A rolled chord: the stacked notes are struck one after the other, quickly, from the bottom. */
+  rolled?: boolean;
   lyric?: string;
   /** Marked with "?" in the source: the transcription needs a second look. */
   uncertain?: boolean;

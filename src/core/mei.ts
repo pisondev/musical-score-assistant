@@ -200,6 +200,11 @@ export function toMei(
       if (voice) collect('voice', measure, voice[position]);
 
       const controls: string[] = [];
+      // A rolled chord gets the wavy arpeggio line, attached to the chord by its id.
+      const rows = [right[position], added, left[position], ...(voice ? [voice[position]] : [])];
+      for (const event of rows.flat()) {
+        if (event.rolled) controls.push(`<arpeg plist="#${staffElementId(event.id)}"/>`);
+      }
       for (const chord of parts[position].chords) {
         controls.push(
           `<harm staff="1" place="above" tstamp="${timestamp(chord.start, beat)}">${escapeXml(formatChordSymbol(chord.symbol))}</harm>`,

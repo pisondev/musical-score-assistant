@@ -47,6 +47,9 @@ back so each idea can be heard before it is practised.
   the chord symbols, and the sound change.
 - **Dynamics.** Marks from _pp_ to _ff_ and crescendo or diminuendo hairpins are shown on the
   sheet and shape the loudness of the playback.
+- **Rolled chords.** A chord can be written as rolled: its notes follow each other within a
+  few hundredths of a second instead of sounding at once, on the sheet (a wavy line), in the
+  playback, and in the MIDI file.
 - **A beginning, a repeat, and an ending.** An introduction leads into the song over a bridge
   that cues the singers. The song can be repeated a half step or a whole step higher (a
   modulation): an interlude lifts the key, and the score continues below with the repeat. A

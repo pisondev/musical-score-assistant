@@ -149,6 +149,25 @@ interface StaffRowProps {
   quiet?: boolean;
 }
 
+/** The wavy line in front of a rolled chord, as tall as the stack it belongs to. */
+function RollMark({ cells }: { cells: number }) {
+  const waves = 3 * cells;
+  let path = 'M3 0';
+  for (let wave = 0; wave < waves; wave += 1) path += ` q${wave % 2 === 0 ? 3 : -3} 2 0 4`;
+  return (
+    <svg
+      className="roll"
+      style={{ '--roll-cells': cells } as CSSProperties}
+      viewBox={`0 0 6 ${4 * waves}`}
+      preserveAspectRatio="none"
+      role="img"
+      aria-label="rolled chord"
+    >
+      <path d={path} />
+    </svg>
+  );
+}
+
 function StaffRow({ slots, length, quiet = false }: StaffRowProps) {
   // Beams within one beat share a height, set by the tallest stack under them.
   const beamHeights = new Map<number, number>();
@@ -192,6 +211,7 @@ function StaffRow({ slots, length, quiet = false }: StaffRowProps) {
               <span className={cx('beam', 'beam--second', joinsSecond && 'beam--join')} />
             )}
             {startsTuplet && <span className="tuplet">{slot.tuplet}</span>}
+            {slot.rolled && slot.pitches.length > 1 && <RollMark cells={slot.pitches.length} />}
             <span className="slot__body">
               {slot.kind === 'note' &&
                 [...slot.pitches]

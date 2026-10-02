@@ -214,6 +214,9 @@ Guidelines:
 - **Slash chords** need their bass as the first left-hand note of the chord (`[C/E]3 ...`).
 - **Reuse shapes.** An arrangement that introduces two or three ideas and repeats them is easier
   to learn than one that changes every measure.
+- **Roll the chords that should bloom.** Write `~` in front of a stack to roll it: a long
+  chord at the end of a phrase, the chords of an Amen, a final chord, a chord wider than the
+  hand. Leave rhythmic chords solid (a backbeat, a fanfare, a drum roll).
 - **Explain.** Give every measure that departs from the baseline a one-sentence `note` saying
   what changed and why it works. List each new idea under `patterns` with a name, its notation,
   and when to use it. Add two or three `tips` for practising.

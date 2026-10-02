@@ -104,6 +104,7 @@ export function buildPassage(song: Song, spec: PassageSpec, role: PassageRole): 
       beat: slot.beat,
       beams: slot.beams,
       tuplet: slot.tuplet,
+      rolled: slot.rolled || undefined,
     }));
 
     const resolved = resolveLeftMeasure(rawLeft, index, carried, context);
