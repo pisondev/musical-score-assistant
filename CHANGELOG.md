@@ -72,9 +72,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   level on, does not move.
 - The 61-key keyboard as the target instrument: a warning for left-hand notes below C2, and
   transposition that keeps the left hand on the keyboard.
-- MIDI download: a button in the toolbar saves the performance on the sheet (introduction,
-  arrangement, key, dynamics) as a Standard MIDI File at the current tempo, with one track per
-  hand that is switched on.
+- Downloads: a menu in the toolbar saves the performance on the sheet (introduction,
+  arrangement, key, dynamics), at the current tempo and with the hands that are switched on, as
+  - a Standard MIDI File with one track per hand, or
+  - an MP3 recording, rendered faster than real time with the piano of the app and raised to a
+    normal listening level.
 - Fills in "Amazing Grace" where the melody holds (measures 7 and 8) for the majestic and jazz
   arrangements.
 

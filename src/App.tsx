@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { engine } from './audio/engine';
+import { engine, type HandMode } from './audio/engine';
+import { encodeMp3 } from './audio/mp3';
 import {
   BASELINE_ID,
   buildNoteEvents,
@@ -8,11 +9,12 @@ import {
   formatNoteName,
   INTRO_LAST_PHRASE,
   INTRO_OFF,
-  midiFileName,
+  exportFileName,
   noteNameToText,
   toMidiFile,
   type Hand,
   type IntroChoice,
+  type Performance,
 } from './core';
 import { library } from './library';
 import { usePlayer, type ScoreReset } from './store/player';
@@ -37,6 +39,30 @@ function songIdFromLocation(): string | null {
   return new URLSearchParams(window.location.hash.slice(1)).get(SONG_PARAMETER);
 }
 
+function handsOf(mode: HandMode): Hand[] {
+  return mode === 'both' ? ['right', 'left'] : [mode];
+}
+
+function fileNameFor(performance: Performance, extension: string): string {
+  const { meta } = performance.song;
+  return exportFileName(
+    meta.title,
+    performance.arrangement.name,
+    noteNameToText(meta.key),
+    extension,
+  );
+}
+
+/** Hands a generated file to the browser as a download. */
+function saveFile(file: Blob, name: string): void {
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function isTypingTarget(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName);
 }
@@ -49,6 +75,7 @@ export function App() {
   const [arrangementId, setArrangementId] = useState(BASELINE_ID);
   const [semitones, setSemitones] = useState(0);
   const [printing, setPrinting] = useState(false);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
 
   const introSetting = useSettings((state) => state.intro);
   const notation = useSettings((state) => state.notation);
@@ -145,28 +172,41 @@ export function App() {
     window.print();
   }, []);
 
-  // The file holds what is on the sheet: the introduction, the chosen left hand,
-  // the key, the tempo, and only the hands that are switched on.
+  // A download holds what is on the sheet: the introduction, the chosen left
+  // hand, the key, the tempo, and only the hands that are switched on.
   const downloadMidi = useCallback(() => {
     if (!performance) return;
     const { tempo, handMode } = usePlayer.getState();
-    const hands: Hand[] = handMode === 'both' ? ['right', 'left'] : [handMode];
-    const { song } = performance;
-    const bytes = toMidiFile(song, buildNoteEvents(song, performance.arrangement), {
+    const { song, arrangement: played } = performance;
+    const bytes = toMidiFile(song, buildNoteEvents(song, played), {
       tempo,
-      hands,
+      hands: handsOf(handMode),
     });
-    const url = URL.createObjectURL(new Blob([bytes.slice().buffer], { type: 'audio/midi' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = midiFileName(
-      song.meta.title,
-      performance.arrangement.name,
-      noteNameToText(song.meta.key),
+    saveFile(
+      new Blob([bytes.slice().buffer], { type: 'audio/midi' }),
+      fileNameFor(performance, 'mid'),
     );
-    link.click();
-    URL.revokeObjectURL(url);
   }, [performance]);
+
+  const downloadMp3 = useCallback(async () => {
+    if (!performance || exportStatus !== null) return;
+    const player = usePlayer.getState();
+    // Rendering borrows the audio engine, so live playback has to stop first.
+    player.stop();
+    try {
+      setExportStatus('Recording…');
+      const audio = await engine.render(handsOf(player.handMode));
+      const file = await encodeMp3(audio, (fraction) =>
+        setExportStatus(`Encoding ${Math.round(fraction * 100)}%`),
+      );
+      saveFile(file, fileNameFor(performance, 'mp3'));
+    } catch (error) {
+      console.error(error);
+      usePlayer.setState({ error: 'The MP3 could not be created. Please try again.' });
+    } finally {
+      setExportStatus(null);
+    }
+  }, [performance, exportStatus]);
 
   const selectSong = (id: string) => {
     setSongId(id);
@@ -236,6 +276,8 @@ export function App() {
               soundingKey={performance.song.meta.key}
               onPrint={print}
               onDownloadMidi={downloadMidi}
+              onDownloadMp3={() => void downloadMp3()}
+              exportStatus={exportStatus}
             />
             <IssueList
               song={performance.song}

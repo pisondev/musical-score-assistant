@@ -45,6 +45,10 @@ const SAMPLE_NOTES = [
 const SAMPLE_BASE_URL = `${import.meta.env.BASE_URL}samples/piano/`;
 const HANDS: Hand[] = ['right', 'left'];
 const CHANNEL_VOLUME: Record<Hand, number> = { right: 2, left: -1 };
+const SAMPLER_RELEASE = 1.2;
+/** Silence appended to a recording so the last notes can ring out, in seconds. */
+const RECORDING_TAIL = 2.5;
+const RECORDING_SAMPLE_RATE = 44100;
 const CLICK_ACCENT = 'C6';
 const CLICK_BEAT = 'G5';
 
@@ -63,6 +67,7 @@ export class PlaybackEngine {
 
   private tone: Tone | null = null;
   private loading: Promise<void> | null = null;
+  private buffers: ToneModule.ToneAudioBuffers | null = null;
   private samplers: Record<Hand, ToneModule.Sampler> | null = null;
   private channels: Record<Hand, ToneModule.Channel> | null = null;
   private click: ToneModule.Synth | null = null;
@@ -104,14 +109,11 @@ export class PlaybackEngine {
     const channels = {} as Record<Hand, ToneModule.Channel>;
     const samplers = {} as Record<Hand, ToneModule.Sampler>;
     for (const hand of HANDS) {
-      channels[hand] = new tone.Channel({ volume: CHANNEL_VOLUME[hand] }).toDestination();
-      samplers[hand] = new tone.Sampler({
-        urls: Object.fromEntries(SAMPLE_NOTES.map((note) => [note, buffers.get(note)])),
-        release: 1.2,
-      }).connect(channels[hand]);
+      ({ channel: channels[hand], sampler: samplers[hand] } = createVoice(tone, buffers, hand));
     }
 
     this.tone = tone;
+    this.buffers = buffers;
     this.channels = channels;
     this.samplers = samplers;
     this.click = this.createClick(tone);
@@ -319,6 +321,44 @@ export class PlaybackEngine {
     );
   }
 
+  /**
+   * Renders the loaded score to audio, faster than real time, with the same
+   * piano, tempo, and dynamics as live playback. Only the given hands are
+   * included; the metronome and the loop are not.
+   */
+  async render(hands: Hand[]): Promise<AudioBuffer> {
+    await this.preload();
+    const tone = this.tone!;
+    const buffers = this.buffers!;
+    const score = this.score;
+    if (!score) throw new Error('No score is loaded.');
+
+    const secondsPerTick = 60 / (this.quarterTempo * PPQ);
+    const duration = score.totalTicks * secondsPerTick + RECORDING_TAIL;
+    const rendered = await tone.Offline(
+      () => {
+        for (const hand of hands) {
+          const { sampler } = createVoice(tone, buffers, hand);
+          for (const event of score.events) {
+            if (event.hand !== hand) continue;
+            sampler.triggerAttackRelease(
+              tone.Frequency(event.midi, 'midi').toNote(),
+              event.duration * secondsPerTick,
+              event.tick * secondsPerTick,
+              event.velocity,
+            );
+          }
+        }
+      },
+      duration,
+      2,
+      RECORDING_SAMPLE_RATE,
+    );
+    const audio = rendered.get();
+    if (!audio) throw new Error('The recording is empty.');
+    return audio;
+  }
+
   /** Repeats the given tick range, or plays straight through when null. */
   setLoop(range: LoopRange | null): void {
     this.loop = range;
@@ -335,6 +375,20 @@ export class PlaybackEngine {
       transport.loop = false;
     }
   }
+}
+
+/** One hand's piano: a sampler routed through its own channel to the output. */
+function createVoice(
+  tone: Tone,
+  buffers: ToneModule.ToneAudioBuffers,
+  hand: Hand,
+): { channel: ToneModule.Channel; sampler: ToneModule.Sampler } {
+  const channel = new tone.Channel({ volume: CHANNEL_VOLUME[hand] }).toDestination();
+  const sampler = new tone.Sampler({
+    urls: Object.fromEntries(SAMPLE_NOTES.map((note) => [note, buffers.get(note)])),
+    release: SAMPLER_RELEASE,
+  }).connect(channel);
+  return { channel, sampler };
 }
 
 /** The single engine instance shared by the whole app. */

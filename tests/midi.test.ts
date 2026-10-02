@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createSongBundle } from '../src/core/bundle';
-import { midiFileName, toMidiFile, variableLength } from '../src/core/midi';
+import { exportFileName, toMidiFile, variableLength } from '../src/core/midi';
 import { buildPerformance } from '../src/core/performance';
 import { buildNoteEvents } from '../src/core/playback';
 import type { Hand, NoteEvent } from '../src/core/types';
@@ -166,13 +166,34 @@ describe('toMidiFile', () => {
   });
 });
 
-describe('midiFileName', () => {
+describe('exportFileName', () => {
   it('names the song, the arrangement, and the key, without characters a file system rejects', () => {
-    expect(midiFileName('Amazing Grace', 'Gospel waltz', 'Bb')).toBe(
+    expect(exportFileName('Amazing Grace', 'Gospel waltz', 'Bb', 'mid')).toBe(
       'Amazing Grace - Gospel waltz (1 = Bb).mid',
     );
-    expect(midiFileName('What? A "Song"/Two', 'A: B', 'F#')).toBe(
-      'What A SongTwo - A B (1 = F#).mid',
+    expect(exportFileName('What? A "Song"/Two', 'A: B', 'F#', 'mp3')).toBe(
+      'What A SongTwo - A B (1 = F#).mp3',
     );
+  });
+});
+
+describe('toInt16', () => {
+  it('scales samples to 16 bits and clips what is out of range', async () => {
+    const { toInt16 } = await import('../src/audio/mp3');
+    expect([...toInt16(new Float32Array([0, 0.5, -0.5, 1, -1, 2, -2]))]).toEqual([
+      0, 16384, -16384, 32767, -32768, 32767, -32768,
+    ]);
+  });
+});
+
+describe('normalizationGain', () => {
+  it('raises the loudest sample to just below full scale, within limits', async () => {
+    const { normalizationGain, toInt16 } = await import('../src/audio/mp3');
+    expect(normalizationGain(0.18)).toBeCloseTo(5, 5);
+    expect(normalizationGain(0.9)).toBeCloseTo(1, 5);
+    // Silence is left alone, and a faint recording is not boosted without limit.
+    expect(normalizationGain(0)).toBe(1);
+    expect(normalizationGain(0.001)).toBe(12);
+    expect([...toInt16(new Float32Array([0.1, -0.1]), 5)]).toEqual([16384, -16384]);
   });
 });

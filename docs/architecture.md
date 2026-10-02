@@ -98,6 +98,10 @@ keep the first page view light.
   sustain pedal changed on every chord.
 - The metronome is a repeating transport event; the count-in is scheduled on the audio clock
   before the transport starts.
+- `render()` plays the same note events into an offline audio context, which runs faster than
+  real time and returns the audio as a buffer. `mp3.ts` raises it to a normal listening level
+  and encodes it with an MP3 encoder that is loaded on demand, in slices so the page stays
+  responsive.
 
 ### `src/store`: state
 

@@ -45,6 +45,9 @@ interface ToolbarProps {
   soundingKey: NoteName;
   onPrint: () => void;
   onDownloadMidi: () => void;
+  onDownloadMp3: () => void;
+  /** Progress of an MP3 that is being made, or null when none is. */
+  exportStatus: string | null;
 }
 
 function LeftHandMenu({
@@ -255,6 +258,69 @@ function NotationSwitch() {
   );
 }
 
+function DownloadMenu({
+  onDownloadMidi,
+  onDownloadMp3,
+  exportStatus,
+}: Pick<ToolbarProps, 'onDownloadMidi' | 'onDownloadMp3' | 'exportStatus'>) {
+  const options = [
+    {
+      name: 'MIDI',
+      extension: '.mid',
+      description: 'The notes themselves, one track per hand. For a keyboard or a music program.',
+      action: onDownloadMidi,
+    },
+    {
+      name: 'MP3',
+      extension: '.mp3',
+      description: 'A recording with the piano sound of this app. For a phone or any audio player.',
+      action: onDownloadMp3,
+    },
+  ];
+
+  return (
+    <Popover
+      label="Download"
+      align="right"
+      value={
+        exportStatus ?? (
+          <>
+            <DownloadIcon width={15} height={15} />
+            MIDI, MP3
+          </>
+        )
+      }
+    >
+      {(close) => (
+        <div className="menu">
+          {options.map(({ name, extension, description, action }) => (
+            <button
+              key={name}
+              type="button"
+              className="option"
+              disabled={exportStatus !== null}
+              onClick={() => {
+                close();
+                action();
+              }}
+            >
+              <span className="option__title">
+                {name}
+                <span className="tag">{extension}</span>
+              </span>
+              <span className="option__summary">{description}</span>
+            </button>
+          ))}
+          <p className="menu__note">
+            Both contain what is on the sheet: the intro, the left hand, the key, and the dynamics,
+            at the current tempo and with the hands that are switched on.
+          </p>
+        </div>
+      )}
+    </Popover>
+  );
+}
+
 /** The controls that decide what is on the sheet: left hand, intro, key, notation, and rows. */
 export function Toolbar(props: ToolbarProps) {
   const guideOpen = useSettings((state) => state.guideOpen);
@@ -295,15 +361,11 @@ export function Toolbar(props: ToolbarProps) {
         <PrinterIcon width={18} height={18} />
         <span>Print / PDF</span>
       </button>
-      <button
-        type="button"
-        className="button"
-        onClick={props.onDownloadMidi}
-        title="Download what is on the sheet as a MIDI file, at the current tempo"
-      >
-        <DownloadIcon width={18} height={18} />
-        <span>MIDI</span>
-      </button>
+      <DownloadMenu
+        onDownloadMidi={props.onDownloadMidi}
+        onDownloadMp3={props.onDownloadMp3}
+        exportStatus={props.exportStatus}
+      />
     </div>
   );
 }

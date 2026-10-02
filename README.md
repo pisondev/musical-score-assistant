@@ -34,8 +34,9 @@ back so each idea can be heard before it is practised.
   switching arrangements, keys, or hands while the music keeps playing.
 - **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
   key, and introduction.
-- **MIDI download.** The same performance as a MIDI file: introduction, left hand, key, and
-  dynamics as on the sheet, at the tempo of the slider, with one track per hand.
+- **MIDI and MP3 download.** The same performance as a file: introduction, left hand, key, and
+  dynamics as on the sheet, at the tempo of the slider. MIDI holds the notes, one track per hand;
+  MP3 is a recording with the piano sound of the app.
 
 The web app only displays and plays. Songs and arrangements are plain files in `songs/`, written
 outside the app (see [Adding a song](#adding-a-song)).
@@ -59,16 +60,16 @@ git at the versioned hooks in `.githooks/`.
 
 The toolbar above the sheet decides what is shown; the bar at the bottom controls playback.
 
-| Control           | What it does                                                                                               |
-| ----------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Left hand**     | Opens the arrangements, grouped by level, each tagged with its style                                       |
-| **Intro**         | Off, _Last phrase_, or a written intro; when on, playback starts with the intro                            |
-| **Key**           | Transposes by half steps; click the key to return to the original                                          |
-| **Show**          | Shows or hides lyrics and dynamics                                                                         |
-| **1 2 3 / Staff** | Switches between numbered notation and staff notation                                                      |
-| **Guide**         | Opens the panel that explains the arrangement: patterns, tips, measure notes                               |
-| **Print / PDF**   | Opens the print dialog; choose "Save as PDF" as the destination for a file                                 |
-| **MIDI**          | Downloads a `.mid` file of what is on the sheet, at the current tempo, with the hands that are switched on |
+| Control           | What it does                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Left hand**     | Opens the arrangements, grouped by level, each tagged with its style                                          |
+| **Intro**         | Off, _Last phrase_, or a written intro; when on, playback starts with the intro                               |
+| **Key**           | Transposes by half steps; click the key to return to the original                                             |
+| **Show**          | Shows or hides lyrics and dynamics                                                                            |
+| **1 2 3 / Staff** | Switches between numbered notation and staff notation                                                         |
+| **Guide**         | Opens the panel that explains the arrangement: patterns, tips, measure notes                                  |
+| **Print / PDF**   | Opens the print dialog; choose "Save as PDF" as the destination for a file                                    |
+| **Download**      | Saves what is on the sheet as MIDI (`.mid`) or MP3, at the current tempo, with the hands that are switched on |
 
 | Playback action           | Mouse                  | Keyboard                     |
 | ------------------------- | ---------------------- | ---------------------------- |
@@ -143,4 +144,5 @@ point. Run `npm run verify` before committing.
   [public/samples/piano/README.md](public/samples/piano/README.md).
 - Audio scheduling: [Tone.js](https://tonejs.github.io/).
 - Staff-notation engraving: [Verovio](https://www.verovio.org/) (LGPL-3.0).
+- MP3 encoding: [lamejs](https://github.com/gideonstele/lamejs) (LGPL-3.0).
 - Demo song: "Amazing Grace" (John Newton, 1779; tune "New Britain"), public domain.

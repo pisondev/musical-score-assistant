@@ -143,13 +143,21 @@ export function toMidiFile(song: Song, events: NoteEvent[], options: MidiOptions
   return new Uint8Array([...header, ...tracks.flat()]);
 }
 
-/** A file name for the download that names the song, the arrangement, and the key. */
-export function midiFileName(title: string, arrangementName: string, keyName: string): string {
+/**
+ * A file name for a download that names the song, the arrangement, and the
+ * key, without the characters a file system rejects.
+ */
+export function exportFileName(
+  title: string,
+  arrangementName: string,
+  keyName: string,
+  extension: string,
+): string {
   const plain = `${title} - ${arrangementName} (1 = ${keyName})`
     .replace(/♭/g, 'b')
     .replace(/♯/g, '#')
     .replace(/[\\/:*?"<>|]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
-  return `${plain}.mid`;
+  return `${plain}.${extension}`;
 }
