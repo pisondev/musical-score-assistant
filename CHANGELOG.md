@@ -37,5 +37,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A test launcher (`scripts/run-tests.mjs`) that starts Vitest from the canonical working
   directory, so the tests also pass in Windows terminals that report a lowercase drive letter.
 - Piano samples from the Salamander Grand Piano (CC BY 3.0).
+- A GitHub Actions workflow that checks formatting and runs `npm run verify` on every push and
+  pull request.
 - Documentation: usage in `README.md`, code structure in `docs/architecture.md`, purpose and
   planned work in `docs/roadmap.md`, and the `new-song` skill for adding a song from a score.
