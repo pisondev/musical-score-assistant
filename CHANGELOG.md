@@ -172,6 +172,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- New songs get five left-hand arrangements instead of seven, written in the order of the
+  player's liking: Alberti bass, gospel, jazz with shell voicings, then contemporary and
+  majestic. The two easy versions (`one-step-further` and `walking-bass`) are no longer
+  written; songs that have them keep them. The `new-song` skill and the example in
+  `docs/song-format.md` follow.
+
 - The controls of a song moved from a row of menus above the sheet into the top bar. One
   **Options** button opens every setting of the score (left hand, right hand, intro, ending,
   repeat, key, visible rows) as a list of lines with their current values; a click on a line

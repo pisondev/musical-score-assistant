@@ -46,6 +46,10 @@ Things to keep in mind:
   intermediate level on, play a fill that suits the style and leads into the next phrase. A
   static arpeggio through those places is what the tool exists to replace: the congregation
   loses the beat. Use a different fill in each gap.
+- **Quality before quantity.** A new song gets five left-hand arrangements, written in the
+  order of the player's liking: `alberti-bass`, `gospel`, `jazz` (shell voicings), then
+  `new-chords` and `majestic`. The first three are the favourites and get the most care.
+  `one-step-further` and `walking-bass` are no longer written; songs that have them keep them.
 - **Right-hand parts are written per arrangement.** Every arrangement, the baseline included,
   gets the chords under the melody (`harmony`), a _Melody + fills_ part, and an _Accompaniment_
   part that agree with its chords and share the gaps with its left hand. The player chooses

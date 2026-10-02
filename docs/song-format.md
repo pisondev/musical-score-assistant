@@ -230,23 +230,23 @@ arrangement by itself, called **My style**: root, fifth, octave on the printed c
   },
   "arrangements": [
     {
-      "id": "walking-bass",
-      "name": "Walking bass",
-      "level": "easy",
-      "style": "Hymn",
+      "id": "alberti-bass",
+      "name": "Alberti bass",
+      "level": "intermediate",
+      "style": "Classical",
       "summary": "One sentence that says what makes this version different.",
       "tips": ["A short practice hint."],
       "patterns": [
         {
-          "name": "Bass and pair",
-          "notation": "1 <5 1'> <5 1'>",
+          "name": "Alberti figure in three",
+          "notation": "(1 5) (3' 5) (3' 5)",
           "description": "What the pattern is and when to use it."
         }
       ],
       "measures": [
         { "measure": 0, "left": "0" },
-        { "measure": 1, "left": "[G]1 <5 1'> <5 1'>" },
-        { "measure": 2, "left": "[G/B]3 <5 1'> <5 1'>", "note": "Why this measure changed." }
+        { "measure": 1, "left": "[G](1 5) (3' 5) (3' 5)" },
+        { "measure": 2, "left": "[G/B](3 1') (5 1') (5 1')", "note": "Why this measure changed." }
       ],
       "rightHand": {
         "fills": {

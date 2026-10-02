@@ -46,21 +46,28 @@ hymnals rarely give dynamics, so note in a comment that they are an interpretati
 
 ## 3. Write `arrangements.json`
 
-Write these seven arrangements unless asked otherwise. Keep the ids so the menu is consistent
-across songs; the `level` decides the column and the `style` is the tag the player sees.
+Write these five arrangements unless asked otherwise, in this order. Keep the ids so the menu
+is consistent across songs; the `level` decides the column and the `style` is the tag the
+player sees.
 
-| id                 | level        | style             | What it teaches                                                             |
-| ------------------ | ------------ | ----------------- | --------------------------------------------------------------------------- |
-| `one-step-further` | easy         | Ballad            | Printed chords. Arpeggios to the tenth, sevenths; at most two new patterns. |
-| `walking-bass`     | easy         | Hymn (Waltz in 3) | Inversions so the bass moves by step; a bass note, then two notes together. |
-| `new-chords`       | intermediate | Contemporary      | Some chords replaced: minor sevenths, IV over V, an Amen ending.            |
-| `alberti-bass`     | intermediate | Classical         | Broken chords, lowest-highest-middle-highest, staying in one hand position. |
-| `gospel`           | intermediate | Gospel            | Octave bass, walk-ups, passing diminished chords, the minor four chord.     |
-| `majestic`         | advanced     | Majestic          | Octave in the bass, then a full chord; broad and loud for a congregation.   |
-| `jazz`             | advanced     | Jazz              | Shell voicings (`<1 7 3'>`), two-five-one chains, tritone substitution.     |
+| id             | level        | style        | What it teaches                                                             |
+| -------------- | ------------ | ------------ | --------------------------------------------------------------------------- |
+| `alberti-bass` | intermediate | Classical    | Broken chords, lowest-highest-middle-highest, staying in one hand position. |
+| `gospel`       | intermediate | Gospel       | Octave bass, walk-ups, passing diminished chords, the minor four chord.     |
+| `jazz`         | advanced     | Jazz         | Shell voicings (`<1 7 3'>`), two-five-one chains, tritone substitution.     |
+| `new-chords`   | intermediate | Contemporary | Some chords replaced: minor sevenths, IV over V, an Amen ending.            |
+| `majestic`     | advanced     | Majestic     | Octave in the bass, then a full chord; broad and loud for a congregation.   |
 
-Other styles are welcome when the user asks for them; choose the level by how hard the left
-hand is to play, not by how unusual the chords are.
+**Quality before quantity.** The first three are the player's favourites, best liked first:
+the Alberti bass, gospel, and the shell voicings of the jazz version. Write them first and give
+them the most care. Five versions that are each worth practising serve the player better than
+a long menu: put the effort into fills that belong to this song, into voice leading, and into
+reading the dump, not into more variety.
+
+Do not write `one-step-further` (Ballad) or `walking-bass` (Hymn) for a new song; the player
+no longer needs them. Songs that have them keep them. Other styles are welcome when the user
+asks for them; choose the level by how hard the left hand is to play, not by how unusual the
+chords are.
 
 Then write the introductions under `intro`:
 
@@ -117,13 +124,11 @@ tell when to come in.
 
      | Style        | Fills that fit                                                             |
      | ------------ | -------------------------------------------------------------------------- |
-     | Ballad       | An arch up through the chord to the high fifth and back                    |
-     | Hymn         | The bass walks one step per beat towards the next chord                    |
-     | Contemporary | A neighbour chord over the same bass (IV over I), a suspension             |
      | Classical    | A scale run up and back, the Alberti figure in double time, a sweep        |
      | Gospel       | An octave walk-up through a diminished chord, a triplet roll, a bass run   |
-     | Majestic     | Rising chord positions, a drum roll of repeated chords, octave walk-ups    |
      | Jazz         | A walking bass between shells, a chord answered off the beat, a turnaround |
+     | Contemporary | A neighbour chord over the same bass (IV over I), a suspension             |
+     | Majestic     | Rising chord positions, a drum roll of repeated chords, octave walk-ups    |
 
    - **lead into the next entry**: put a clear bass note or chord on the beat just before the
      melody returns, and let the line point at the next chord;
@@ -152,8 +157,8 @@ like one finger. This part thickens the melody in the modes that play it.
   in jazz, three notes in majestic). Keep them a third or more below the melody, within an
   octave of it, and above the left hand for as long as the chord sounds.
 - Skip a melody note that rubs against the chord.
-- Roll the long chords with `~`: from two beats in ballad, contemporary, classical, and jazz;
-  from three beats in the plainer styles; never in majestic.
+- Roll the long chords with `~`: from two beats in contemporary, classical, and jazz; from
+  three beats in the baseline and in gospel; never in majestic.
 - Add nothing between melody notes; that is what the fills are for.
 
 **Melody + fills** (`fills`): the printed melody stays; the right hand adds notes where it
@@ -167,13 +172,11 @@ waits.
   | Style        | Right-hand fills that fit                                                 |
   | ------------ | ------------------------------------------------------------------------- |
   | Basic        | Single notes: an arch through the chord, a turn, a climb                  |
-  | Ballad       | Double notes (thirds, sixths), an echo of the opening of the tune         |
-  | Hymn         | An inner voice that walks by step, like an alto under a held soprano      |
-  | Contemporary | The added second, a suspended note that resolves with the left hand       |
   | Classical    | Scale runs and broken chords in sixteenths, a turn around one note        |
   | Gospel       | Thirds that climb with a walk-up, a blue-note slide, a triplet roll       |
-  | Majestic     | Full chords rising through their positions, both hands in the same rhythm |
   | Jazz         | Arpeggios that follow the changes, chords placed off the beat             |
+  | Contemporary | The added second, a suspended note that resolves with the left hand       |
+  | Majestic     | Full chords rising through their positions, both hands in the same rhythm |
 
 - Where the left hand of the arrangement already fills the gap with a busy figure, either
   write a right hand that goes with it (thirds on each bass step, a chord between bass notes,
@@ -194,16 +197,14 @@ the tune.
 - Write every measure. In the pickup, double the melody so the singers find their first notes.
 - Give each arrangement one texture and keep it:
 
-  | id                 | Right-hand texture                                                    |
-  | ------------------ | --------------------------------------------------------------------- |
-  | baseline           | Sustained three-note chords, one per harmony                          |
-  | `one-step-further` | Rocking pairs, a third or a sixth on every beat                       |
-  | `walking-bass`     | A descant: single long notes in which every seventh resolves by step  |
-  | `new-chords`       | Syncopated chords with an added second                                |
-  | `alberti-bass`     | A second voice in thirds and sixths, in half notes                    |
-  | `gospel`           | Chords on the backbeat; a chord on every step of a walk-up            |
-  | `majestic`         | Four-note chords, long, short-long                                    |
-  | `jazz`             | Rootless voicings (third, seventh, ninth) on one and the "and" of two |
+  | id             | Right-hand texture                                                    |
+  | -------------- | --------------------------------------------------------------------- |
+  | baseline       | Sustained three-note chords, one per harmony                          |
+  | `alberti-bass` | A second voice in thirds and sixths, in half notes                    |
+  | `gospel`       | Chords on the backbeat; a chord on every step of a walk-up            |
+  | `jazz`         | Rootless voicings (third, seventh, ninth) on one and the "and" of two |
+  | `new-chords`   | Syncopated chords with an added second                                |
+  | `majestic`     | Four-note chords, long, short-long                                    |
 
 - Stay above the left hand, roughly from E4 to A5, and clear of the singers: no chord tone a
   half step from the melody note that is sung at that moment. Leave such a tone out.
@@ -222,7 +223,8 @@ Guidelines:
 - **Write for a 61-key keyboard.** The lowest key is C2: never write a left-hand note below it,
   not even as the lower half of an octave.
 - **Keep it playable.** Stacked notes span at most an octave (a tenth for `advanced`). Stay
-  between C2 and E4 and below the melody. Avoid thirds below C3.
+  between C2 and E4 and below the melody. Avoid thirds below C3. The player comes from root,
+  fifth, octave: an intermediate version should be within reach after a short practice session.
 - **Check every new chord against the melody** on the beats where it sounds. A melody note that
   lasts a beat or more must not sit a half step from a chord tone. When the note is meant to be
   a ninth or thirteenth, name it in the symbol (`Gm9`, `C13`).

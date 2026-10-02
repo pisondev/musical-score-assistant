@@ -13,7 +13,10 @@ compared, and then practised.
 2. The assistant transcribes the melody and chords into `song.txt` and runs `npm run check`.
 3. The player listens to the right hand alone in the app and compares it with the printed score.
    Corrections go back to the assistant or straight into `song.txt`.
-4. The assistant writes `arrangements.json` with several left-hand versions and checks it again.
+4. The assistant writes `arrangements.json` with five left-hand versions and checks it again:
+   the player's favourites first (Alberti bass, gospel, shell voicings), then a contemporary
+   and a majestic one. Few versions that are each worth practising count for more than a long
+   menu.
 5. The assistant adds the right-hand parts of every arrangement: fills for the gaps, and an
    accompaniment for singers.
 6. The player switches between the versions in the app, listens to the left hand alone and to
