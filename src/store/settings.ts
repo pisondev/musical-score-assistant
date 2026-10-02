@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { INTRO_OFF, type IntroChoice, type RightHandMode } from '../core';
+import {
+  ENDING_OFF,
+  INTRO_OFF,
+  type EndingChoice,
+  type IntroChoice,
+  type RightHandMode,
+} from '../core';
 
 /** How the score is drawn: numbered notation or a grand staff. */
 export type Notation = 'numbers' | 'staff';
@@ -8,6 +14,10 @@ export type Notation = 'numbers' | 'staff';
 interface SettingsState {
   /** Which introduction precedes the song. */
   intro: IntroChoice;
+  /** Which ending follows the song. */
+  ending: EndingChoice;
+  /** Half steps by which the key rises for a repeat of the song; 0 plays the song once. */
+  lift: number;
   /** What the right hand plays; falls back to the melody where nothing else is written. */
   rightHand: RightHandMode;
   notation: Notation;
@@ -17,6 +27,8 @@ interface SettingsState {
   guideOpen: boolean;
 
   setIntro: (intro: IntroChoice) => void;
+  setEnding: (ending: EndingChoice) => void;
+  setLift: (lift: number) => void;
   setRightHand: (rightHand: RightHandMode) => void;
   setNotation: (notation: Notation) => void;
   toggleLyrics: () => void;
@@ -29,6 +41,8 @@ export const useSettings = create<SettingsState>()(
   persist(
     (set) => ({
       intro: INTRO_OFF,
+      ending: ENDING_OFF,
+      lift: 0,
       rightHand: 'melody',
       notation: 'numbers',
       showLyrics: true,
@@ -36,6 +50,8 @@ export const useSettings = create<SettingsState>()(
       guideOpen: false,
 
       setIntro: (intro) => set({ intro }),
+      setEnding: (ending) => set({ ending }),
+      setLift: (lift) => set({ lift }),
       setRightHand: (rightHand) => set({ rightHand }),
       setNotation: (notation) => set({ notation }),
       toggleLyrics: () => set((state) => ({ showLyrics: !state.showLyrics })),
@@ -44,7 +60,7 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: 'musical-score-assistant:settings',
-      version: 3,
+      version: 4,
       // Version 1 stored an intro choice that no longer exists; everything else carries over.
       migrate: (persisted, version) => {
         const state = persisted as Partial<SettingsState>;

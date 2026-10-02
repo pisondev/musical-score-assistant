@@ -2,7 +2,7 @@ import { formatChordSymbol } from './chord';
 import { DynamicsTimeline } from './dynamics';
 import { engraveRow, keySignatureFifths, type StaffEvent, type StaffPitch } from './staff';
 import { beatTicks, measureTicks } from './time';
-import type { Arrangement, Measure, SlotSpan, Song, Track } from './types';
+import type { Arrangement, Measure, NoteName, SlotSpan, Song, Track } from './types';
 
 /**
  * Serializes a performance as MEI, the format the staff-notation engraver
@@ -13,6 +13,8 @@ import type { Arrangement, Measure, SlotSpan, Song, Track } from './types';
 export interface MeiOptions {
   showLyrics: boolean;
   showDynamics: boolean;
+  /** Key of the measures, when it differs from the key the performance starts in. */
+  key?: NoteName;
 }
 
 export interface MeiResult {
@@ -139,7 +141,8 @@ export function toMei(
   to: number,
   options: MeiOptions,
 ): MeiResult {
-  const { time, key } = song.meta;
+  const { time } = song.meta;
+  const key = options.key ?? song.meta.key;
   const beat = beatTicks(time);
   const full = measureTicks(time);
   const measures = song.measures.slice(from, to);

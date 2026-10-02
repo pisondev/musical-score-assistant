@@ -103,6 +103,7 @@ function SongCard({ entry, favourite, openedAt, now, onToggleFavourite }: SongCa
         <span>{plural(summary.arrangements, 'left hand')}</span>
         <span>{plural(summary.rightHandParts, 'right-hand part')}</span>
         <span>{plural(summary.intros, 'intro')}</span>
+        {summary.endings > 0 && <span>{plural(summary.endings, 'ending')}</span>}
       </p>
 
       <p className="song-card__foot">

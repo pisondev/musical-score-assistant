@@ -6,12 +6,15 @@ import {
   BASELINE_ID,
   buildNoteEvents,
   buildPerformance,
+  ENDING_OFF,
   formatNoteName,
   INTRO_LAST_PHRASE,
   INTRO_OFF,
   exportFileName,
+  measureNames,
   noteNameToText,
   toMidiFile,
+  type EndingChoice,
   type IntroChoice,
   type Performance,
   type Track,
@@ -22,7 +25,6 @@ import { usePlayer, type ScoreReset } from '../store/player';
 import { useSettings } from '../store/settings';
 import { cx } from './classnames';
 import { Guide } from './Guide';
-import { introName } from './intro-name';
 import { IssueList } from './IssueList';
 import { RIGHT_HAND_NAME } from './right-hand-name';
 import { Sheet } from './Sheet';
@@ -92,6 +94,8 @@ export function SongPage({ entry }: SongPageProps) {
   const [exportStatus, setExportStatus] = useState<string | null>(null);
 
   const introSetting = useSettings((state) => state.intro);
+  const endingSetting = useSettings((state) => state.ending);
+  const lift = useSettings((state) => state.lift);
   const rightHand = useSettings((state) => state.rightHand);
   const notation = useSettings((state) => state.notation);
   const showLyrics = useSettings((state) => state.showLyrics);
@@ -111,22 +115,29 @@ export function SongPage({ entry }: SongPageProps) {
     introSetting === INTRO_LAST_PHRASE ||
     bundle.intro.written.some((written) => written.id === introSetting);
   const intro: IntroChoice = known ? introSetting : INTRO_LAST_PHRASE;
+  // An ending written for another song is simply left out.
+  const ending: EndingChoice = bundle.endings.some((written) => written.id === endingSetting)
+    ? endingSetting
+    : ENDING_OFF;
 
   const performance = useMemo(
-    () => buildPerformance(bundle, arrangement, intro, semitones, rightHand),
-    [bundle, arrangement, intro, semitones, rightHand],
+    () => buildPerformance(bundle, arrangement, intro, semitones, rightHand, { ending, lift }),
+    [bundle, arrangement, intro, semitones, rightHand, ending, lift],
   );
+  const names = useMemo(() => measureNames(performance), [performance]);
 
   // Tell the engine what changed, so it keeps the playhead whenever it can.
+  // A different introduction, ending, or repeat adds or removes measures.
   const loadScore = usePlayer((state) => state.loadScore);
-  const loadedIntro = useRef<IntroChoice | null>(null);
+  const form = `${intro}|${ending}|${lift}`;
+  const loadedForm = useRef<string | null>(null);
   useEffect(() => {
     let reset: ScoreReset = 'none';
-    if (loadedIntro.current === null) reset = 'song';
-    else if (loadedIntro.current !== intro) reset = 'position';
-    loadedIntro.current = intro;
+    if (loadedForm.current === null) reset = 'song';
+    else if (loadedForm.current !== form) reset = 'position';
+    loadedForm.current = form;
     loadScore(performance.song, performance.arrangement, reset);
-  }, [performance, intro, loadScore]);
+  }, [performance, form, loadScore]);
 
   // Leaving the page ends the music.
   useEffect(() => () => usePlayer.getState().stop(), []);
@@ -192,10 +203,15 @@ export function SongPage({ entry }: SongPageProps) {
   // chosen, the key, the tempo, and only what is switched on in the transport bar.
   const downloadMidi = useCallback(() => {
     const { tempo, handMode, voiceGuide } = usePlayer.getState();
-    const { song, arrangement: played } = performance;
+    const { song, arrangement: played, sections } = performance;
     const bytes = toMidiFile(song, buildNoteEvents(song, played), {
       tempo,
       tracks: tracksOf(performance, handMode, voiceGuide),
+      // The repeat in a higher key announces itself with a new key signature.
+      keyChanges: sections.map((section) => ({
+        tick: song.measures[section.start].startTick,
+        key: section.key,
+      })),
     });
     saveFile(
       new Blob([bytes.slice().buffer], { type: 'audio/midi' }),
@@ -226,12 +242,6 @@ export function SongPage({ entry }: SongPageProps) {
   const transposeTo = (value: number) =>
     setSemitones(Math.min(MAX_TRANSPOSE, Math.max(-MAX_TRANSPOSE, value)));
 
-  const introHeading = intro !== INTRO_OFF && (
-    <h3 className="sheet__heading">
-      Intro <span>{introName(bundle, intro)}</span>
-    </h3>
-  );
-
   return (
     <>
       <main className="page">
@@ -242,6 +252,8 @@ export function SongPage({ entry }: SongPageProps) {
           onSelectArrangement={setArrangementId}
           rightHand={performance.rightHand}
           intro={intro}
+          ending={ending}
+          lift={lift}
           semitones={semitones}
           onTranspose={transposeTo}
           soundingKey={performance.song.meta.key}
@@ -251,7 +263,7 @@ export function SongPage({ entry }: SongPageProps) {
           exportStatus={exportStatus}
         />
         <IssueList
-          song={performance.song}
+          names={names}
           issues={[...performance.song.issues, ...bundle.issues, ...performance.arrangement.issues]}
         />
         <div className={cx('workspace', guideOpen && 'workspace--guide')}>
@@ -267,7 +279,6 @@ export function SongPage({ entry }: SongPageProps) {
                 showLyrics={showLyrics}
                 showDynamics={showDynamics}
                 printing={printing}
-                introHeading={introHeading}
               />
             ) : (
               <Sheet
@@ -276,7 +287,6 @@ export function SongPage({ entry }: SongPageProps) {
                 showLyrics={showLyrics}
                 showDynamics={showDynamics}
                 printing={printing}
-                introHeading={introHeading}
               />
             )}
           </section>
@@ -287,7 +297,7 @@ export function SongPage({ entry }: SongPageProps) {
           )}
         </div>
       </main>
-      <TransportBar song={performance.song} />
+      <TransportBar song={performance.song} names={names} />
     </>
   );
 }

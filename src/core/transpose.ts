@@ -73,6 +73,29 @@ function shiftChords(chords: ChordMark[], shift: KeyShift): ChordMark[] {
   }));
 }
 
+/** Moves measures and the left hand that goes with them by a key shift. */
+export function transposeMeasures(
+  measures: Measure[],
+  parts: ArrangementMeasure[],
+  shift: KeyShift,
+): { measures: Measure[]; parts: ArrangementMeasure[] } {
+  if (shift.pitchShift === 0) return { measures, parts };
+  return {
+    measures: measures.map((measure) => ({
+      ...measure,
+      slots: shiftSlots(measure.slots, shift.pitchShift),
+      voice: measure.voice && shiftSlots(measure.voice, shift.pitchShift),
+      fills: measure.fills && shiftSlots(measure.fills, shift.pitchShift),
+      chords: shiftChords(measure.chords, shift),
+    })),
+    parts: parts.map((part) => ({
+      ...part,
+      slots: shiftLeftSlots(part.slots, shift.pitchShift),
+      chords: shiftChords(part.chords, shift),
+    })),
+  };
+}
+
 /**
  * Moves a song and its arrangement to another key. Numbered notation is
  * relative to "do", so the digits stay as they are: only the pitches, the
@@ -87,19 +110,7 @@ export function transpose(
 ): { song: Song; arrangement: Arrangement } {
   if (semitones === 0) return { song, arrangement };
   const shift = keyShift(song.meta.key, semitones);
-
-  const measures: Measure[] = song.measures.map((measure) => ({
-    ...measure,
-    slots: shiftSlots(measure.slots, shift.pitchShift),
-    voice: measure.voice && shiftSlots(measure.voice, shift.pitchShift),
-    fills: measure.fills && shiftSlots(measure.fills, shift.pitchShift),
-    chords: shiftChords(measure.chords, shift),
-  }));
-  const parts: ArrangementMeasure[] = arrangement.measures.map((part) => ({
-    ...part,
-    slots: shiftLeftSlots(part.slots, shift.pitchShift),
-    chords: shiftChords(part.chords, shift),
-  }));
+  const { measures, parts } = transposeMeasures(song.measures, arrangement.measures, shift);
 
   return {
     song: {

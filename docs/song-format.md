@@ -6,7 +6,7 @@ Every song lives in its own folder under `songs/`:
 songs/
   amazing-grace/
     song.txt             melody, printed chords, lyrics, and dynamics
-    arrangements.json    left-hand arrangements, right-hand parts, and introductions (optional)
+    arrangements.json    left hands, right-hand parts, introductions, key lift, endings (optional)
   private/               git-ignored: copyrighted songs stay on this machine
     pkj-184-<title>/     hymnal code, number, and title in lower case
       song.txt
@@ -166,14 +166,17 @@ L: ma-zing _ grace! how
 
 ## `arrangements.json`
 
-Left-hand arrangements, the right-hand parts that go with them, and the introductions for one
-song. The app always adds one more arrangement by itself, called **My style**: root, fifth,
-octave on the printed chords.
+Left-hand arrangements, the right-hand parts that go with them, and what is played around the
+song: introductions, the key lift for a repeat, and endings. The app always adds one more
+arrangement by itself, called **My style**: root, fifth, octave on the printed chords.
 
 ```json
 {
   "intro": {
     "lastPhraseFrom": 13,
+    "bridge": {
+      "measures": [{ "right": "<1 4> <7, 2>", "left": "[D7sus4]<1' 4' 7'> [D7]<1' 3' 7'>" }]
+    },
     "written": [
       {
         "id": "gospel",
@@ -190,6 +193,21 @@ octave on the printed chords.
       }
     ]
   },
+  "modulation": {
+    "measures": [{ "right": "<7, 2 4> .", "left": "[D7]<1' 3' 7'> ." }]
+  },
+  "endings": [
+    {
+      "id": "amen",
+      "name": "Amen",
+      "style": "Hymn",
+      "summary": "One sentence that describes the ending.",
+      "measures": [
+        { "right": "<4 6 1'> . .", "left": "[C]<1 5 1'> . ." },
+        { "right": "<3 5 1'> . .", "left": "[G]<1 5 1'> . ." }
+      ]
+    }
+  ],
   "baseline": {
     "rightHand": {
       "fills": { "summary": "…", "measures": [{ "measure": 7, "right": "5 (7 2') (7 5)" }] }
@@ -347,7 +365,21 @@ Use `left` where the hands trade roles: for example, the left hand of an arrange
 gap with a run, and in _Melody + fills_ the right hand takes that run while the left hand goes
 back to its plain pattern. End a replaced measure on the same chord as the measure it replaces.
 
-The introduction is not affected: it is instrumental and always carries the tune.
+**Fills ring on.** In playback the last note of a fill is not cut off at its written length: it
+sounds until the right hand plays again, the way a pianist keeps it under the fingers or the
+pedal. It is let go at the next chord change if it does not belong to the new chord. A fill
+therefore connects to the melody by itself when it ends on a note of the chord that follows.
+When it does not, as with a scale run that stops on a passing note, give it somewhere to land:
+list the next measure as well and write a note of the new chord on a beat the melody leaves
+empty. A rest of the melody may be filled; a melody note may not be changed.
+
+```json
+{ "measure": 14, "right": "4' (. 6) ((6 5) (4 3)) ((2 3) (4 5))" },
+{ "measure": 15, "right": "6 (2' 1') (7 2') (6 7)", "note": "The run lands on F sharp." }
+```
+
+Introductions, the interlude, and endings are not affected by the right-hand mode: they are
+instrumental and always carry their own right hand.
 
 ### Introduction
 
@@ -369,6 +401,55 @@ chooses between no introduction, the **Last phrase**, and any number of written 
 
 Every measure of a written introduction must be full, except the last: together with the pickup
 of the song it must make one full measure, so the song enters in time.
+
+### Passages around the song
+
+Besides the written introductions, a song has three more kinds of passage. All of them are
+written like an introduction, measure by measure with both hands (`right`, `left`, `note`),
+in the key of the song, and none of them depends on the selected left hand or right-hand mode.
+
+| Entry                   | What it is                                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `intro.bridge.measures` | Leads from the **Last phrase** introduction into the song                                           |
+| `modulation.measures`   | The key lift: leads from the end of the song into its repeat in a higher key                        |
+| `endings[]`             | Written endings, each with `id`, `name`, `style`, `summary`, and `measures`; `off` is a reserved id |
+
+**The bridge.** The last phrase of a song ends on its home chord, which gives the singers no
+cue. The bridge follows it: one or two measures that move to the dominant and stop there, so
+the first note of the song is expected. It is played only after the _Last phrase_
+introduction; a written introduction ends with its own lead-in. Like an introduction, its last
+measure and the pickup must make one full measure.
+
+**The key lift.** With **Repeat** switched on in the app, the song is played twice, the second
+time a half step or a whole step higher, and the score continues below the first time through.
+Between the two comes an interlude: the key lift, then the selected introduction once more
+(with the bridge, after the last phrase), all in the new key. The key lift is written _in the
+key of the song_ and played in the new key. Write the dominant seventh of the song's own key
+with a line that rises into it: `[D7]` in a song in G sounds as E♭7 when the repeat is a half
+step higher, which is exactly the chord that announces A♭. One or two measures are enough; the
+last one lines up with the pickup, like an introduction. Without a key lift the repeat starts
+directly in the new key.
+
+**Endings.** An ending follows the last measure of the song (of the repeat, when there is one)
+and closes the piece. The player chooses one in the app, or none. Write five, in different
+styles:
+
+| Style     | An ending that fits                                                                    |
+| --------- | -------------------------------------------------------------------------------------- |
+| Hymn      | An _Amen_: the four chord, then the home chord, each held for a measure                |
+| Classical | The home chord rising in an arpeggio through two octaves, then a soft chord at the top |
+| Gospel    | The minor four chord over the home bass, or a walk-up through a diminished chord       |
+| Majestic  | Full chords in both hands, home, four over the same bass, home, and a high last chord  |
+| Jazz      | The major seven chord a half step above home, sliding into the home chord with 6 and 9 |
+
+Every measure of an ending is a full measure, the last one included. Its chords may simply be
+held: the checker does not ask an ending to keep the beat.
+
+**Short measures are completed.** A song with a pickup ends on a measure that is shorter by
+the length of the pickup. That is right when the pickup follows, and wrong before anything
+else. Whenever a bridge, a key lift, an introduction, or an ending follows such a measure, the
+app holds its last notes to the end of the bar, so the meter stays intact. Nothing has to be
+written for this, and passages after the song always start on a downbeat.
 
 ### The instrument
 
@@ -412,7 +493,7 @@ ties, beams, and accidentals on a grand staff. Nothing extra has to be written f
 ```bash
 npm run check                       # every song
 npm run check -- songs/amazing-grace
-npm run check -- --dump             # also list the notes of every arrangement, part, and introduction
+npm run check -- --dump             # also list the notes of every arrangement, part, and passage
 ```
 
 Errors (wrong number of beats, unknown chord, malformed notation) fail the check. Warnings do
@@ -426,7 +507,8 @@ not, but each one deserves a look:
 - a slash chord whose first left-hand note is not its bass;
 - a chord that clashes by a half step with a melody note lasting a beat or more (name the
   extension, such as `Gm9` or `C13`, when the note is meant to be part of the chord);
-- an introduction whose last measure does not line up with the pickup;
+- an introduction, a bridge, or a key lift whose last measure does not line up with the pickup;
+- an ending with a measure that is not full (an error);
 - a note marked with `?`.
 
 Right-hand parts are checked together with the left hand they belong to:

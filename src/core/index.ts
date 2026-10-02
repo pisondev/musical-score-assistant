@@ -17,7 +17,15 @@ export { findGaps, type Gap } from './gaps';
 export { KEYBOARD_HIGHEST, KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard';
 export { exportFileName, toMidiFile, type MidiOptions } from './midi';
 export { formatNoteName, midiToText, noteNameToText, toneToText } from './notes';
-export { buildPerformance, type Performance } from './performance';
+export {
+  buildPerformance,
+  measureNames,
+  type MeasureName,
+  type Performance,
+  type PerformanceForm,
+  type PerformanceSection,
+} from './performance';
+export { buildPassage, type PassageRole } from './passage';
 export { buildNoteEvents, buildSlotSpans, buildWrittenNotes, measureIndexAt } from './playback';
 export {
   applyRightHand,
@@ -32,5 +40,5 @@ export { summarizeSong, type SongSummary } from './summary';
 export { beatTicks, measureTicks, PPQ, quarterNotesPerMinute } from './time';
 export { keyShift } from './transpose';
 export { validateArrangement, validateRightHand } from './validate';
-export { INTRO_LAST_PHRASE, INTRO_OFF } from './types';
+export { ENDING_OFF, INTRO_LAST_PHRASE, INTRO_OFF } from './types';
 export type * from './types';

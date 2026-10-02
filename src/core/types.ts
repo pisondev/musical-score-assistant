@@ -97,8 +97,12 @@ export interface DynamicMark {
   sign: DynamicSign;
 }
 
-/** Whether a measure belongs to the introduction or to the song itself. */
-export type MeasurePart = 'intro' | 'song';
+/**
+ * Which stretch of a performance a measure belongs to: the introduction (with
+ * its bridge), the song itself, the interlude that lifts the key before the
+ * song is repeated, or the ending. Only measures of the song are numbered.
+ */
+export type MeasurePart = 'intro' | 'song' | 'interlude' | 'ending';
 
 export interface Measure {
   /** Zero-based position in the song. */
@@ -273,7 +277,11 @@ export interface IntroMeasureSpec {
 }
 
 /** A written introduction as stored in arrangements.json. */
-export interface WrittenIntroSpec {
+/**
+ * A passage written for both hands that is not part of the song itself: an
+ * introduction, the bridge into the song, the key lift, or an ending.
+ */
+export interface PassageSpec {
   id: string;
   name: string;
   style?: string;
@@ -281,32 +289,42 @@ export interface WrittenIntroSpec {
   measures: IntroMeasureSpec[];
 }
 
+export type WrittenIntroSpec = PassageSpec;
+
 /** Introduction settings as stored in arrangements.json. */
 export interface IntroSpec {
   /** Measure number at which the last phrase begins; defaults to the last four measures. */
   lastPhraseFrom?: number;
+  /** Measures that lead from the last phrase into the song. */
+  bridge?: IntroMeasureSpec[];
   /** Newly written introductions, offered next to the last phrase. */
-  written?: WrittenIntroSpec[];
+  written?: PassageSpec[];
 }
 
 export interface ArrangementFile {
   intro?: IntroSpec;
+  /** The passage that lifts the key before the song is repeated. */
+  modulation?: { measures: IntroMeasureSpec[] };
+  /** Written endings, offered after the last measure of the song. */
+  endings?: PassageSpec[];
   /** Additions to the generated baseline, which has no entry under `arrangements`. */
   baseline?: { rightHand?: RightHandSpec };
   arrangements: ArrangementSpec[];
 }
 
-/** A written introduction, resolved to measures for both hands. */
-export interface WrittenIntro {
+/** A written passage, resolved to measures for both hands. */
+export interface Passage {
   id: string;
   name: string;
-  /** Musical style of the introduction, such as "Gospel". */
+  /** Musical style of the passage, such as "Gospel". */
   style: string;
   summary: string;
   measures: Measure[];
   parts: ArrangementMeasure[];
   issues: Issue[];
 }
+
+export type WrittenIntro = Passage;
 
 /** The introduction that plays no measures at all. */
 export const INTRO_OFF = 'off';
@@ -318,6 +336,12 @@ export const INTRO_LAST_PHRASE = 'last-phrase';
  * the id of a written introduction.
  */
 export type IntroChoice = string;
+
+/** The ending that adds nothing: the song stops with its last measure. */
+export const ENDING_OFF = 'off';
+
+/** Which ending follows the song: `ENDING_OFF` or the id of a written ending. */
+export type EndingChoice = string;
 
 /** A single sounding note, ready to be scheduled. */
 export interface NoteEvent {

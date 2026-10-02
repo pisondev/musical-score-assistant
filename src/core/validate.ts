@@ -175,7 +175,12 @@ function checkSlashBass(measure: Measure, part: ArrangementMeasure, issues: Issu
  * Checks that an arrangement is playable and fits the melody. Everything
  * reported here is a warning: the arrangement still plays, but deserves a look.
  */
-export function validateArrangement(song: Song, arrangement: Arrangement): Issue[] {
+export function validateArrangement(
+  song: Song,
+  arrangement: Arrangement,
+  /** False for music that may stand still, such as the held chords of an ending. */
+  keepsPulse = true,
+): Issue[] {
   const issues: Issue[] = [];
   const beat = beatTicks(song.meta.time);
   const melody = buildWrittenNotes(song, arrangement).filter((event) => event.track === 'right');
@@ -206,14 +211,16 @@ export function validateArrangement(song: Song, arrangement: Arrangement): Issue
     }
   });
 
-  checkGaps(
-    song,
-    findGaps(song),
-    leftHandOnsets(song, arrangement.measures),
-    arrangement.level !== 'easy',
-    LEFT_ALONE,
-    issues,
-  );
+  if (keepsPulse) {
+    checkGaps(
+      song,
+      findGaps(song),
+      leftHandOnsets(song, arrangement.measures),
+      arrangement.level !== 'easy',
+      LEFT_ALONE,
+      issues,
+    );
+  }
   return issues;
 }
 

@@ -29,7 +29,10 @@ The web app itself never generates music; it displays, plays, and explains.
 - Stored arrangements with per-measure explanations, new-pattern descriptions, and practice tips.
 - Arrangements grouped by level (easy, intermediate, advanced) and tagged with a style: ballad,
   hymn or waltz, contemporary, classical, gospel, majestic, jazz.
-- An introduction before the song: its last phrase, or one of several written ones.
+- An introduction before the song: its last phrase with a bridge, or one of several written
+  ones.
+- Written endings in several styles, and a repeat of the song in a higher key after an
+  interlude that lifts the key.
 - Fills in every gap of the melody, checked automatically.
 - Right-hand parts paired with every left hand: the melody with fills, and an accompaniment for
   singers, with the sung melody as a cue on the sheet and a guide voice in the playback.
@@ -54,7 +57,9 @@ The web app itself never generates music; it displays, plays, and explains.
 ## Next
 
 - **Repeats in playback.** Repeat barlines are displayed but played straight through.
-- **Tempo changes** such as ritardando and a fermata on the last chord.
+- **Tempo changes** such as ritardando and a fermata on the last chord; endings are played in
+  strict time for now.
+- **More than one verse**, so that a repeat can carry the words of the next verse.
 - **Dynamics per arrangement**, so that a majestic version can be louder than a ballad.
 - **Volume balance** between the hands and the voice guide.
 - **Pattern library** shared across songs: patterns the player liked, and ideas that were

@@ -1,9 +1,10 @@
-import { memo, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
+import { memo, useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import {
   beatTicks,
   buildSlotSpans,
   DynamicsTimeline,
   formatChordSymbol,
+  measureNames,
   type Arrangement,
   type ArrangementMeasure,
   type ChordMark,
@@ -17,6 +18,7 @@ import {
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
 import { keepInView } from './keep-in-view';
+import { SectionHeading } from './SectionHeading';
 import {
   labelRowWidth,
   layOutSystems,
@@ -58,8 +60,6 @@ interface SheetProps {
   showDynamics: boolean;
   /** Lays the score out for paper instead of the window. */
   printing: boolean;
-  /** Rendered above the introduction, e.g. its title. */
-  introHeading?: ReactNode;
 }
 
 /** A piece of a hairpin that falls inside one measure. */
@@ -289,13 +289,16 @@ function DynamicsRow({ measure, hairpins }: { measure: Measure; hairpins: Hairpi
 interface MeasureViewProps {
   measure: Measure;
   part: ArrangementMeasure;
-  /** Text shown above the measure: its number, or a counter within the introduction. */
+  /** Text shown above the measure: its number, or a counter within its section. */
   label: string;
+  /** The measure named in full, for screen readers. */
+  name: string;
   weight: number;
   hairpins: HairpinPiece[];
   isCurrent: boolean;
   isFirstInSystem: boolean;
-  isLastOfIntro: boolean;
+  /** True for the last measure of a section that another section follows. */
+  closesSection: boolean;
   inLoop: boolean;
   severity: Issue['severity'] | null;
   /** Reserves the row of added notes, when any measure of the system has them. */
@@ -309,11 +312,12 @@ const MeasureView = memo(function MeasureView({
   measure,
   part,
   label,
+  name,
   weight,
   hairpins,
   isCurrent,
   isFirstInSystem,
-  isLastOfIntro,
+  closesSection,
   inLoop,
   severity,
   showFills,
@@ -321,12 +325,6 @@ const MeasureView = memo(function MeasureView({
   showDynamics,
   onSelect,
 }: MeasureViewProps) {
-  const name =
-    measure.part === 'intro'
-      ? `Intro measure ${label}`
-      : measure.number === null
-        ? 'Pickup measure'
-        : `Measure ${measure.number}`;
   const explanation = [part.note, part.rightNote].filter(Boolean).join(' ');
   return (
     <div
@@ -335,7 +333,8 @@ const MeasureView = memo(function MeasureView({
         'measure',
         isCurrent && 'is-current',
         isFirstInSystem && 'measure--first',
-        (measure.barline === 'final' || isLastOfIntro) && 'measure--final',
+        measure.barline === 'final' && 'measure--final',
+        closesSection && measure.barline !== 'final' && 'measure--section-end',
         measure.barline === 'repeat-end' && 'measure--repeat-end',
         measure.repeatStart && 'measure--repeat-start',
         inLoop && 'in-loop',
@@ -475,15 +474,8 @@ const NO_HAIRPINS: HairpinPiece[] = [];
  * below. Fills add a second right-hand row under the melody where they play,
  * and an accompaniment gets the sung melody as a small row on top.
  */
-export function Sheet({
-  bundle,
-  performance,
-  showLyrics,
-  showDynamics,
-  printing,
-  introHeading,
-}: SheetProps) {
-  const { song, arrangement, introMeasures } = performance;
+export function Sheet({ bundle, performance, showLyrics, showDynamics, printing }: SheetProps) {
+  const { song, arrangement, sections: parts } = performance;
   const container = useRef<HTMLDivElement>(null);
   const measuredWidth = useElementWidth(container);
   const width = printing ? PRINT_WIDTH : measuredWidth;
@@ -510,23 +502,32 @@ export function Sheet({
           (chord.changed ? size.changedChord : 0),
       }));
 
+    // Where each measure of the song comes from in the files; null outside the song.
+    const source: (number | null)[] = song.measures.map(() => null);
+    for (const section of parts) {
+      if (section.kind !== 'song') continue;
+      for (let offset = 0; offset < section.count; offset += 1) {
+        source[section.start + offset] = offset;
+      }
+    }
+
     return song.measures.map((measure, index) => {
       const own = arrangement.measures[index];
-      const inSong = index >= introMeasures;
-      const rows = inSong
-        ? [
-            bundle.song.measures[index - introMeasures].slots,
-            ...bundle.arrangements.flatMap((candidate) => rowsOf(candidate, index - introMeasures)),
-          ]
-        : [measure.slots, own.slots];
-      const chordRows = inSong
-        ? [
-            own.chords,
-            ...bundle.arrangements.flatMap((candidate) =>
-              chordRowsOf(candidate, index - introMeasures),
-            ),
-          ]
-        : [own.chords];
+      const from = source[index];
+      const rows =
+        from === null
+          ? [measure.slots, own.slots]
+          : [
+              bundle.song.measures[from].slots,
+              ...bundle.arrangements.flatMap((candidate) => rowsOf(candidate, from)),
+            ];
+      const chordRows =
+        from === null
+          ? [own.chords]
+          : [
+              own.chords,
+              ...bundle.arrangements.flatMap((candidate) => chordRowsOf(candidate, from)),
+            ];
       const text = Math.max(
         labelRowWidth(measure.length, lyricLabels(measure.voice ?? measure.slots), TEXT.lyricGap),
         ...chordRows.map((chords) =>
@@ -538,20 +539,29 @@ export function Sheet({
         text > 0 ? (text + TRACK_MARGIN) / unitWidth : 0,
       );
     });
-  }, [song, arrangement, bundle, introMeasures, printing, unitWidth]);
+  }, [song, arrangement, bundle, parts, printing, unitWidth]);
 
+  // Every section starts on a system of its own.
   const sections = useMemo(() => {
     const capacity = Math.max(1, (width - LABEL_WIDTH) / unitWidth);
-    const indexes = song.measures.map((measure) => measure.index);
     const isPickup = (index: number) =>
       song.measures[index].part === 'song' && song.measures[index].number === null;
-    const lay = (range: number[]) =>
-      layOutSystems(range, weights, isPickup, capacity, MAX_MEASURES_PER_SYSTEM);
-    return {
-      intro: lay(indexes.slice(0, introMeasures)),
-      song: lay(indexes.slice(introMeasures)),
-    };
-  }, [song, weights, width, unitWidth, introMeasures]);
+    return parts.map((section) => ({
+      section,
+      systems: layOutSystems(
+        Array.from({ length: section.count }, (_, offset) => section.start + offset),
+        weights,
+        isPickup,
+        capacity,
+        MAX_MEASURES_PER_SYSTEM,
+      ),
+    }));
+  }, [song, parts, weights, width, unitWidth]);
+  const names = useMemo(() => measureNames(performance), [performance]);
+  const sectionEnds = useMemo(
+    () => new Set(parts.slice(0, -1).map((section) => section.start + section.count - 1)),
+    [parts],
+  );
 
   const currentMeasure = usePlayer((state) => state.currentMeasure);
   const status = usePlayer((state) => state.status);
@@ -614,18 +624,18 @@ export function Sheet({
           />
           {system.measures.map((index, position) => {
             const measure = song.measures[index];
-            const label = measure.part === 'intro' ? `${index + 1}` : `${measure.number ?? ''}`;
             return (
               <MeasureView
                 key={index}
                 measure={measure}
                 part={arrangement.measures[index]}
-                label={label}
+                label={names[index].label}
+                name={names[index].long}
                 weight={weights[index]}
                 hairpins={hairpins[index].length > 0 ? hairpins[index] : NO_HAIRPINS}
                 isCurrent={active && index === currentMeasure}
                 isFirstInSystem={position === 0}
-                isLastOfIntro={index === introMeasures - 1}
+                closesSection={sectionEnds.has(index)}
                 inLoop={loop.enabled && index >= loop.from && index <= loop.to}
                 severity={severities.get(index) ?? null}
                 showFills={showFills}
@@ -642,18 +652,17 @@ export function Sheet({
 
   return (
     <div ref={container} className={cx('sheet', printing && 'sheet--print')} aria-label="Score">
-      {width > 0 && introMeasures > 0 && (
-        <section className="sheet__section sheet__section--intro" aria-label="Introduction">
-          {introHeading}
-          {renderSystems(sections.intro)}
-        </section>
-      )}
-      {width > 0 && (
-        <section className="sheet__section" aria-label="Song">
-          {introMeasures > 0 && <h3 className="sheet__heading">Song</h3>}
-          {renderSystems(sections.song)}
-        </section>
-      )}
+      {width > 0 &&
+        sections.map(({ section, systems }) => (
+          <section
+            key={section.start}
+            className={cx('sheet__section', section.kind !== 'song' && 'sheet__section--aside')}
+            aria-label={section.title}
+          >
+            {sections.length > 1 && <SectionHeading section={section} />}
+            {renderSystems(systems)}
+          </section>
+        ))}
     </div>
   );
 }

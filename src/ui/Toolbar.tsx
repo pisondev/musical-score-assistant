@@ -1,8 +1,11 @@
 import {
+  ENDING_OFF,
   formatNoteName,
   INTRO_LAST_PHRASE,
   INTRO_OFF,
+  keyShift,
   type Arrangement,
+  type EndingChoice,
   type IntroChoice,
   type Level,
   type NoteName,
@@ -56,6 +59,10 @@ interface ToolbarProps {
   rightHand: RightHandMode;
   /** The introduction in effect, after falling back when one is unavailable. */
   intro: IntroChoice;
+  /** The ending in effect, after falling back when one is unavailable. */
+  ending: EndingChoice;
+  /** Half steps by which the key rises for the repeat; 0 when the song is played once. */
+  lift: number;
   semitones: number;
   onTranspose: (semitones: number) => void;
   /** The key after transposing. */
@@ -176,7 +183,9 @@ function IntroMenu({ bundle, intro }: Pick<ToolbarProps, 'bundle' | 'intro'>) {
     {
       choice: INTRO_LAST_PHRASE,
       name: 'Last phrase',
-      description: 'The closing phrase of the song, played with the selected left hand.',
+      description: bundle.intro.bridge
+        ? 'The closing phrase of the song, played with the selected left hand, then a bridge that leads into the first measure.'
+        : 'The closing phrase of the song, played with the selected left hand.',
     },
     ...bundle.intro.written.map((written) => ({
       choice: written.id,
@@ -209,6 +218,110 @@ function IntroMenu({ bundle, intro }: Pick<ToolbarProps, 'bundle' | 'intro'>) {
               <span className="option__summary">{description}</span>
             </button>
           ))}
+        </div>
+      )}
+    </Popover>
+  );
+}
+
+function EndingMenu({ bundle, ending }: Pick<ToolbarProps, 'bundle' | 'ending'>) {
+  const setEnding = useSettings((state) => state.setEnding);
+  const options: { choice: EndingChoice; name: string; style?: string; description: string }[] = [
+    { choice: ENDING_OFF, name: 'Off', description: 'Stop with the last measure of the song.' },
+    ...bundle.endings.map((written) => ({
+      choice: written.id,
+      name: written.name,
+      style: written.style,
+      description: written.summary,
+    })),
+  ];
+  const current = options.find((option) => option.choice === ending) ?? options[0];
+
+  return (
+    <Popover label="Ending" value={current.name}>
+      {(close) => (
+        <div className="menu menu--scroll" role="radiogroup" aria-label="Ending">
+          {options.map(({ choice, name, style, description }) => (
+            <button
+              key={choice}
+              type="button"
+              role="radio"
+              aria-checked={current.choice === choice}
+              className={cx('option', current.choice === choice && 'is-selected')}
+              onClick={() => {
+                setEnding(choice);
+                close();
+              }}
+            >
+              <span className="option__title">
+                {name}
+                {style && <span className="tag">{style}</span>}
+              </span>
+              <span className="option__summary">{description}</span>
+            </button>
+          ))}
+          {bundle.endings.length === 0 && (
+            <p className="menu__note">No ending has been written for this song yet.</p>
+          )}
+        </div>
+      )}
+    </Popover>
+  );
+}
+
+const LIFTS: { lift: number; name: string; value: string }[] = [
+  { lift: 1, name: 'Up a half step', value: '+ half step' },
+  { lift: 2, name: 'Up a whole step', value: '+ whole step' },
+];
+
+function RepeatMenu({
+  bundle,
+  lift,
+  intro,
+  soundingKey,
+}: Pick<ToolbarProps, 'bundle' | 'lift' | 'intro' | 'soundingKey'>) {
+  const setLift = useSettings((state) => state.setLift);
+  const current = LIFTS.find((option) => option.lift === lift);
+  const between = [
+    bundle.modulation && 'the key lift',
+    intro !== INTRO_OFF && 'the intro again',
+  ].filter(Boolean);
+  const options = [
+    { lift: 0, name: 'Off', description: 'Play the song once.' },
+    ...LIFTS.map((option) => ({
+      lift: option.lift,
+      name: option.name,
+      description: `Play the song a second time in 1 = ${formatNoteName(keyShift(soundingKey, option.lift).key)}.`,
+    })),
+  ];
+
+  return (
+    <Popover label="Repeat" value={current ? current.value : 'Off'}>
+      {(close) => (
+        <div className="menu" role="radiogroup" aria-label="Repeat in a higher key">
+          {options.map((option) => (
+            <button
+              key={option.lift}
+              type="button"
+              role="radio"
+              aria-checked={lift === option.lift}
+              className={cx('option', lift === option.lift && 'is-selected')}
+              onClick={() => {
+                setLift(option.lift);
+                close();
+              }}
+            >
+              <span className="option__title">{option.name}</span>
+              <span className="option__summary">{option.description}</span>
+            </button>
+          ))}
+          <p className="menu__note">
+            A modulation: the song is repeated in a higher key, and the score continues below the
+            first time through.{' '}
+            {between.length > 0
+              ? `Between the two, an interlude plays ${between.join(', then ')}.`
+              : 'The new key starts directly; choose an intro to get an interlude between the two.'}
+          </p>
         </div>
       )}
     </Popover>
@@ -371,8 +484,9 @@ function DownloadMenu({
             </button>
           ))}
           <p className="menu__note">
-            Both contain what is on the sheet: the intro, both hands as chosen, the key, and the
-            dynamics, at the current tempo and with what is switched on in the bar below.
+            Both contain what is on the sheet: the intro, both hands as chosen, the key, the repeat,
+            the ending, and the dynamics, at the current tempo and with what is switched on in the
+            bar below.
           </p>
         </div>
       )}
@@ -380,7 +494,10 @@ function DownloadMenu({
   );
 }
 
-/** The controls that decide what is on the sheet: both hands, intro, key, notation, and rows. */
+/**
+ * The controls that decide what is on the sheet: both hands, what surrounds
+ * the song (intro, ending, repeat), key, notation, and rows.
+ */
 export function Toolbar(props: ToolbarProps) {
   const guideOpen = useSettings((state) => state.guideOpen);
   const toggleGuide = useSettings((state) => state.toggleGuide);
@@ -394,6 +511,13 @@ export function Toolbar(props: ToolbarProps) {
       />
       <RightHandMenu arrangement={props.arrangement} rightHand={props.rightHand} />
       <IntroMenu bundle={props.bundle} intro={props.intro} />
+      <EndingMenu bundle={props.bundle} ending={props.ending} />
+      <RepeatMenu
+        bundle={props.bundle}
+        lift={props.lift}
+        intro={props.intro}
+        soundingKey={props.soundingKey}
+      />
       <TransposeControl
         semitones={props.semitones}
         onTranspose={props.onTranspose}

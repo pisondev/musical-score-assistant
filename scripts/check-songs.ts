@@ -25,7 +25,7 @@ import type {
   RightHandPart,
   Slot,
   Song,
-  WrittenIntro,
+  Passage,
   WrittenRightHandMode,
 } from '../src/core';
 
@@ -97,11 +97,11 @@ function dumpRightHand(song: Song, part: RightHandPart): void {
   });
 }
 
-function dumpIntro(intro: WrittenIntro): void {
-  intro.measures.forEach((measure, index) => {
-    const part = intro.parts[index];
+function dumpPassage(passage: Passage, letter: string): void {
+  passage.measures.forEach((measure, index) => {
+    const part = passage.parts[index];
     const chords = part.chords.map((chord) => chord.symbol).join(' ');
-    const label = `i.${index + 1}`;
+    const label = `${letter}.${index + 1}`;
     console.log(`      ${label.padEnd(6)} ${''.padEnd(18)} R: ${describeSlots(measure.slots)}`);
     console.log(`      ${''.padEnd(6)} ${chords.padEnd(18)} L: ${describeSlots(part.slots)}`);
   });
@@ -151,7 +151,10 @@ function checkFolder(folder: string, dump: boolean): boolean {
     }
   }
 
-  const { song, arrangements, intro, issues } = createSongBundle(songText, arrangementData);
+  const { song, arrangements, intro, modulation, endings, issues } = createSongBundle(
+    songText,
+    arrangementData,
+  );
   const { meta } = song;
   const reportable = (list: Issue[]) => list.filter((issue) => issue.severity !== 'info');
 
@@ -188,20 +191,54 @@ function checkFolder(folder: string, dump: boolean): boolean {
 
   const firstOfPhrase = song.measures[intro.lastPhraseStart]?.number ?? 0;
   console.log(`  intro "Last phrase": from measure ${firstOfPhrase}`);
-  const introIssues = intro.written.flatMap((written) => written.issues);
-  for (const written of intro.written) {
-    const kind = written.style ? ` (${written.style})` : '';
+  // The passages around the song: what leads into it, what lifts its key, and what closes it.
+  const passages: { title: string; noun: string; letter: string; passage: Passage }[] = [
+    ...(intro.bridge
+      ? [
+          {
+            title: 'bridge after the last phrase',
+            noun: 'bridge',
+            letter: 'b',
+            passage: intro.bridge,
+          },
+        ]
+      : []),
+    ...intro.written.map((passage) => ({
+      title: `intro "${passage.name}"${passage.style ? ` (${passage.style})` : ''}`,
+      noun: 'intro',
+      letter: 'i',
+      passage,
+    })),
+    ...(modulation
+      ? [{ title: 'key lift for the repeat', noun: 'key lift', letter: 'k', passage: modulation }]
+      : []),
+    ...endings.map((passage) => ({
+      title: `ending "${passage.name}"${passage.style ? ` (${passage.style})` : ''}`,
+      noun: 'ending',
+      letter: 'e',
+      passage,
+    })),
+  ];
+  for (const { title, noun, letter, passage } of passages) {
+    const count = passage.measures.length;
     console.log(
-      `  intro "${written.name}"${kind}: ${written.measures.length} measures - ${summarize(written.issues)}`,
+      `  ${title}: ${count} measure${count === 1 ? '' : 's'} - ${summarize(passage.issues)}`,
     );
-    reportable(written.issues).forEach((issue) => {
+    reportable(passage.issues).forEach((issue) => {
       const hand = issue.hand === 'right' ? 'right hand' : 'left hand';
       const where =
-        issue.measure === undefined ? '' : ` (intro measure ${issue.measure + 1}, ${hand})`;
+        issue.measure === undefined ? '' : ` (${noun} measure ${issue.measure + 1}, ${hand})`;
       console.log(`    ${issue.severity.toUpperCase()}${where}: ${issue.message}`);
     });
-    if (dump) dumpIntro(written);
+    if (dump) dumpPassage(passage, letter);
   }
+  const missing = [
+    !intro.bridge && 'a bridge after the last phrase',
+    !modulation && 'a key lift for the repeat',
+    endings.length === 0 && 'endings',
+  ].filter(Boolean);
+  if (missing.length > 0) console.log(`  not written yet: ${missing.join(', ')}`);
+  const passageIssues = passages.flatMap(({ passage }) => passage.issues);
 
   const all = [
     ...song.issues,
@@ -209,7 +246,7 @@ function checkFolder(folder: string, dump: boolean): boolean {
     ...issues,
     ...arrangements.flatMap((a) => a.issues),
     ...arrangements.flatMap((a) => Object.values(a.rightHand).flatMap((part) => part.issues)),
-    ...introIssues,
+    ...passageIssues,
   ];
   return !all.some((issue) => issue.severity === 'error');
 }

@@ -110,6 +110,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The tempo can be typed: click the number, type a value, and press Enter. Escape cancels, the
   arrow keys step by one, and with Shift by ten.
 
+- A bridge after the _Last phrase_ introduction (`intro.bridge` in `arrangements.json`): one
+  or two measures that move to the dominant and give the singers their cue.
+- Endings (`endings` in `arrangements.json`): written closes in several styles, chosen from an
+  **Ending** menu and played after the last measure of the song.
+- A repeat in a higher key, a modulation. With **Repeat** set to a half step or a whole step,
+  the song is played twice and the score continues below the first time through: an interlude
+  (the written key lift, `modulation`, then the selected introduction again) leads into the
+  song in the new key, and the ending follows there. Each block has a heading with its key,
+  staff notation gives each its own key signature, and the MIDI file changes key signature at
+  the repeat.
+- A bridge, a key lift, and five endings (Amen, rising arpeggio, gospel, grand, jazz) for
+  "Amazing Grace".
+- `npm run check` lists the bridge, the key lift, and the endings of every song, and says which
+  of them are not written yet.
+
 - Hymnals. A song names the hymnal it is taken from with `book:` in its header (`KK` Kidung
   Keesaan, `PKJ` Pelengkap Kidung Jemaat, `KJ` Kidung Jemaat, `KPJ` Kidung Pasamuwan Jawi) and
   is cited as "PKJ 184" on its card, in the song menu, and above the sheet. The home page lists
@@ -131,8 +146,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   decibels apart (nine from mezzo-piano to forte), in the playback, the MP3, and the MIDI file.
   Mezzo-forte is as loud as before.
 
+- The last note of a right-hand fill was cut off at its written length, so a run stopped dead
+  a beat before the melody came back. It now rings until the right hand plays again, and is
+  let go earlier only when the harmony moves to a chord it does not belong to.
+
 ### Changed
 
+- A measure that was cut short for the pickup is completed with holds when a bridge, an
+  interlude, or an ending follows it, so the meter stays intact.
+- The sheet is drawn in sections with headings (Intro, Song, Interlude, Ending); the loop menu,
+  the position readout, and the list of issues name measures by their section.
 - Loudness follows the square of a note's velocity, as on MIDI instruments, so a MIDI file
   played elsewhere keeps the balance of the app. The velocities in MIDI files changed
   accordingly: the hands are closer in number and the dynamic levels further apart.

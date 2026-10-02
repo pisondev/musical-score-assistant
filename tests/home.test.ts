@@ -84,6 +84,7 @@ describe('summarizeSong', () => {
       styles: [],
       rightHandParts: 0,
       intros: 1,
+      endings: 0,
       gaps: 1,
       errors: 0,
       warnings: 0,

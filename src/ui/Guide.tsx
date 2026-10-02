@@ -1,4 +1,4 @@
-import type { Performance } from '../core';
+import { measureNames, type MeasurePart, type Performance } from '../core';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
 import { RIGHT_HAND_NAME } from './right-hand-name';
@@ -16,6 +16,14 @@ interface MeasureNote {
   right?: string;
 }
 
+/** Marks the measures that are not part of the song in the list of explanations. */
+const PART_LETTER: Record<MeasurePart, string> = {
+  intro: 'i',
+  song: '',
+  interlude: 'k',
+  ending: 'e',
+};
+
 /** Explains the selected arrangement: what is new, how to practise it, and why each measure changed. */
 export function Guide({ performance }: GuideProps) {
   const { song, arrangement, introMeasures, rightHand } = performance;
@@ -25,15 +33,14 @@ export function Guide({ performance }: GuideProps) {
   const seekToMeasure = usePlayer((state) => state.seekToMeasure);
   const active = status === 'playing' || status === 'paused';
 
+  const names = measureNames(performance);
   const notes = arrangement.measures
     .map((part, index): MeasureNote => {
       const measure = song.measures[index];
       const label =
-        measure.part === 'intro'
-          ? `i${index + 1}`
-          : measure.number === null
-            ? '–'
-            : `${measure.number}`;
+        measure.part === 'song'
+          ? names[index].label || '–'
+          : `${PART_LETTER[measure.part]}${names[index].label}`;
       return { index, label, left: part.note, right: part.rightNote };
     })
     .filter((entry) => Boolean(entry.left || entry.right));
@@ -129,6 +136,13 @@ export function Guide({ performance }: GuideProps) {
         <p className="guide__footnote">
           The introduction uses the closing phrase of the song, so its notes are explained with the
           measures it is taken from.
+        </p>
+      )}
+      {performance.sections.some((section) => section.pass === 2) && (
+        <p className="guide__footnote">
+          In the list, i marks a measure of the introduction, k of the key lift, and e of the
+          ending. The repeat is the song once more in the new key: the digits are the same, and its
+          measures are explained where they are first played.
         </p>
       )}
     </aside>

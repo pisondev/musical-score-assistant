@@ -1,5 +1,6 @@
 import { buildArrangement, buildBaseline } from './arrangement';
-import { buildWrittenIntro, lastPhraseStart } from './intro';
+import { lastPhraseStart } from './intro';
+import { buildPassage } from './passage';
 import { buildRightHandPart, RIGHT_HAND_MODES } from './right-hand';
 import { parseSong } from './song';
 import type {
@@ -9,26 +10,35 @@ import type {
   IntroSpec,
   Issue,
   Level,
+  Passage,
+  PassageSpec,
   PatternIdea,
   RightHandMeasureSpec,
   RightHandSpec,
   Song,
-  WrittenIntro,
-  WrittenIntroSpec,
 } from './types';
-import { INTRO_LAST_PHRASE, INTRO_OFF } from './types';
+import { ENDING_OFF, INTRO_LAST_PHRASE, INTRO_OFF } from './types';
 import { validateArrangement, validateRightHand } from './validate';
 
-/** A song together with its baseline, every stored arrangement, and its introductions. */
+/**
+ * A song together with its baseline, every stored arrangement, and the
+ * passages around it: introductions, the key lift, and endings.
+ */
 export interface SongBundle {
   song: Song;
   arrangements: Arrangement[];
   intro: {
     /** Index of the measure where the last phrase begins. */
     lastPhraseStart: number;
+    /** Measures that lead from the last phrase into the song, when the file writes them. */
+    bridge: Passage | null;
     /** Newly written introductions, in the order of the file. */
-    written: WrittenIntro[];
+    written: Passage[];
   };
+  /** The passage that lifts the key before the song is repeated, when the file writes one. */
+  modulation: Passage | null;
+  /** Written endings, in the order of the file. */
+  endings: Passage[];
   /** Problems with the arrangement file itself, such as a malformed entry. */
   issues: Issue[];
 }
@@ -176,8 +186,8 @@ export function readArrangementSpecs(data: unknown, issues: Issue[]): Arrangemen
   return specs;
 }
 
-/** Reads the measures of one written introduction. */
-function readIntroMeasures(value: unknown, label: string, issues: Issue[]): IntroMeasureSpec[] {
+/** Reads the measures of one written passage. */
+function readPassageMeasures(value: unknown, label: string, issues: Issue[]): IntroMeasureSpec[] {
   if (!Array.isArray(value)) {
     issues.push({ severity: 'error', message: `${label} needs a "measures" array.` });
     return [];
@@ -215,16 +225,28 @@ export function readIntroSpec(data: unknown, issues: Issue[]): IntroSpec {
 
   const spec: IntroSpec = {};
   if (typeof intro.lastPhraseFrom === 'number') spec.lastPhraseFrom = intro.lastPhraseFrom;
+  const bridge = readUnnamedPassage(intro.bridge, 'The bridge', issues);
+  if (bridge) spec.bridge = bridge;
   if (intro.written === undefined) return spec;
   if (!Array.isArray(intro.written)) {
     issues.push({ severity: 'error', message: 'The "written" intros must be an array.' });
     return spec;
   }
+  spec.written = readPassageSpecs(intro.written, 'Intro', [INTRO_OFF, INTRO_LAST_PHRASE], issues);
+  return spec;
+}
 
-  const written: WrittenIntroSpec[] = [];
-  const seen = new Set<string>([INTRO_OFF, INTRO_LAST_PHRASE]);
-  intro.written.forEach((entry: unknown, index: number) => {
-    const label = `Intro ${index + 1}`;
+/** Reads a list of named passages: the written introductions, or the endings. */
+function readPassageSpecs(
+  list: unknown[],
+  kind: 'Intro' | 'Ending',
+  reserved: string[],
+  issues: Issue[],
+): PassageSpec[] {
+  const passages: PassageSpec[] = [];
+  const seen = new Set<string>(reserved);
+  list.forEach((entry: unknown, index: number) => {
+    const label = `${kind} ${index + 1}`;
     if (!isRecord(entry) || typeof entry.id !== 'string' || typeof entry.name !== 'string') {
       issues.push({ severity: 'error', message: `${label} needs a text "id" and "name".` });
       return;
@@ -232,14 +254,14 @@ export function readIntroSpec(data: unknown, issues: Issue[]): IntroSpec {
     if (seen.has(entry.id)) {
       issues.push({
         severity: 'error',
-        message: `Intro id "${entry.id}" is used twice or reserved.`,
+        message: `${kind} id "${entry.id}" is used twice or reserved.`,
       });
       return;
     }
-    const measures = readIntroMeasures(entry.measures, label, issues);
+    const measures = readPassageMeasures(entry.measures, label, issues);
     if (measures.length === 0) return;
     seen.add(entry.id);
-    written.push({
+    passages.push({
       id: entry.id,
       name: entry.name,
       style: typeof entry.style === 'string' ? entry.style : undefined,
@@ -247,8 +269,37 @@ export function readIntroSpec(data: unknown, issues: Issue[]): IntroSpec {
       measures,
     });
   });
-  spec.written = written;
-  return spec;
+  return passages;
+}
+
+/** Reads a passage that has no name of its own: the bridge, or the key lift. */
+function readUnnamedPassage(
+  value: unknown,
+  label: string,
+  issues: Issue[],
+): IntroMeasureSpec[] | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) {
+    issues.push({ severity: 'error', message: `${label} must be an object with "measures".` });
+    return undefined;
+  }
+  const measures = readPassageMeasures(value.measures, label, issues);
+  return measures.length > 0 ? measures : undefined;
+}
+
+/** Reads the passage that lifts the key before the song is repeated. */
+export function readModulationSpec(data: unknown, issues: Issue[]): IntroMeasureSpec[] | undefined {
+  return isRecord(data) ? readUnnamedPassage(data.modulation, 'The modulation', issues) : undefined;
+}
+
+/** Reads the written endings from parsed JSON. */
+export function readEndingSpecs(data: unknown, issues: Issue[]): PassageSpec[] {
+  if (!isRecord(data) || data.endings === undefined) return [];
+  if (!Array.isArray(data.endings)) {
+    issues.push({ severity: 'error', message: 'The "endings" must be an array.' });
+    return [];
+  }
+  return readPassageSpecs(data.endings, 'Ending', [ENDING_OFF], issues);
 }
 
 /** Builds and checks the right-hand parts written for an arrangement. */
@@ -292,13 +343,23 @@ export function createSongBundle(songText: string, arrangementData?: unknown): S
     });
   }
 
+  const unnamed = (id: string, name: string, measures: IntroMeasureSpec[] | undefined) =>
+    measures ? { id, name, measures } : null;
+  const bridge = unnamed('bridge', 'Bridge', introSpec.bridge);
+  const modulation = unnamed('modulation', 'Key lift', readModulationSpec(arrangementData, issues));
+
   return {
     song,
     arrangements: [baseline, ...arrangements],
     intro: {
       lastPhraseStart: lastPhraseStart(song, introSpec.lastPhraseFrom),
-      written: (introSpec.written ?? []).map((spec) => buildWrittenIntro(song, spec)),
+      bridge: bridge && buildPassage(song, bridge, 'bridge'),
+      written: (introSpec.written ?? []).map((spec) => buildPassage(song, spec, 'intro')),
     },
+    modulation: modulation && buildPassage(song, modulation, 'modulation'),
+    endings: readEndingSpecs(arrangementData, issues).map((spec) =>
+      buildPassage(song, spec, 'ending'),
+    ),
     issues,
   };
 }

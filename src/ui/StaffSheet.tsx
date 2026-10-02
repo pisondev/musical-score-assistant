@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, type MouseEvent, type ReactNode } from 'react';
-import type { Performance, SlotSpan } from '../core';
+import { useEffect, useMemo, useRef, type MouseEvent } from 'react';
+import type { Performance, PerformanceSection, SlotSpan } from '../core';
 import { measureElementId, toMei } from '../core/mei';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
 import { keepInView } from './keep-in-view';
+import { SectionHeading } from './SectionHeading';
 import { useElementWidth } from './useElementWidth';
 import { usePlayhead } from './usePlayhead';
 import { useVerovio } from './useVerovio';
@@ -25,11 +26,10 @@ interface StaffSheetProps {
   showDynamics: boolean;
   /** Lays the score out for paper instead of the window. */
   printing: boolean;
-  /** Rendered above the introduction, e.g. its title. */
-  introHeading?: ReactNode;
 }
 
 interface RenderedSection {
+  section: PerformanceSection;
   svg: string;
   spans: SlotSpan[];
 }
@@ -37,20 +37,14 @@ interface RenderedSection {
 const NO_SPANS: SlotSpan[] = [];
 
 /** The score on a grand staff: melody in the treble clef, left hand in the bass clef. */
-export function StaffSheet({
-  performance,
-  showLyrics,
-  showDynamics,
-  printing,
-  introHeading,
-}: StaffSheetProps) {
-  const { song, arrangement, introMeasures } = performance;
+export function StaffSheet({ performance, showLyrics, showDynamics, printing }: StaffSheetProps) {
+  const { song, arrangement, sections: parts } = performance;
   const container = useRef<HTMLDivElement>(null);
   const measuredWidth = useElementWidth(container);
   const width = printing ? PRINT_WIDTH : measuredWidth;
   const { toolkit, failed } = useVerovio();
 
-  // The introduction and the song are engraved separately, so each starts on its own system.
+  // Every section is engraved separately: it starts on its own system and carries its own key.
   const sections = useMemo<RenderedSection[] | null>(() => {
     if (!toolkit || width === 0) return null;
     const scale = printing ? PRINT_SCALE : width < NARROW_WIDTH ? NARROW_SCALE : SCREEN_SCALE;
@@ -69,20 +63,22 @@ export function StaffSheet({
       svgViewBox: true,
     });
 
-    const total = song.measures.length;
-    const ranges =
-      introMeasures > 0
-        ? [
-            [0, introMeasures],
-            [introMeasures, total],
-          ]
-        : [[0, total]];
-    return ranges.map(([from, to]) => {
-      const { mei, spans } = toMei(song, arrangement, from, to, { showLyrics, showDynamics });
+    return parts.map((section) => {
+      const { mei, spans } = toMei(
+        song,
+        arrangement,
+        section.start,
+        section.start + section.count,
+        {
+          showLyrics,
+          showDynamics,
+          key: section.key,
+        },
+      );
       toolkit.loadData(mei);
-      return { svg: toolkit.renderToSVG(1), spans };
+      return { section, svg: toolkit.renderToSVG(1), spans };
     });
-  }, [toolkit, width, printing, song, arrangement, introMeasures, showLyrics, showDynamics]);
+  }, [toolkit, width, printing, song, arrangement, parts, showLyrics, showDynamics]);
 
   const spans = useMemo(
     () => (sections ? sections.flatMap((section) => section.spans) : NO_SPANS),
@@ -111,15 +107,6 @@ export function StaffSheet({
     if (match) seekToMeasure(Number(match[1]));
   };
 
-  const renderSection = (section: RenderedSection) => (
-    <div
-      className="staff-view__music"
-      onClick={seek}
-      // The engraver returns a complete SVG document built from the song files.
-      dangerouslySetInnerHTML={{ __html: section.svg }}
-    />
-  );
-
   return (
     <div
       ref={container}
@@ -132,18 +119,21 @@ export function StaffSheet({
         </p>
       )}
       {!failed && !sections && <p className="staff-view__status">Preparing staff notation…</p>}
-      {sections && introMeasures > 0 && (
-        <section className="sheet__section sheet__section--intro" aria-label="Introduction">
-          {introHeading}
-          {renderSection(sections[0])}
+      {sections?.map(({ section, svg }) => (
+        <section
+          key={section.start}
+          className={cx('sheet__section', section.kind !== 'song' && 'sheet__section--aside')}
+          aria-label={section.title}
+        >
+          {sections.length > 1 && <SectionHeading section={section} />}
+          <div
+            className="staff-view__music"
+            onClick={seek}
+            // The engraver returns a complete SVG document built from the song files.
+            dangerouslySetInnerHTML={{ __html: svg }}
+          />
         </section>
-      )}
-      {sections && (
-        <section className="sheet__section" aria-label="Song">
-          {introMeasures > 0 && <h3 className="sheet__heading">Song</h3>}
-          {renderSection(sections[sections.length - 1])}
-        </section>
-      )}
+      ))}
     </div>
   );
 }

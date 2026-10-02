@@ -50,6 +50,10 @@ Things to keep in mind:
   gets a _Melody + fills_ part and an _Accompaniment_ part that agree with its chords and share
   the gaps with its left hand. The player chooses the mode freely; the notes are paired on
   purpose. Fills never change a printed melody note.
+- **Every song gets its surroundings.** Besides the introductions, write a bridge after the
+  last phrase, a key lift for the repeat in a higher key, and five endings in different styles.
+  A fill must connect to what follows: end it on a note of the next chord, or let it land on
+  the next downbeat.
 - **Write for a 61-key keyboard** (C2 to C7), not a full piano: no left-hand note below C2.
 - **Every song names its hymnal.** The header carries `book:` (`KK`, `PKJ`, `KJ`, `KPJ`) and
   `number:`, and the folder is named `<book>-<number>-<title>` in lower case.

@@ -18,7 +18,10 @@ export function SongHeader({ song, isPrivate }: SongHeaderProps) {
     meta.lyricist && `Words: ${meta.lyricist}`,
     meta.source,
   ].filter(Boolean);
-  const numbered = song.measures.filter((measure) => measure.number !== null).length;
+  // A repeat shows the same measures twice; they are counted once.
+  const numbered = new Set(
+    song.measures.flatMap((measure) => (measure.number === null ? [] : [measure.number])),
+  ).size;
   const octaves = Math.round((song.rightDo - song.leftDo) / 12);
   const hasVoice = song.measures.some((measure) => measure.voice !== undefined);
   const hasFills = song.measures.some((measure) => measure.fills !== undefined);

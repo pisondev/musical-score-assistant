@@ -1,6 +1,20 @@
 {
   "intro": {
     "lastPhraseFrom": 13,
+    "bridge": {
+      "measures": [
+        {
+          "right": "{mp}1 (2 3) 5",
+          "left": "[G](1 5) (1' 3') 5'",
+          "note": "After the last phrase the closing chord opens into a rising line: G, A, B, D."
+        },
+        {
+          "right": "<1 4> <7, 2>",
+          "left": "[D7sus4]<1' 4' 7'> [D7]<1' 3' 7'>",
+          "note": "A suspended D7 that resolves. It is the cue for the singers, who start on the next beat."
+        }
+      ]
+    },
     "written": [
       {
         "id": "flowing",
@@ -32,6 +46,117 @@
       }
     ]
   },
+  "modulation": {
+    "measures": [
+      {
+        "right": "{mf}2 (3 4) 5",
+        "left": "[D7]1 (5 7) (1' 3')",
+        "note": "The key lift. It is written here in the key of the song and played in the new key: the dominant seventh of the new key, with a line that climbs to its root."
+      },
+      {
+        "right": "<7, 2 4> .",
+        "left": "[D7]<1' 3' 7'> .",
+        "note": "The chord waits for two beats; the pickup follows in the new key."
+      }
+    ]
+  },
+  "endings": [
+    {
+      "id": "amen",
+      "name": "Amen",
+      "style": "Hymn",
+      "summary": "Two held chords, the four chord and then home: the sound of a sung Amen.",
+      "measures": [
+        {
+          "right": "{p}<4 6 1'> . .",
+          "left": "[C]<1 5 1'> . .",
+          "note": "The four chord, C, held for a whole measure."
+        },
+        {
+          "right": "<3 5 1'> . .",
+          "left": "[G]<1 5 1'> . .",
+          "note": "Home: the G chord, held."
+        }
+      ]
+    },
+    {
+      "id": "classical",
+      "name": "Rising arpeggio",
+      "style": "Classical",
+      "summary": "The G chord climbs through two octaves in eighths and comes to rest at the top.",
+      "measures": [
+        {
+          "right": "{mp}(1 3) (5 1') (3' 5')",
+          "left": "[G](1 5) (1' 3') 5'",
+          "note": "The right hand climbs G, B, D twice over; the left hand follows with its own arpeggio."
+        },
+        {
+          "right": "{p}<3' 5' 1''> . .",
+          "left": "[G]<1 5 1'> . .",
+          "note": "The last chord, high and soft."
+        }
+      ]
+    },
+    {
+      "id": "gospel",
+      "name": "Gospel Amen",
+      "style": "Gospel",
+      "summary": "The four chord turns minor over the home bass note, a triplet roll climbs the G chord, and a last soft chord closes.",
+      "measures": [
+        {
+          "right": "{mf}<4 6 1'> . <4 b6 1'>",
+          "left": "[C/G]<5 1' 3'> . [Cm/G]<5 1' 3'>",
+          "note": "C over the bass note G; on the last beat E falls to E flat, the minor four chord."
+        },
+        {
+          "right": "<3 5 1'> (5 1' 3') <5' 1''>",
+          "left": "[G]<1 5 1'> . .",
+          "note": "Home, then a triplet roll up the G chord to the high D and G."
+        },
+        {
+          "right": "{p}<3 5 1'> . .",
+          "left": "[G]<1 5 1'> . .",
+          "note": "The same chord once more, soft, in the middle of the keyboard."
+        }
+      ]
+    },
+    {
+      "id": "majestic",
+      "name": "Grand close",
+      "style": "Majestic",
+      "summary": "Full chords in both hands: home, the four chord over the same bass, home, and a last chord at the top of the keyboard.",
+      "measures": [
+        {
+          "right": "{f}<1 3 5 1'> <1 4 6 1'> <1 3 5 1'>",
+          "left": "[G]<1 1'> [C/G]<5 5'> [G]<1 1'>",
+          "note": "G, C over G, G: only the two inner notes of the right hand move. The left hand keeps its octave."
+        },
+        {
+          "right": "{ff}<3' 5' 1''> . .",
+          "left": "[G]<1 5 1'> . .",
+          "note": "The final chord, an octave higher and as loud as the song gets."
+        }
+      ]
+    },
+    {
+      "id": "jazz",
+      "name": "Jazz close",
+      "style": "Jazz",
+      "summary": "A major seven chord a half step above home slides down into G with its sixth and ninth.",
+      "measures": [
+        {
+          "right": "{mp}<4 b6 1'> . .",
+          "left": "[Abmaj7]<1 5 7> . .",
+          "note": "A flat major seven: C, E flat and G over A flat. Every note is a half step from where it is going, or already there."
+        },
+        {
+          "right": "{p}<3 6 2'> . .",
+          "left": "[G69]<1 6 2' 3'> . .",
+          "note": "G with its sixth and ninth: B, E and A in the right hand."
+        }
+      ]
+    }
+  ],
   "baseline": {
     "rightHand": {
       "fills": {

@@ -48,7 +48,8 @@ in the command-line checker.
 | `hymnals.ts`     | The hymnals the library knows by name, and how a song is cited ("PKJ 184")   |
 | `left-hand.ts`   | Resolves chord-relative left-hand notation to pitches                        |
 | `arrangement.ts` | Builds the baseline and the stored arrangements                              |
-| `intro.ts`       | Builds the written introduction and locates the last phrase                  |
+| `intro.ts`       | Locates the last phrase of a song                                            |
+| `passage.ts`     | Builds written passages: introductions, the bridge, the key lift, endings    |
 | `dynamics.ts`    | Dynamic levels and hairpins on one timeline; loudness at any tick            |
 | `gaps.ts`        | Finds the places where the melody waits and the left hand must fill          |
 | `keyboard.ts`    | Range of the target instrument, a 61-key keyboard                            |
@@ -56,7 +57,7 @@ in the command-line checker.
 | `mei.ts`         | Serializes a performance as MEI for the staff-notation engraver              |
 | `midi.ts`        | Writes a performance as a Standard MIDI File                                 |
 | `transpose.ts`   | Moves a song and an arrangement to another key                               |
-| `performance.ts` | Combines song, arrangement, right-hand part, introduction, and transposition |
+| `performance.ts` | Assembles what is played: intro, song, repeat, ending, key, right-hand part  |
 | `summary.ts`     | Counts what a song offers, for the cards on the home page                    |
 | `validate.ts`    | Playability and harmony checks                                               |
 | `playback.ts`    | Converts a performance to timed note events                                  |
@@ -74,10 +75,22 @@ Key ideas:
   pattern reads the same on every chord. The engine resolves the degrees to pitches and spells
   them in the key for display.
 - **A performance is a song.** `buildPerformance` returns an ordinary `Song` and `Arrangement`
-  whose measures start with the introduction, if one is selected, and whose pitches and chord
-  symbols are already transposed. Everything downstream (sheet, audio, playhead, loop) works on
-  that result and needs no special cases. Introduction measures carry `part: 'intro'` and slot
-  ids of their own.
+  with everything that is played in one row of measures, pitches and chord symbols already
+  transposed: the introduction, the song, with **Repeat** an interlude and the song once more
+  in the lifted key, and the ending. Everything downstream (audio, playhead, loop, MIDI) works
+  on that result and needs no special cases. Each measure says which stretch it belongs to
+  (`part`: intro, song, interlude, ending) and every slot has an id of its own, also the
+  second time through.
+- **Sections say where the blocks are.** `Performance.sections` lists the stretches in order,
+  each with a title, its first measure, its length, and its key. The sheet draws one block per
+  section, the staff view engraves each with its own key signature, the MIDI writer puts a
+  key signature where the key changes, and `measureNames` derives every label from them
+  ("Intro 2", "m. 5 (repeat)", "Ending 1").
+- **Passages are written once and placed by the form.** `buildPassage` builds introductions,
+  the bridge, the key lift, and endings from the same two-hand notation. The key lift is
+  written in the key of the song and simply transposed with the repeat. A measure that was
+  cut short for the pickup is completed with holds wherever something other than the pickup
+  follows, so no passage has to know what comes before it.
 - **A right-hand part extends measures, not the model.** Each arrangement carries the fills
   and the accompaniment written for it, and `applyRightHand` puts one into the song's measures
   (and replaces the left hand of a measure, where the part says so), so everything downstream
@@ -87,6 +100,10 @@ Key ideas:
   plays. An accompaniment takes the place of the melody, which moves to `Measure.voice`: a
   line that the sheet shows, the playhead follows, and the engine plays as its own track. The introduction is built from the unchanged song, so it keeps
   the tune in every mode.
+- **Pedal, without a pedal.** `buildNoteEvents` lets left-hand notes ring until the harmony
+  changes, and the last notes of a right-hand fill until the right hand plays again (or until
+  a chord arrives that they do not belong to). The sheet shows the written lengths; only the
+  sound is longer.
 - **Transposition keeps the digits.** Numbered notation is relative to "1", so transposing
   changes pitches, chord symbols, and the key, and leaves every written tone as it is.
 - **Dynamics are a timeline.** Level marks and hairpins from all measures form one timeline.
@@ -210,8 +227,8 @@ running, editing a song file reloads the page.
 ### `scripts/check-songs.ts`
 
 Runs the same engine from the command line and prints the issues for every song, arrangement,
-right-hand part, and written introduction. It is the quickest way to verify a transcription or an arrangement
-before opening the app.
+right-hand part, and written passage (introduction, bridge, key lift, ending). It is the
+quickest way to verify a transcription or an arrangement before opening the app.
 
 ## Testing
 

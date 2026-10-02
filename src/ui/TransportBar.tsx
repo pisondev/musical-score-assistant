@@ -1,6 +1,6 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
 import type { HandMode } from '../audio/engine';
-import type { Measure, Song } from '../core';
+import type { MeasureName, Song } from '../core';
 import { MAX_TEMPO, MIN_TEMPO, usePlayer } from '../store/player';
 import { cx } from './classnames';
 import {
@@ -23,15 +23,10 @@ const HAND_MODES: { mode: HandMode; label: string; hint: string }[] = [
 const TEMPO_LEAP = 10;
 
 interface TransportBarProps {
-  /** The song as performed, including any introduction. */
+  /** The song as performed, including what is played around it. */
   song: Song;
-}
-
-/** How a measure is named in the position readout and the loop menus. */
-function measureLabel(measure: Measure, long: boolean): string {
-  if (measure.part === 'intro') return `Intro ${measure.index + 1}`;
-  if (measure.number === null) return 'Pickup';
-  return long ? `m. ${measure.number}` : `${measure.number}`;
+  /** How each measure is named in the position readout and the loop menus. */
+  names: MeasureName[];
 }
 
 interface TempoFieldProps {
@@ -106,7 +101,7 @@ function TempoField({ tempo, onChange }: TempoFieldProps) {
 }
 
 /** Playback controls, fixed to the bottom of the window. */
-export function TransportBar({ song }: TransportBarProps) {
+export function TransportBar({ song, names }: TransportBarProps) {
   const status = usePlayer((state) => state.status);
   const error = usePlayer((state) => state.error);
   const handMode = usePlayer((state) => state.handMode);
@@ -121,8 +116,14 @@ export function TransportBar({ song }: TransportBarProps) {
   const playing = status === 'playing';
   // The sung melody is a separate line only while the right hand accompanies.
   const hasVoice = song.measures.some((measure) => measure.voice !== undefined);
-  const current = song.measures[currentMeasure];
-  const lastNumber = song.measures[song.measures.length - 1]?.number;
+  const current = names[currentMeasure];
+  const lastNumber = song.measures.reduce<number | null>(
+    (highest, measure) =>
+      measure.number !== null && (highest === null || measure.number > highest)
+        ? measure.number
+        : highest,
+    null,
+  );
 
   const loopSelect = (value: number, onChange: (index: number) => void, label: string) => (
     <select
@@ -132,7 +133,7 @@ export function TransportBar({ song }: TransportBarProps) {
     >
       {song.measures.map((measure) => (
         <option key={measure.index} value={measure.index}>
-          {measureLabel(measure, false)}
+          {names[measure.index]?.short ?? ''}
         </option>
       ))}
     </select>
@@ -177,8 +178,8 @@ export function TransportBar({ song }: TransportBarProps) {
               'Loading piano…'
             ) : (
               <>
-                <strong>{current ? measureLabel(current, true) : ''}</strong>
-                {lastNumber !== null && lastNumber !== undefined && <span> / {lastNumber}</span>}
+                <strong>{current ? current.position : ''}</strong>
+                {lastNumber !== null && <span> / {lastNumber}</span>}
               </>
             )}
           </span>

@@ -16,6 +16,8 @@ export interface SongSummary {
   rightHandParts: number;
   /** Introductions on offer: the last phrase and every written one. */
   intros: number;
+  /** Written endings on offer. */
+  endings: number;
   /** Places where the melody waits for more than two beats. */
   gaps: number;
   errors: number;
@@ -24,7 +26,7 @@ export interface SongSummary {
 
 /** Counts the arrangements, parts, introductions, and open issues of a song. */
 export function summarizeSong(bundle: SongBundle): SongSummary {
-  const { song, arrangements, intro } = bundle;
+  const { song, arrangements, intro, endings, modulation } = bundle;
   const parts = arrangements.flatMap((arrangement) => Object.values(arrangement.rightHand));
 
   const levels: Record<Level, number> = { easy: 0, intermediate: 0, advanced: 0 };
@@ -42,6 +44,9 @@ export function summarizeSong(bundle: SongBundle): SongSummary {
     ...arrangements.flatMap((arrangement) => arrangement.issues),
     ...parts.flatMap((part) => part.issues),
     ...intro.written.flatMap((written) => written.issues),
+    ...(intro.bridge?.issues ?? []),
+    ...(modulation?.issues ?? []),
+    ...endings.flatMap((ending) => ending.issues),
   ];
   const count = (severity: Issue['severity']) =>
     issues.filter((issue) => issue.severity === severity).length;
@@ -54,6 +59,7 @@ export function summarizeSong(bundle: SongBundle): SongSummary {
     rightHandParts: parts.length,
     // The last phrase needs at least one measure to repeat.
     intros: (song.measures.length > 0 ? 1 : 0) + intro.written.length,
+    endings: endings.length,
     gaps: findGaps(song).length,
     errors: count('error'),
     warnings: count('warning'),

@@ -27,8 +27,8 @@
   gap: 22px;
 }
 
-/* The introduction sits in its own tinted block above the song. */
-.sheet__section--intro {
+/* What is played around the song (introduction, interlude, ending) sits in a tinted block. */
+.sheet__section--aside {
   margin: -4px -8px 0 4px;
   padding: 12px 8px 14px 0;
   border: 1px dashed #bcd7f5;
@@ -137,7 +137,8 @@
   border-right: 5px double var(--ink-soft);
 }
 
-.measure--repeat-end .measure__staff {
+.measure--repeat-end .measure__staff,
+.measure--section-end .measure__staff {
   border-right: 4px double var(--ink-soft);
 }
 
@@ -626,7 +627,7 @@
     box-shadow: none;
   }
 
-  .sheet__section--intro {
+  .sheet__section--aside {
     margin: 0;
     padding: 8px 6px 10px 0;
     border-color: #999;
@@ -683,6 +684,7 @@
 
   .measure--final .measure__staff,
   .measure--repeat-end .measure__staff,
+  .measure--section-end .measure__staff,
   .measure--repeat-start .measure__staff {
     border-color: #000;
   }

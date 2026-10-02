@@ -1,6 +1,6 @@
 import { keySignatureFifths } from './staff';
 import { PPQ, quarterNotesPerMinute } from './time';
-import type { NoteEvent, Song, Track } from './types';
+import type { NoteEvent, NoteName, Song, Track } from './types';
 
 /**
  * Writes a performance as a Standard MIDI File (format 1): a conductor track
@@ -15,6 +15,8 @@ export interface MidiOptions {
   tempo: number;
   /** What to include; each entry becomes a track of its own. */
   tracks: Track[];
+  /** Keys that take over later in the piece, each from its tick on. */
+  keyChanges?: { tick: number; key: NoteName }[];
 }
 
 const CHANNEL: Record<Track, number> = { right: 0, left: 1, voice: 2 };
@@ -129,6 +131,15 @@ export function toMidiFile(song: Song, events: NoteEvent[], options: MidiOptions
       ]),
     },
   ];
+  // A later key gets a signature of its own, but only where the signature really changes.
+  let fifths = keySignatureFifths(key);
+  for (const change of [...(options.keyChanges ?? [])].sort((a, b) => a.tick - b.tick)) {
+    const next = keySignatureFifths(change.key);
+    if (change.tick > 0 && next !== fifths) {
+      conductor.push({ tick: change.tick, order: 0, bytes: metaEvent(0x59, [next & 0xff, 0]) });
+    }
+    fifths = next;
+  }
 
   const tracks = [track(conductor, endTick)];
   for (const name of options.tracks) {

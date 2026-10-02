@@ -6,11 +6,13 @@ back so each idea can be heard before it is practised.
 
 ![The home page: the song that was practised last, and a card for every song](docs/images/home.png)
 
-![The score of Amazing Grace with an improvised introduction and a gospel left hand during playback](docs/images/screenshot.png)
+![The score of Amazing Grace with a written introduction and a gospel left hand during playback](docs/images/screenshot.png)
 
 ![The same score in staff notation](docs/images/staff-notation.png)
 
 ![An accompaniment for singers: the sung melody as a small row above the right hand](docs/images/accompaniment.png)
+
+![The interlude that lifts the key before the song is repeated a half step higher](docs/images/repeat.png)
 
 ## What it does
 
@@ -45,6 +47,10 @@ back so each idea can be heard before it is practised.
   the chord symbols, and the sound change.
 - **Dynamics.** Marks from _pp_ to _ff_ and crescendo or diminuendo hairpins are shown on the
   sheet and shape the loudness of the playback.
+- **A beginning, a repeat, and an ending.** An introduction leads into the song over a bridge
+  that cues the singers. The song can be repeated a half step or a whole step higher (a
+  modulation): an interlude lifts the key, and the score continues below with the repeat. A
+  choice of written endings, from a plain _Amen_ to a gospel walk-up, closes the piece.
 - **Playback that follows the page.** Play both hands, the right hand alone to check the melody,
   or the left hand alone to hear a suggestion, with or without the voice guide. The note being
   played is highlighted on the score.
@@ -58,8 +64,9 @@ back so each idea can be heard before it is practised.
   key, and introduction. It prints in black with the browser's default settings; "Background
   graphics" does not have to be switched on.
 - **MIDI and MP3 download.** The same performance as a file: introduction, both hands as
-  chosen, key, and dynamics as on the sheet, at the tempo of the slider. MIDI holds the notes,
-  one track per hand and one for the voice guide; MP3 is a recording with the sounds of the app.
+  chosen, key, repeat, ending, and dynamics as on the sheet, at the tempo of the slider. MIDI
+  holds the notes, one track per hand and one for the voice guide; MP3 is a recording with the
+  sounds of the app.
 
 The web app only displays and plays. Songs and arrangements are plain files in `songs/`, written
 outside the app (see [Adding a song](#adding-a-song)).
@@ -96,7 +103,9 @@ controls playback.
 | ----------------- | ------------------------------------------------------------------------------------------------------------- |
 | **Left hand**     | Opens the arrangements, grouped by level, each tagged with its style                                          |
 | **Right hand**    | Melody, _Melody + fills_, or _Accompaniment_, written to go with the selected left hand                       |
-| **Intro**         | Off, _Last phrase_, or a written intro; when on, playback starts with the intro                               |
+| **Intro**         | Off, _Last phrase_ (followed by a bridge into the song), or a written intro                                   |
+| **Ending**        | Off, or one of the written endings; it follows the last measure of the song                                   |
+| **Repeat**        | Off, or the song a second time a half or whole step higher, after an interlude that lifts the key             |
 | **Key**           | Transposes by half steps; click the key to return to the original                                             |
 | **Show**          | Shows or hides lyrics and dynamics                                                                            |
 | **1 2 3 / Staff** | Switches between numbered notation and staff notation                                                         |
@@ -130,7 +139,7 @@ visits, in this browser only.
 2. Write `song.txt`: header, melody, chords, lyrics, dynamics. `book: PKJ` and `number: 184` in
    the header put the song under its hymnal.
 3. Optionally write `arrangements.json` with left-hand arrangements, the right-hand parts
-   that go with them, and introductions.
+   that go with them, introductions, a bridge, a key lift, and endings.
 4. Run `npm run check` and fix what it reports.
 
 Arrangements are written for a 61-key keyboard (C2 to C7), so the left hand never goes below C2.

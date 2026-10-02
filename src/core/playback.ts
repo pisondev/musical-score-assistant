@@ -1,6 +1,8 @@
 import { chordTimeline } from './arrangement';
+import { chordPitchClasses } from './chord';
 import { DynamicsTimeline } from './dynamics';
-import { beatTicks } from './time';
+import { mod } from './notes';
+import { beatTicks, measureTicks } from './time';
 import type { Arrangement, NoteEvent, Slot, SlotSpan, Song, Track } from './types';
 
 interface StaffMeasure {
@@ -92,11 +94,52 @@ function sustainLeftHand(events: NoteEvent[], song: Song, arrangement: Arrangeme
 }
 
 /**
- * The notes exactly as written: hold dots extend them, but no pedal and no
- * dynamics are applied. The sung melody, when the song carries one beside the
- * right hand, becomes the track "voice".
+ * Lets the notes a fill adds ring on until the right hand plays again, the
+ * way a pianist keeps them under the fingers or the pedal instead of letting
+ * a run stop dead before the melody returns. A note is let go earlier when
+ * the harmony moves to a chord it does not belong to, and it never rings for
+ * more than a measure beyond its written length.
  */
-export function buildWrittenNotes(song: Song, arrangement: Arrangement): NoteEvent[] {
+function sustainFills(
+  fills: NoteEvent[],
+  rightHand: NoteEvent[],
+  song: Song,
+  arrangement: Arrangement,
+): void {
+  if (fills.length === 0) return;
+  const onsets = [...new Set(rightHand.map((event) => event.tick))].sort((a, b) => a - b);
+  const harmony = chordTimeline(
+    song.measures.map((measure, index) => ({
+      startTick: measure.startTick,
+      chords: arrangement.measures[index].chords,
+    })),
+  );
+  const longest = measureTicks(song.meta.time);
+
+  for (const event of fills) {
+    const end = event.tick + event.duration;
+    const next = onsets.find((tick) => tick >= end) ?? song.totalTicks;
+    if (next <= end) continue;
+    let release = Math.min(next, end + longest, song.totalTicks);
+    for (const change of harmony) {
+      if (change.tick < end) continue;
+      if (change.tick >= release) break;
+      const belongs =
+        change.chord !== null && chordPitchClasses(change.chord).includes(mod(event.midi, 12));
+      if (!belongs) {
+        release = change.tick;
+        break;
+      }
+    }
+    event.duration = Math.max(event.duration, release - event.tick);
+  }
+}
+
+/** The written notes of a performance, row by row. */
+function writtenRows(
+  song: Song,
+  arrangement: Arrangement,
+): { melody: NoteEvent[]; fills: NoteEvent[]; left: NoteEvent[]; voice: NoteEvent[] } {
   const beat = beatTicks(song.meta.time);
   const rows = (track: Track, slotsOf: (index: number) => Slot[], levels = VELOCITY[track]) =>
     eventsForTrack(
@@ -110,22 +153,30 @@ export function buildWrittenNotes(song: Song, arrangement: Arrangement): NoteEve
       levels,
     );
 
-  return [
-    ...rows('right', (index) => song.measures[index].slots),
-    ...rows('right', (index) => song.measures[index].fills ?? [], FILL_VELOCITY),
-    ...rows('left', (index) => arrangement.measures[index].slots),
-    ...rows('voice', (index) => song.measures[index].voice ?? []),
-  ];
+  return {
+    melody: rows('right', (index) => song.measures[index].slots),
+    fills: rows('right', (index) => song.measures[index].fills ?? [], FILL_VELOCITY),
+    left: rows('left', (index) => arrangement.measures[index].slots),
+    voice: rows('voice', (index) => song.measures[index].voice ?? []),
+  };
+}
+
+/**
+ * The notes exactly as written: hold dots extend them, but no pedal and no
+ * dynamics are applied. The sung melody, when the song carries one beside the
+ * right hand, becomes the track "voice".
+ */
+export function buildWrittenNotes(song: Song, arrangement: Arrangement): NoteEvent[] {
+  const { melody, fills, left, voice } = writtenRows(song, arrangement);
+  return [...melody, ...fills, ...left, ...voice];
 }
 
 /** Builds every sounding note of the song with the given left-hand arrangement. */
 export function buildNoteEvents(song: Song, arrangement: Arrangement): NoteEvent[] {
-  const events = buildWrittenNotes(song, arrangement);
-  sustainLeftHand(
-    events.filter((event) => event.track === 'left'),
-    song,
-    arrangement,
-  );
+  const { melody, fills, left, voice } = writtenRows(song, arrangement);
+  sustainLeftHand(left, song, arrangement);
+  sustainFills(fills, [...melody, ...fills], song, arrangement);
+  const events = [...melody, ...fills, ...left, ...voice];
 
   const dynamics = new DynamicsTimeline(song.measures);
   for (const event of events) {

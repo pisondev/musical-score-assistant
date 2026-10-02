@@ -1,6 +1,6 @@
 ---
 name: new-song
-description: Add a song to the app from a photo or scan of a numbered-notation score. Transcribes the melody and chords into song.txt, writes left-hand arrangements by level and style, the right-hand parts that go with them (fills and an accompaniment for singers), and introductions into arrangements.json, and checks everything. Use when the user provides a score image and asks for a song, a transcription, or left-hand or right-hand suggestions.
+description: Add a song to the app from a photo or scan of a numbered-notation score. Transcribes the melody and chords into song.txt, writes left-hand arrangements by level and style, the right-hand parts that go with them (fills and an accompaniment for singers), and what is played around the song (introductions, a bridge, a key lift for a repeat in a higher key, and endings) into arrangements.json, and checks everything. Use when the user provides a score image and asks for a song, a transcription, or left-hand or right-hand suggestions.
 ---
 
 # Add a song from a printed score
@@ -72,6 +72,35 @@ Then write the introductions under `intro`:
   enter. Every measure must be full except the last, which together with the pickup of the song
   must make one full measure.
 
+After the introductions, write the passages around the song. `docs/song-format.md` describes
+them under "Passages around the song"; all of them are written like an introduction, with both
+hands, in the key of the song.
+
+- **The bridge** (`intro.bridge.measures`): one or two measures played after the _Last phrase_
+  introduction. Move from the home chord to the dominant, suspended and then resolved, and stop
+  there, so the first note of the song is expected. The last measure and the pickup make one
+  full measure.
+- **The key lift** (`modulation.measures`): one or two measures that lead from the end of the
+  song into its repeat in a higher key. Write the dominant seventh of the song's own key with
+  a line that rises into it; the app plays it in the new key, where it is exactly the chord
+  that announces that key. The last measure lines up with the pickup.
+- **Five endings** (`endings`), with the ids `amen`, `classical`, `gospel`, `majestic`, and
+  `jazz`, each with a `name`, a `style`, and a `summary`:
+
+  | id          | style     | What to write                                                                          |
+  | ----------- | --------- | -------------------------------------------------------------------------------------- |
+  | `amen`      | Hymn      | The four chord, then the home chord, each held for a measure                           |
+  | `classical` | Classical | The home chord rising in eighths through two octaves, then a soft chord at the top     |
+  | `gospel`    | Gospel    | The minor four chord over the home bass, or a walk-up through a diminished chord       |
+  | `majestic`  | Majestic  | Full chords in both hands: home, four over the same bass, home, and a high last chord  |
+  | `jazz`      | Jazz      | The major seven chord a half step above home, then the home chord with sixth and ninth |
+
+  Every measure of an ending is full. Vary the endings from song to song: when the last
+  measures of the song already are an Amen, do not write the same figure again as an ending.
+
+The app completes a last measure that was cut short for the pickup whenever one of these
+passages follows it, so they all start on a downbeat.
+
 ### The first criterion: fill the gaps
 
 This is what the player asked for above everything else. A gap is a place where the melody
@@ -135,6 +164,12 @@ waits.
   plain pattern and the fill moves to the right hand. Never set a triplet in one hand against
   eighths in the other.
 - Use a different figure in each gap.
+- **Let every fill arrive.** In playback the last note of a fill rings until the right hand
+  plays again, but only if it belongs to the chord that follows. End a fill on such a note.
+  When a run ends on a passing note instead, list the next measure too and write a landing
+  note of the new chord on a beat the melody leaves empty (a rest may be filled; a melody
+  note may not be changed). A run that stops at the barline with nowhere to go sounds cut
+  off.
 
 **Accompaniment** (`accompaniment`): for accompanying singers; the right hand does not play
 the tune.
@@ -204,7 +239,9 @@ Tell the user:
 - how each gap is filled in each arrangement, in a line or two;
 - what the right hand does in **Melody + fills** and in **Accompaniment**, and that **Voice**
   lets them hear an accompaniment together with the sung melody;
-- that the dynamics, the written introductions, and the right-hand parts are your own
-  suggestions.
+- what the bridge, the key lift, and each ending do, and that **Repeat** plays the song a
+  second time a half or whole step higher;
+- that the dynamics, the written introductions, the bridge, the key lift, the endings, and the
+  right-hand parts are your own suggestions.
 
 Do not commit or push unless the user asks.
