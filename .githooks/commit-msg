@@ -1,0 +1,34 @@
+#!/bin/sh
+# Rejects commit messages that carry AI attribution of any kind.
+# Enabled through "git config core.hooksPath .githooks" (done by "npm install").
+
+message_file="$1"
+
+# Ignore comment lines so the default commit template never triggers the check.
+message=$(grep -v '^#' "$message_file")
+
+reject() {
+  echo "commit rejected: $1" >&2
+  echo "Remove AI attribution from the commit message and try again." >&2
+  exit 1
+}
+
+ai_names='claude|anthropic|copilot|chatgpt|openai|gemini|cursor|codex|devin|aider|codeium|windsurf|tabnine'
+
+if printf '%s\n' "$message" | grep -Eiq "^[[:space:]]*(co-authored-by|signed-off-by|authored-by|assisted-by|generated-by)[[:space:]]*:.*($ai_names|\[bot\])"; then
+  reject "AI attribution trailer found."
+fi
+
+if printf '%s\n' "$message" | grep -Eiq "(generated|created|written|authored|assisted)[[:space:]]+(with|by|using)[[:space:]]+(\[)?($ai_names|ai)([^[:alnum:]]|$)"; then
+  reject "AI attribution phrase found."
+fi
+
+if printf '%s\n' "$message" | grep -Eiq 'noreply@anthropic\.com|claude\.com/claude-code|claude\.ai/code'; then
+  reject "AI tool reference found."
+fi
+
+if printf '%s\n' "$message" | grep -q '🤖'; then
+  reject "AI attribution marker found."
+fi
+
+exit 0

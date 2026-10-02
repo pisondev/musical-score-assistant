@@ -1,0 +1,22 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+
+# Environment and editor state
+.env
+.env.*
+.claude/settings.local.json
+
+# Personal material that must stay on this machine:
+# copyrighted songs, scanned score pages, and local notes.
+songs/private/
+songs/**/source.*
+.local/
