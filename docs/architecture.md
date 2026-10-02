@@ -141,12 +141,15 @@ Key ideas:
 `PlaybackEngine` wraps Tone.js. It is loaded on first use, together with the piano samples, to
 keep the first page view light.
 
-- Each hand has its own sampler and channel, sharing one set of decoded sample buffers. Switching
-  between both hands, right, and left only mutes a channel, so it is instant and never interrupts
-  playback.
+- Each hand has its own sampler and channel, sharing one set of decoded sample buffers. Behind
+  each channel sits a gain that lets the track through or not. Switching between both hands,
+  left, and right only moves those gains, so playback is never interrupted. The gain is not
+  switched but faded, over seven hundredths of a second on the way out and four on the way in:
+  a note cut off in the middle of its sound makes a click, and a fade this short is still
+  heard as immediate.
 - A third track, the voice, plays the sung melody while the right hand accompanies. It uses a
   plain synthesized tone instead of the piano, so the guide and the accompaniment can be told
-  apart, and has a channel of its own that the **Voice** button mutes.
+  apart, and has a channel and a gain of its own, which the **Voice** button fades.
 - Notes are scheduled on the Tone.js transport in ticks. Tempo changes therefore take effect
   immediately, and replacing the notes while the transport runs (a new left hand or key) keeps
   the position.

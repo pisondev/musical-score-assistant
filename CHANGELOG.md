@@ -207,6 +207,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Switching between **Both**, **Right**, and **Left** during playback, and switching the voice
+  guide, no longer cuts a track off at once, which could be heard as a click. The track fades
+  out in seven hundredths of a second and comes back in four.
+
 - In the **Options** panel the line of the setting that is open stays at the top while its
   choices scroll. The level headings in the list of left hands (Easy, Intermediate, Advanced)
   are small and pale, so they are not taken for choices.

@@ -57,6 +57,13 @@ const TRACKS: Track[] = ['right', 'left', 'voice'];
  */
 const CHANNEL_VOLUME: Record<Track, number> = { right: 7, left: 4, voice: -14 };
 const SAMPLER_RELEASE = 1.2;
+/**
+ * How long a track takes to fall silent, and to come back, when the hands are switched, in
+ * seconds. Cutting a sounding note off at once makes a click; a fade this short is still
+ * heard as immediate.
+ */
+const FADE_OUT = 0.07;
+const FADE_IN = 0.04;
 const RECORDING_SAMPLE_RATE = 44100;
 const CLICK_ACCENT = 'C6';
 const CLICK_BEAT = 'G5';
@@ -79,7 +86,8 @@ export class PlaybackEngine {
   private loading: Promise<void> | null = null;
   private buffers: ToneModule.ToneAudioBuffers | null = null;
   private instruments: Record<Track, Instrument> | null = null;
-  private channels: Record<Track, ToneModule.Channel> | null = null;
+  /** One gain per track, after its channel: fades the track in and out when it is switched. */
+  private gates: Record<Track, ToneModule.Gain> | null = null;
   private click: ToneModule.Synth | null = null;
   private countIn: ToneModule.Synth | null = null;
   private parts: ToneModule.Part[] = [];
@@ -119,25 +127,22 @@ export class PlaybackEngine {
       });
     });
 
-    const channels = {} as Record<Track, ToneModule.Channel>;
+    const gates = {} as Record<Track, ToneModule.Gain>;
     const instruments = {} as Record<Track, Instrument>;
     for (const track of TRACKS) {
-      ({ channel: channels[track], instrument: instruments[track] } = createInstrument(
-        tone,
-        buffers,
-        track,
-      ));
+      gates[track] = new tone.Gain(1).toDestination();
+      instruments[track] = createInstrument(tone, buffers, track, gates[track]);
     }
 
     this.tone = tone;
     this.buffers = buffers;
-    this.channels = channels;
+    this.gates = gates;
     this.instruments = instruments;
     this.click = this.createClick(tone);
 
     transport.bpm.value = this.quarterTempo;
     transport.ticks = this.pendingTick;
-    this.applyHandMode();
+    this.applyHandMode(true);
     this.applyLoop();
     this.rebuild();
   }
@@ -357,11 +362,25 @@ export class PlaybackEngine {
     this.applyHandMode();
   }
 
-  private applyHandMode(): void {
-    if (!this.channels) return;
-    this.channels.right.mute = this.handMode === 'left';
-    this.channels.left.mute = this.handMode === 'right';
-    this.channels.voice.mute = !this.voiceGuide;
+  /**
+   * Lets the tracks that are switched on be heard. A track is faded, quickly
+   * but not at once, so that a note that is sounding does not end in a click;
+   * `immediately` sets the levels without a fade, before anything plays.
+   */
+  private applyHandMode(immediately = false): void {
+    if (!this.gates) return;
+    const heard: Record<Track, boolean> = {
+      right: this.handMode !== 'left',
+      left: this.handMode !== 'right',
+      voice: this.voiceGuide,
+    };
+    for (const track of TRACKS) {
+      const { gain } = this.gates[track];
+      const level = heard[track] ? 1 : 0;
+      if (immediately) gain.value = level;
+      // The ramp starts from wherever an unfinished one has brought the level.
+      else gain.linearRampTo(level, heard[track] ? FADE_IN : FADE_OUT);
+    }
   }
 
   setMetronome(enabled: boolean): void {
@@ -416,7 +435,7 @@ export class PlaybackEngine {
     const rendered = await tone.Offline(
       () => {
         for (const track of tracks) {
-          const { instrument } = createInstrument(tone, buffers, track);
+          const instrument = createInstrument(tone, buffers, track);
           for (const event of score.events) {
             if (event.track !== track) continue;
             instrument.triggerAttackRelease(
@@ -457,28 +476,30 @@ export class PlaybackEngine {
 }
 
 /**
- * The instrument of one track, routed through its own channel to the output:
- * a sampled piano for a hand, and for the voice a plain, flute-like tone that
- * stands apart from the piano.
+ * The instrument of one track, routed through a channel of its own that sets
+ * its level: a sampled piano for a hand, and for the voice a plain,
+ * flute-like tone that stands apart from the piano. The channel leads to
+ * `output`, or straight to the output of the audio context when none is given.
  */
 function createInstrument(
   tone: Tone,
   buffers: ToneModule.ToneAudioBuffers,
   track: Track,
-): { channel: ToneModule.Channel; instrument: Instrument } {
-  const channel = new tone.Channel({ volume: CHANNEL_VOLUME[track] }).toDestination();
+  output?: ToneModule.InputNode,
+): Instrument {
+  const channel = new tone.Channel({ volume: CHANNEL_VOLUME[track] });
+  if (output) channel.connect(output);
+  else channel.toDestination();
   if (track === 'voice') {
-    const synth = new tone.PolySynth(tone.Synth, {
+    return new tone.PolySynth(tone.Synth, {
       oscillator: { type: 'triangle' },
       envelope: { attack: 0.04, decay: 0.2, sustain: 0.75, release: 0.3 },
     }).connect(channel);
-    return { channel, instrument: synth };
   }
-  const sampler = new tone.Sampler({
+  return new tone.Sampler({
     urls: Object.fromEntries(SAMPLE_NOTES.map((note) => [note, buffers.get(note)])),
     release: SAMPLER_RELEASE,
   }).connect(channel);
-  return { channel, instrument: sampler };
 }
 
 /** The single engine instance shared by the whole app. */
