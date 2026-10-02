@@ -8,6 +8,8 @@ back so each idea can be heard before it is practised.
 
 ![The score of Amazing Grace with a written introduction and a gospel left hand during playback](docs/images/screenshot.png)
 
+![The settings of the score, opened from the Options button in the top bar](docs/images/options.png)
+
 ![The same score in staff notation](docs/images/staff-notation.png)
 
 ![An accompaniment for singers: the sung melody as a small row above the right hand](docs/images/accompaniment.png)
@@ -64,9 +66,12 @@ back so each idea can be heard before it is practised.
 - **Practice controls.** A tempo that can be dragged or typed, a metronome with a count-in,
   looping a range of measures, and switching arrangements, keys, or hands while the music keeps
   playing.
-- **Made for the phone on the music stand.** In a narrow window the options become one row that
-  scrolls sideways and stays in reach, menus open as sheets from the bottom edge, and the
-  playback bar shrinks to two short rows, so most of the screen is left for the score.
+- **Controls that stay out of the way.** Everything that decides what is on the sheet sits
+  behind one **Options** button in the top bar: a short list of settings with their current
+  values, each of which opens to show its choices.
+- **Made for the phone on the music stand.** In a narrow window the controls stay in reach in
+  one row at the top, menus open as sheets from the bottom edge, and the playback bar shrinks
+  to two short rows, so most of the screen is left for the score.
 - **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
   key, and introduction. It prints in black with the browser's default settings; "Background
   graphics" does not have to be switched on.
@@ -103,18 +108,23 @@ search box looks at titles, hymnals, numbers ("pkj 184"), credits, and styles. O
 **All songs** or the name of the app in the top bar leads back, as does the Back button of the
 browser. Every song has an address of its own (`#song=amazing-grace`), so it can be bookmarked.
 
-On a song page, the toolbar above the sheet decides what is shown; the bar at the bottom
-controls playback.
+On a song page, the top bar decides what is shown; the bar at the bottom controls playback.
+**Options** opens the settings of the score as a list. Each line shows the choice in effect,
+and a click on a line opens its choices; the list stays open, so several settings can be
+changed in one go.
 
-| Control           | What it does                                                                                                  |
+| In **Options** | What it does                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------- |
+| **Left hand**  | The arrangements, grouped by level, each tagged with its style                                    |
+| **Right hand** | Melody, _Melody + fills_, or _Accompaniment_, and whether the melody gets chords under it         |
+| **Intro**      | Off, _Last phrase_ (followed by a bridge into the song), or a written intro                       |
+| **Ending**     | Off, or one of the written endings; it follows the last measure of the song                       |
+| **Repeat**     | Off, or the song a second time a half or whole step higher, after an interlude that lifts the key |
+| **Key**        | Transposes by half steps; click the key to return to the original                                 |
+| **Show**       | Shows or hides lyrics and dynamics                                                                |
+
+| Beside it         | What it does                                                                                                  |
 | ----------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Left hand**     | Opens the arrangements, grouped by level, each tagged with its style                                          |
-| **Right hand**    | Melody, _Melody + fills_, or _Accompaniment_, and whether the melody gets chords under it                     |
-| **Intro**         | Off, _Last phrase_ (followed by a bridge into the song), or a written intro                                   |
-| **Ending**        | Off, or one of the written endings; it follows the last measure of the song                                   |
-| **Repeat**        | Off, or the song a second time a half or whole step higher, after an interlude that lifts the key             |
-| **Key**           | Transposes by half steps; click the key to return to the original                                             |
-| **Show**          | Shows or hides lyrics and dynamics                                                                            |
 | **1 2 3 / Staff** | Switches between numbered notation and staff notation                                                         |
 | **Guide**         | Opens the panel that explains the arrangement: patterns, tips, measure notes                                  |
 | **Print / PDF**   | Opens the print dialog; choose "Save as PDF" as the destination for a file                                    |

@@ -1,3 +1,4 @@
+import { useState, type ReactNode } from 'react';
 import {
   ENDING_OFF,
   formatNoteName,
@@ -15,7 +16,16 @@ import {
 import { useSettings, type Notation } from '../store/settings';
 import { cx } from './classnames';
 import { introName } from './intro-name';
-import { BookIcon, CheckIcon, DownloadIcon, MinusIcon, PlusIcon, PrinterIcon } from './icons';
+import {
+  BookIcon,
+  CheckIcon,
+  ChevronIcon,
+  DownloadIcon,
+  MinusIcon,
+  PlusIcon,
+  PrinterIcon,
+  SlidersIcon,
+} from './icons';
 import { Popover } from './Popover';
 import { RIGHT_HAND_NAME } from './right-hand-name';
 
@@ -44,6 +54,11 @@ const RIGHT_HAND_OPTIONS: { mode: RightHandMode; description: string }[] = [
     description:
       'For accompanying singers: chords, rhythm, and fills. The melody is left to the voices.',
   },
+];
+
+const LIFTS: { lift: number; name: string; value: string }[] = [
+  { lift: 1, name: 'Up a half step', value: 'Up a half step' },
+  { lift: 2, name: 'Up a whole step', value: 'Up a whole step' },
 ];
 
 const NOTATIONS: { notation: Notation; label: string; hint: string }[] = [
@@ -76,296 +91,241 @@ interface ToolbarProps {
   exportStatus: string | null;
 }
 
-function LeftHandMenu({
+interface Choice<Value> {
+  value: Value;
+  name: string;
+  tag?: string;
+  description: string;
+  disabled?: boolean;
+}
+
+/** A list of choices of which exactly one is selected. */
+function Choices<Value extends string | number>({
+  label,
+  choices,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  choices: Choice<Value>[];
+  selected: Value;
+  onSelect: (value: Value) => void;
+}) {
+  return (
+    <div className="menu" role="radiogroup" aria-label={label}>
+      {choices.map((choice) => (
+        <button
+          key={choice.value}
+          type="button"
+          role="radio"
+          aria-checked={selected === choice.value}
+          className={cx('option', selected === choice.value && 'is-selected')}
+          disabled={choice.disabled}
+          onClick={() => onSelect(choice.value)}
+        >
+          <span className="option__title">
+            {choice.name}
+            {choice.tag && <span className="tag">{choice.tag}</span>}
+          </span>
+          <span className="option__summary">{choice.description}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function LeftHandChoices({
   bundle,
   arrangement,
   onSelectArrangement,
 }: Pick<ToolbarProps, 'bundle' | 'arrangement' | 'onSelectArrangement'>) {
   return (
-    <Popover
-      label="Left hand"
-      wide
-      value={
-        <>
-          {arrangement.name}
-          <span className="popover__detail">
-            {LEVEL_LABEL[arrangement.level]}
-            {arrangement.style && ` · ${arrangement.style}`}
-          </span>
-        </>
-      }
-    >
-      {(close) => (
-        <div className="levels" role="radiogroup" aria-label="Left-hand arrangement">
-          {LEVELS.map(({ level, label, hint }) => {
-            const options = bundle.arrangements.filter((candidate) => candidate.level === level);
-            return (
-              <section key={level} className="levels__column">
-                <header>
-                  <h3>{label}</h3>
-                  <p>{hint}</p>
-                </header>
-                {options.length === 0 && <p className="levels__empty">Nothing here yet.</p>}
-                {options.map((option) => {
-                  const selected = option.id === arrangement.id;
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      className={cx('option', selected && 'is-selected')}
-                      onClick={() => {
-                        onSelectArrangement(option.id);
-                        close();
-                      }}
-                    >
-                      <span className="option__title">
-                        {option.name}
-                        {option.style && <span className="tag">{option.style}</span>}
-                      </span>
-                      <span className="option__summary">{option.summary}</span>
-                    </button>
-                  );
-                })}
-              </section>
-            );
-          })}
-        </div>
-      )}
-    </Popover>
+    <div className="levels" role="radiogroup" aria-label="Left-hand arrangement">
+      {LEVELS.map(({ level, label, hint }) => {
+        const options = bundle.arrangements.filter((candidate) => candidate.level === level);
+        return (
+          <section key={level} className="levels__column">
+            <header>
+              <h3>{label}</h3>
+              <p>{hint}</p>
+            </header>
+            {options.length === 0 && <p className="levels__empty">Nothing here yet.</p>}
+            {options.map((option) => {
+              const selected = option.id === arrangement.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  className={cx('option', selected && 'is-selected')}
+                  onClick={() => onSelectArrangement(option.id)}
+                >
+                  <span className="option__title">
+                    {option.name}
+                    {option.style && <span className="tag">{option.style}</span>}
+                  </span>
+                  <span className="option__summary">{option.summary}</span>
+                </button>
+              );
+            })}
+          </section>
+        );
+      })}
+    </div>
   );
 }
 
-function RightHandMenu({
+function RightHandChoices({
   arrangement,
   rightHand,
-  chords,
-}: Pick<ToolbarProps, 'arrangement' | 'rightHand' | 'chords'>) {
+}: Pick<ToolbarProps, 'arrangement' | 'rightHand'>) {
   const setRightHand = useSettings((state) => state.setRightHand);
   const wantsChords = useSettings((state) => state.chords);
   const toggleChords = useSettings((state) => state.toggleChords);
   const chordsWritten = arrangement.rightHand.harmony !== undefined;
   const chordsPossible = chordsWritten && rightHand !== 'accompaniment';
+  const checked = wantsChords && chordsPossible;
   return (
-    <Popover
-      label="Right hand"
-      value={
-        <>
-          {RIGHT_HAND_NAME[rightHand]}
-          {chords && <span className="popover__detail">with chords</span>}
-        </>
-      }
-    >
-      {(close) => (
-        <div className="menu" role="radiogroup" aria-label="Right hand">
-          {RIGHT_HAND_OPTIONS.map(({ mode, description }) => {
-            const written = mode === 'melody' || arrangement.rightHand[mode] !== undefined;
-            return (
-              <button
-                key={mode}
-                type="button"
-                role="radio"
-                aria-checked={rightHand === mode}
-                className={cx('option', rightHand === mode && 'is-selected')}
-                disabled={!written}
-                onClick={() => {
-                  setRightHand(mode);
-                  close();
-                }}
-              >
-                <span className="option__title">{RIGHT_HAND_NAME[mode]}</span>
-                <span className="option__summary">
-                  {written ? description : 'Not written for this left hand yet.'}
-                </span>
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={wantsChords && chordsPossible}
-            className="check check--described"
-            disabled={!chordsPossible}
-            onClick={toggleChords}
-          >
-            <span className={cx('check__box', wantsChords && chordsPossible && 'is-checked')}>
-              {wantsChords && chordsPossible && <CheckIcon width={12} height={12} />}
-            </span>
-            <span>
-              Chords under the melody
-              <span className="option__summary">
-                {!chordsWritten
-                  ? 'Not written for this left hand yet.'
-                  : rightHand === 'accompaniment'
-                    ? 'An accompaniment has its own chords.'
-                    : 'On the downbeats, the long notes, and the starts of phrases the right hand plays a full chord with the melody on top, so it never sounds thin.'}
-              </span>
-            </span>
-          </button>
-          <p className="menu__note">
-            Chords, fills, and accompaniment are written for each left hand, so they follow its
-            chords and share the gaps with its fills. Now paired with: {arrangement.name}.
-          </p>
-        </div>
-      )}
-    </Popover>
+    <>
+      <Choices
+        label="Right hand"
+        selected={rightHand}
+        onSelect={setRightHand}
+        choices={RIGHT_HAND_OPTIONS.map(({ mode, description }) => {
+          const written = mode === 'melody' || arrangement.rightHand[mode] !== undefined;
+          return {
+            value: mode,
+            name: RIGHT_HAND_NAME[mode],
+            description: written ? description : 'Not written for this left hand yet.',
+            disabled: !written,
+          };
+        })}
+      />
+      <button
+        type="button"
+        role="menuitemcheckbox"
+        aria-checked={checked}
+        className="check check--described"
+        disabled={!chordsPossible}
+        onClick={toggleChords}
+      >
+        <span className={cx('check__box', checked && 'is-checked')}>
+          {checked && <CheckIcon width={12} height={12} />}
+        </span>
+        <span>
+          Chords under the melody
+          <span className="option__summary">
+            {!chordsWritten
+              ? 'Not written for this left hand yet.'
+              : rightHand === 'accompaniment'
+                ? 'An accompaniment has its own chords.'
+                : 'On the downbeats, the long notes, and the starts of phrases the right hand plays a full chord with the melody on top, so it never sounds thin.'}
+          </span>
+        </span>
+      </button>
+      <p className="menu__note">
+        Chords, fills, and accompaniment are written for each left hand, so they follow its chords
+        and share the gaps with its fills. Now paired with: {arrangement.name}.
+      </p>
+    </>
   );
 }
 
-function IntroMenu({ bundle, intro }: Pick<ToolbarProps, 'bundle' | 'intro'>) {
+function IntroChoices({ bundle, intro }: Pick<ToolbarProps, 'bundle' | 'intro'>) {
   const setIntro = useSettings((state) => state.setIntro);
-  const options: { choice: IntroChoice; name: string; style?: string; description: string }[] = [
-    { choice: INTRO_OFF, name: 'Off', description: 'Start directly with the song.' },
-    {
-      choice: INTRO_LAST_PHRASE,
-      name: 'Last phrase',
-      description: bundle.intro.bridge
-        ? 'The closing phrase of the song, played with the selected left hand, then a bridge that leads into the first measure.'
-        : 'The closing phrase of the song, played with the selected left hand.',
-    },
-    ...bundle.intro.written.map((written) => ({
-      choice: written.id,
-      name: written.name,
-      style: written.style,
-      description: written.summary,
-    })),
-  ];
-
   return (
-    <Popover label="Intro" value={introName(bundle, intro)}>
-      {(close) => (
-        <div className="menu menu--scroll" role="radiogroup" aria-label="Introduction">
-          {options.map(({ choice, name, style, description }) => (
-            <button
-              key={choice}
-              type="button"
-              role="radio"
-              aria-checked={intro === choice}
-              className={cx('option', intro === choice && 'is-selected')}
-              onClick={() => {
-                setIntro(choice);
-                close();
-              }}
-            >
-              <span className="option__title">
-                {name}
-                {style && <span className="tag">{style}</span>}
-              </span>
-              <span className="option__summary">{description}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </Popover>
+    <Choices
+      label="Introduction"
+      selected={intro}
+      onSelect={setIntro}
+      choices={[
+        { value: INTRO_OFF, name: 'Off', description: 'Start directly with the song.' },
+        {
+          value: INTRO_LAST_PHRASE,
+          name: 'Last phrase',
+          description: bundle.intro.bridge
+            ? 'The closing phrase of the song, played with the selected left hand, then a bridge that leads into the first measure.'
+            : 'The closing phrase of the song, played with the selected left hand.',
+        },
+        ...bundle.intro.written.map((written) => ({
+          value: written.id,
+          name: written.name,
+          tag: written.style,
+          description: written.summary,
+        })),
+      ]}
+    />
   );
 }
 
-function EndingMenu({ bundle, ending }: Pick<ToolbarProps, 'bundle' | 'ending'>) {
+function EndingChoices({ bundle, ending }: Pick<ToolbarProps, 'bundle' | 'ending'>) {
   const setEnding = useSettings((state) => state.setEnding);
-  const options: { choice: EndingChoice; name: string; style?: string; description: string }[] = [
-    { choice: ENDING_OFF, name: 'Off', description: 'Stop with the last measure of the song.' },
-    ...bundle.endings.map((written) => ({
-      choice: written.id,
-      name: written.name,
-      style: written.style,
-      description: written.summary,
-    })),
-  ];
-  const current = options.find((option) => option.choice === ending) ?? options[0];
-
   return (
-    <Popover label="Ending" value={current.name}>
-      {(close) => (
-        <div className="menu menu--scroll" role="radiogroup" aria-label="Ending">
-          {options.map(({ choice, name, style, description }) => (
-            <button
-              key={choice}
-              type="button"
-              role="radio"
-              aria-checked={current.choice === choice}
-              className={cx('option', current.choice === choice && 'is-selected')}
-              onClick={() => {
-                setEnding(choice);
-                close();
-              }}
-            >
-              <span className="option__title">
-                {name}
-                {style && <span className="tag">{style}</span>}
-              </span>
-              <span className="option__summary">{description}</span>
-            </button>
-          ))}
-          {bundle.endings.length === 0 && (
-            <p className="menu__note">No ending has been written for this song yet.</p>
-          )}
-        </div>
+    <>
+      <Choices
+        label="Ending"
+        selected={ending}
+        onSelect={setEnding}
+        choices={[
+          {
+            value: ENDING_OFF,
+            name: 'Off',
+            description: 'Stop with the last measure of the song.',
+          },
+          ...bundle.endings.map((written) => ({
+            value: written.id,
+            name: written.name,
+            tag: written.style,
+            description: written.summary,
+          })),
+        ]}
+      />
+      {bundle.endings.length === 0 && (
+        <p className="menu__note">No ending has been written for this song yet.</p>
       )}
-    </Popover>
+    </>
   );
 }
 
-const LIFTS: { lift: number; name: string; value: string }[] = [
-  { lift: 1, name: 'Up a half step', value: '+ half step' },
-  { lift: 2, name: 'Up a whole step', value: '+ whole step' },
-];
-
-function RepeatMenu({
+function RepeatChoices({
   bundle,
   lift,
   intro,
   soundingKey,
 }: Pick<ToolbarProps, 'bundle' | 'lift' | 'intro' | 'soundingKey'>) {
   const setLift = useSettings((state) => state.setLift);
-  const current = LIFTS.find((option) => option.lift === lift);
   const between = [
     bundle.modulation && 'the key lift',
     intro !== INTRO_OFF && 'the intro again',
   ].filter(Boolean);
-  const options = [
-    { lift: 0, name: 'Off', description: 'Play the song once.' },
-    ...LIFTS.map((option) => ({
-      lift: option.lift,
-      name: option.name,
-      description: `Play the song a second time in 1 = ${formatNoteName(keyShift(soundingKey, option.lift).key)}.`,
-    })),
-  ];
-
   return (
-    <Popover label="Repeat" value={current ? current.value : 'Off'}>
-      {(close) => (
-        <div className="menu" role="radiogroup" aria-label="Repeat in a higher key">
-          {options.map((option) => (
-            <button
-              key={option.lift}
-              type="button"
-              role="radio"
-              aria-checked={lift === option.lift}
-              className={cx('option', lift === option.lift && 'is-selected')}
-              onClick={() => {
-                setLift(option.lift);
-                close();
-              }}
-            >
-              <span className="option__title">{option.name}</span>
-              <span className="option__summary">{option.description}</span>
-            </button>
-          ))}
-          <p className="menu__note">
-            A modulation: the song is repeated in a higher key, and the score continues below the
-            first time through.{' '}
-            {between.length > 0
-              ? `Between the two, an interlude plays ${between.join(', then ')}.`
-              : 'The new key starts directly; choose an intro to get an interlude between the two.'}
-          </p>
-        </div>
-      )}
-    </Popover>
+    <>
+      <Choices
+        label="Repeat in a higher key"
+        selected={lift}
+        onSelect={setLift}
+        choices={[
+          { value: 0, name: 'Off', description: 'Play the song once.' },
+          ...LIFTS.map((option) => ({
+            value: option.lift,
+            name: option.name,
+            description: `Play the song a second time in 1 = ${formatNoteName(keyShift(soundingKey, option.lift).key)}.`,
+          })),
+        ]}
+      />
+      <p className="menu__note">
+        A modulation: the song is repeated in a higher key, and the score continues below the first
+        time through.{' '}
+        {between.length > 0
+          ? `Between the two, an interlude plays ${between.join(', then ')}.`
+          : 'The new key starts directly; choose an intro to get an interlude between the two.'}
+      </p>
+    </>
   );
 }
 
-function ViewMenu() {
+function ShowChoices() {
   const showLyrics = useSettings((state) => state.showLyrics);
   const showDynamics = useSettings((state) => state.showDynamics);
   const toggleLyrics = useSettings((state) => state.toggleLyrics);
@@ -374,30 +334,24 @@ function ViewMenu() {
     { label: 'Lyrics', checked: showLyrics, toggle: toggleLyrics },
     { label: 'Dynamics', checked: showDynamics, toggle: toggleDynamics },
   ];
-  const shown = items.filter((item) => item.checked).map((item) => item.label);
-
   return (
-    <Popover label="Show" value={shown.length > 0 ? shown.join(', ') : 'Notes only'}>
-      {() => (
-        <div className="menu">
-          {items.map(({ label, checked, toggle }) => (
-            <button
-              key={label}
-              type="button"
-              role="menuitemcheckbox"
-              aria-checked={checked}
-              className="check"
-              onClick={toggle}
-            >
-              <span className={cx('check__box', checked && 'is-checked')}>
-                {checked && <CheckIcon width={12} height={12} />}
-              </span>
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-    </Popover>
+    <div className="menu">
+      {items.map(({ label, checked, toggle }) => (
+        <button
+          key={label}
+          type="button"
+          role="menuitemcheckbox"
+          aria-checked={checked}
+          className="check"
+          onClick={toggle}
+        >
+          <span className={cx('check__box', checked && 'is-checked')}>
+            {checked && <CheckIcon width={12} height={12} />}
+          </span>
+          {label}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -406,8 +360,6 @@ function TransposeControl({
   onTranspose,
   soundingKey,
 }: Pick<ToolbarProps, 'semitones' | 'onTranspose' | 'soundingKey'>) {
-  const offset =
-    semitones === 0 ? 'original' : `${semitones > 0 ? '+' : '−'}${Math.abs(semitones)}`;
   return (
     <div className="stepper" role="group" aria-label="Transpose">
       <button
@@ -425,11 +377,7 @@ function TransposeControl({
         onClick={() => onTranspose(0)}
         title="Return to the original key"
       >
-        <span className="popover__label">Key</span>
-        <span className="popover__value">
-          1 = {formatNoteName(soundingKey)}
-          <span className="popover__detail">{offset}</span>
-        </span>
+        1 = {formatNoteName(soundingKey)}
       </button>
       <button
         type="button"
@@ -440,6 +388,117 @@ function TransposeControl({
       >
         <PlusIcon width={14} height={14} />
       </button>
+    </div>
+  );
+}
+
+type SectionId = 'left' | 'right' | 'intro' | 'ending' | 'repeat' | 'show';
+
+interface SectionProps {
+  label: string;
+  /** The choice in effect, shown while the section is closed and open alike. */
+  value: ReactNode;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}
+
+/** One setting of the score: a line with its current value that opens to show the choices. */
+function Section({ label, value, open, onToggle, children }: SectionProps) {
+  return (
+    <section className={cx('setting', open && 'is-open')}>
+      <button type="button" className="setting__head" aria-expanded={open} onClick={onToggle}>
+        <span className="setting__label">{label}</span>
+        <span className="setting__value">{value}</span>
+        <ChevronIcon width={14} height={14} className="setting__chevron" />
+      </button>
+      {open && <div className="setting__body">{children}</div>}
+    </section>
+  );
+}
+
+/**
+ * Everything that decides what is on the sheet, as one list: each setting is
+ * a line with its current value, and a click opens its choices.
+ */
+function ScoreSettings(props: ToolbarProps) {
+  const [open, setOpen] = useState<SectionId | null>(null);
+  const showLyrics = useSettings((state) => state.showLyrics);
+  const showDynamics = useSettings((state) => state.showDynamics);
+  const { bundle, arrangement, rightHand, chords, intro, ending, lift, semitones } = props;
+  const section = (id: SectionId) => ({
+    open: open === id,
+    onToggle: () => setOpen((current) => (current === id ? null : id)),
+  });
+  const endingName = bundle.endings.find((written) => written.id === ending)?.name ?? 'Off';
+  const shown = [showLyrics && 'Lyrics', showDynamics && 'Dynamics'].filter(Boolean);
+  const offset =
+    semitones === 0 ? 'original key' : `${semitones > 0 ? '+' : '−'}${Math.abs(semitones)}`;
+
+  return (
+    <div className="settings">
+      <Section
+        label="Left hand"
+        value={
+          <>
+            {arrangement.name}
+            <span className="setting__detail">
+              {LEVEL_LABEL[arrangement.level]}
+              {arrangement.style && ` · ${arrangement.style}`}
+            </span>
+          </>
+        }
+        {...section('left')}
+      >
+        <LeftHandChoices
+          bundle={bundle}
+          arrangement={arrangement}
+          onSelectArrangement={props.onSelectArrangement}
+        />
+      </Section>
+      <Section
+        label="Right hand"
+        value={
+          <>
+            {RIGHT_HAND_NAME[rightHand]}
+            {chords && <span className="setting__detail">with chords</span>}
+          </>
+        }
+        {...section('right')}
+      >
+        <RightHandChoices arrangement={arrangement} rightHand={rightHand} />
+      </Section>
+      <Section label="Intro" value={introName(bundle, intro)} {...section('intro')}>
+        <IntroChoices bundle={bundle} intro={intro} />
+      </Section>
+      <Section label="Ending" value={endingName} {...section('ending')}>
+        <EndingChoices bundle={bundle} ending={ending} />
+      </Section>
+      <Section
+        label="Repeat"
+        value={LIFTS.find((option) => option.lift === lift)?.value ?? 'Off'}
+        {...section('repeat')}
+      >
+        <RepeatChoices bundle={bundle} lift={lift} intro={intro} soundingKey={props.soundingKey} />
+      </Section>
+      <div className="setting setting--inline">
+        <span className="setting__label">Key</span>
+        <span className="setting__value">
+          <span className="setting__detail">{offset}</span>
+        </span>
+        <TransposeControl
+          semitones={semitones}
+          onTranspose={props.onTranspose}
+          soundingKey={props.soundingKey}
+        />
+      </div>
+      <Section
+        label="Show"
+        value={shown.length > 0 ? shown.join(', ') : 'Notes only'}
+        {...section('show')}
+      >
+        <ShowChoices />
+      </Section>
     </div>
   );
 }
@@ -490,12 +549,13 @@ function DownloadMenu({
   return (
     <Popover
       label="Download"
+      compact
       align="right"
       value={
         exportStatus ?? (
           <>
-            <DownloadIcon width={15} height={15} />
-            MIDI, MP3
+            <DownloadIcon width={17} height={17} />
+            <span>Download</span>
           </>
         )
       }
@@ -532,69 +592,68 @@ function DownloadMenu({
 }
 
 /**
- * The controls that decide what is on the sheet: both hands, what surrounds
- * the song (intro, ending, repeat), key, notation, and rows.
+ * The controls of a song in the top bar. One button opens every setting of
+ * the score (both hands, intro, ending, repeat, key, and visible rows) as a
+ * list in which a click shows the choices of one setting; next to it are the
+ * notation switch, the guide, printing, and downloads.
  */
 export function Toolbar(props: ToolbarProps) {
   const guideOpen = useSettings((state) => state.guideOpen);
   const toggleGuide = useSettings((state) => state.toggleGuide);
+  const { arrangement, rightHand, chords, soundingKey } = props;
+  const extras = [
+    props.intro !== INTRO_OFF && 'intro',
+    props.lift > 0 && 'repeat',
+    props.ending !== ENDING_OFF && 'ending',
+  ].filter(Boolean);
 
   return (
     <div className="toolbar" aria-label="Score options">
-      <LeftHandMenu
-        bundle={props.bundle}
-        arrangement={props.arrangement}
-        onSelectArrangement={props.onSelectArrangement}
-      />
-      <RightHandMenu
-        arrangement={props.arrangement}
-        rightHand={props.rightHand}
-        chords={props.chords}
-      />
-      <IntroMenu bundle={props.bundle} intro={props.intro} />
-      <EndingMenu bundle={props.bundle} ending={props.ending} />
-      <RepeatMenu
-        bundle={props.bundle}
-        lift={props.lift}
-        intro={props.intro}
-        soundingKey={props.soundingKey}
-      />
-      <TransposeControl
-        semitones={props.semitones}
-        onTranspose={props.onTranspose}
-        soundingKey={props.soundingKey}
-      />
-      <ViewMenu />
+      <Popover
+        label="Options"
+        icon={<SlidersIcon width={17} height={17} />}
+        align="right"
+        value={
+          <>
+            {arrangement.name}
+            <span className="popover__detail">
+              {RIGHT_HAND_NAME[rightHand]}
+              {chords && ' with chords'} · 1 = {formatNoteName(soundingKey)}
+              {extras.length > 0 && ` · ${extras.join(', ')}`}
+            </span>
+          </>
+        }
+        wide
+      >
+        {() => <ScoreSettings {...props} />}
+      </Popover>
       <NotationSwitch />
-      {/* Kept together, so they move to a row of their own when the window is narrow. */}
-      <div className="toolbar__actions">
-        <button
-          type="button"
-          className={cx('button', 'button--toggle', guideOpen && 'is-on')}
-          onClick={toggleGuide}
-          aria-pressed={guideOpen}
-          aria-label="Guide"
-          title="Explain this arrangement"
-        >
-          <BookIcon width={18} height={18} />
-          <span>Guide</span>
-        </button>
-        <button
-          type="button"
-          className="button"
-          onClick={props.onPrint}
-          aria-label="Print / PDF"
-          title="Print the score or save it as a PDF"
-        >
-          <PrinterIcon width={18} height={18} />
-          <span>Print / PDF</span>
-        </button>
-        <DownloadMenu
-          onDownloadMidi={props.onDownloadMidi}
-          onDownloadMp3={props.onDownloadMp3}
-          exportStatus={props.exportStatus}
-        />
-      </div>
+      <button
+        type="button"
+        className={cx('button', 'button--toggle', guideOpen && 'is-on')}
+        onClick={toggleGuide}
+        aria-pressed={guideOpen}
+        aria-label="Guide"
+        title="Explain this arrangement"
+      >
+        <BookIcon width={18} height={18} />
+        <span>Guide</span>
+      </button>
+      <button
+        type="button"
+        className="button"
+        onClick={props.onPrint}
+        aria-label="Print / PDF"
+        title="Print the score or save it as a PDF"
+      >
+        <PrinterIcon width={18} height={18} />
+        <span>Print</span>
+      </button>
+      <DownloadMenu
+        onDownloadMidi={props.onDownloadMidi}
+        onDownloadMp3={props.onDownloadMp3}
+        exportStatus={props.exportStatus}
+      />
     </div>
   );
 }

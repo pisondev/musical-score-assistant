@@ -9,9 +9,13 @@ interface PopoverProps {
   value: ReactNode;
   /** Panel content; receives a function that closes the panel. */
   children: (close: () => void) => ReactNode;
-  /** Makes the panel as wide as its content needs, up to the page width. */
+  /** Gives the panel room for a list of settings instead of a short menu. */
   wide?: boolean;
   align?: 'left' | 'right';
+  /** Drawn in front of the label and the value. */
+  icon?: ReactNode;
+  /** Shows only the value on the button, like an ordinary button; the label names it. */
+  compact?: boolean;
 }
 
 /**
@@ -20,7 +24,15 @@ interface PopoverProps {
  * also shows the backdrop and the heading with its Done button. Closes on
  * Escape or a click elsewhere.
  */
-export function Popover({ label, value, children, wide, align = 'left' }: PopoverProps) {
+export function Popover({
+  label,
+  value,
+  children,
+  wide,
+  align = 'left',
+  icon,
+  compact,
+}: PopoverProps) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const panelId = useId();
@@ -43,15 +55,18 @@ export function Popover({ label, value, children, wide, align = 'left' }: Popove
   }, [open]);
 
   return (
-    <div ref={root} className={cx('popover', open && 'is-open')}>
+    <div ref={root} className={cx('popover', open && 'is-open', compact && 'popover--compact')}>
       <button
         type="button"
-        className="popover__button"
+        className={cx('popover__button', icon !== undefined && 'popover__button--icon')}
         aria-expanded={open}
         aria-controls={panelId}
+        aria-label={compact ? label : undefined}
+        title={compact ? label : undefined}
         onClick={() => setOpen((current) => !current)}
       >
-        <span className="popover__label">{label}</span>
+        {icon !== undefined && <span className="popover__icon">{icon}</span>}
+        {!compact && <span className="popover__label">{label}</span>}
         <span className="popover__value">{value}</span>
         <ChevronIcon width={14} height={14} className="popover__chevron" />
       </button>

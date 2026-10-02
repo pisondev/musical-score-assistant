@@ -166,23 +166,23 @@ for every song, starting from the left hand remembered for it.
 
 ### `src/ui`: the interface
 
-| Component         | Responsibility                                                           |
-| ----------------- | ------------------------------------------------------------------------ |
-| `App`             | The shell: top bar, and the home page or one song, chosen by the address |
-| `Home`            | Totals, the song to continue, search, sorting, and the songs by hymnal   |
-| `library-view.ts` | Which songs the home page lists, in what order, and under which hymnal   |
-| `SongPage`        | One song: builds the performance, feeds the engine, handles exports      |
-| `Toolbar`         | Menus for both hands and the intro, transposition, visible rows, export  |
-| `Popover`         | Panel behind a toolbar button: a drop-down, or a bottom sheet on a phone |
-| `Sheet`           | The numbered score: introduction and song sections, systems, measures    |
-| `StaffSheet`      | The same score in staff notation, engraved by Verovio as SVG             |
-| `useVerovio`      | Loads the engraver on demand                                             |
-| `sheet-layout.ts` | Measure widths and system breaks                                         |
-| `usePlayhead`     | Follows the audio clock and highlights the slots being played            |
-| `Guide`           | New patterns, practice tips, and per-measure explanations                |
-| `TransportBar`    | Play, stop, hand mode, tempo, metronome, loop                            |
-| `SongHeader`      | Title, key, time signature, tempo; credits and legend on request         |
-| `IssueList`       | Errors and warnings for the song and the selected arrangement            |
+| Component         | Responsibility                                                            |
+| ----------------- | ------------------------------------------------------------------------- |
+| `App`             | The shell: top bar, and the home page or one song, chosen by the address  |
+| `Home`            | Totals, the song to continue, search, sorting, and the songs by hymnal    |
+| `library-view.ts` | Which songs the home page lists, in what order, and under which hymnal    |
+| `SongPage`        | One song: builds the performance, feeds the engine, handles exports       |
+| `Toolbar`         | The controls of a song in the top bar: the Options list, notation, export |
+| `Popover`         | Panel behind a button: a drop-down, or a bottom sheet on a phone          |
+| `Sheet`           | The numbered score: introduction and song sections, systems, measures     |
+| `StaffSheet`      | The same score in staff notation, engraved by Verovio as SVG              |
+| `useVerovio`      | Loads the engraver on demand                                              |
+| `sheet-layout.ts` | Measure widths and system breaks                                          |
+| `usePlayhead`     | Follows the audio clock and highlights the slots being played             |
+| `Guide`           | New patterns, practice tips, and per-measure explanations                 |
+| `TransportBar`    | Play, stop, hand mode, tempo, metronome, loop                             |
+| `SongHeader`      | Title, key, time signature, tempo; credits and legend on request          |
+| `IssueList`       | Errors and warnings for the song and the selected arrangement             |
 
 Navigation uses the address: `#song=<id>` names a song, and an address without one shows the
 home page. Song cards are ordinary links, so the Back button, bookmarks, and opening a song in a
@@ -190,11 +190,17 @@ new tab work without a router. Leaving a song page stops the playback.
 
 The layout adapts with style sheets alone; the components render the same markup at every
 width. Below 900 pixels the playback bar becomes a two-row grid, with the tempo and the toggles
-in a wrapper that has no box of its own on wider windows. Below 720 pixels the toolbar turns
-into one sticky row that scrolls sideways, and a popover panel is fixed to the bottom edge with
-a backdrop behind it. A phone held sideways gets a single-row playback bar. `keep-in-view.ts`
-measures the playback bar before it scrolls the measure under the playhead back into sight,
-because the height of that bar depends on the window.
+in a wrapper that has no box of its own on wider windows. Below 720 pixels a popover panel is
+fixed to the bottom edge with a backdrop behind it. A phone held sideways gets a single-row
+playback bar. `keep-in-view.ts` measures both bars before it scrolls the measure under the
+playhead back into sight, because their heights depend on the window.
+
+The controls of a song live in the top bar, although the state they change lives in
+`SongPage`: the shell offers an empty element in the bar and the page renders its `Toolbar`
+into it through a portal. When the controls do not fit beside the name of the app and the
+menu of songs, they wrap to a second row; the shell publishes the height of the bar as
+`--topbar-height`, which keeps the guide below it. On a phone the bar sticks with a negative
+offset, so its first row scrolls away and the row of controls stays at the top.
 
 Layout notes:
 

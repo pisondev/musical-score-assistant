@@ -18,6 +18,8 @@ function routeSongId(): string | null {
 export function App() {
   const [songId, setSongId] = useState(routeSongId);
   const entry = library.find((candidate) => candidate.id === songId);
+  // The place in the top bar where a song page puts its controls.
+  const [tools, setTools] = useState<HTMLElement | null>(null);
 
   // Links and the browser's Back button change the address; follow it.
   useEffect(() => {
@@ -36,6 +38,19 @@ export function App() {
   useEffect(() => {
     if (!entry) document.title = APP_NAME;
   }, [entry]);
+
+  // The bar grows to two rows when the controls of a song do not fit beside its name.
+  // The style sheet needs its height to keep the guide below it.
+  const [bar, setBar] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!bar) return;
+    const update = () =>
+      document.documentElement.style.setProperty('--topbar-height', `${bar.offsetHeight}px`);
+    const observer = new ResizeObserver(update);
+    observer.observe(bar);
+    update();
+    return () => observer.disconnect();
+  }, [bar]);
 
   const goHome = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
     // Modified clicks (new tab, new window) are left to the browser.
@@ -60,51 +75,56 @@ export function App() {
 
   return (
     <>
-      <header className="topbar">
+      <header ref={setBar} className="topbar">
         <div className="topbar__inner">
-          <a className="brand" href="./" onClick={goHome} title="All songs">
-            <span className="brand__mark">
-              <NoteIcon width={18} height={18} />
-            </span>
-            {APP_NAME}
-          </a>
-          {entry && (
-            <nav className="topbar__nav" aria-label="Songs">
-              <a className="button button--quiet" href="./" onClick={goHome}>
-                <GridIcon width={16} height={16} />
-                <span>All songs</span>
-              </a>
-              <label className="song-select">
-                <span>Song</span>
-                <select
-                  value={entry.id}
-                  onChange={(event) => {
-                    window.location.hash = songHref(event.target.value);
-                  }}
-                >
-                  {hymnals.map((group) => (
-                    <optgroup
-                      key={group.code}
-                      label={group.code === NO_BOOK ? group.name : `${group.code} · ${group.name}`}
-                    >
-                      {group.songs.map((candidate) => {
-                        const { number, title } = candidate.bundle.song.meta;
-                        return (
-                          <option key={candidate.id} value={candidate.id}>
-                            {number ? `${number} · ${title}` : title}
-                          </option>
-                        );
-                      })}
-                    </optgroup>
-                  ))}
-                </select>
-              </label>
-            </nav>
-          )}
+          <div className="topbar__main">
+            <a className="brand" href="./" onClick={goHome} title="All songs">
+              <span className="brand__mark">
+                <NoteIcon width={18} height={18} />
+              </span>
+              <span className="brand__name">{APP_NAME}</span>
+            </a>
+            {entry && (
+              <nav className="topbar__nav" aria-label="Songs">
+                <a className="button button--quiet" href="./" onClick={goHome}>
+                  <GridIcon width={16} height={16} />
+                  <span>All songs</span>
+                </a>
+                <label className="song-select">
+                  <span>Song</span>
+                  <select
+                    value={entry.id}
+                    onChange={(event) => {
+                      window.location.hash = songHref(event.target.value);
+                    }}
+                  >
+                    {hymnals.map((group) => (
+                      <optgroup
+                        key={group.code}
+                        label={
+                          group.code === NO_BOOK ? group.name : `${group.code} · ${group.name}`
+                        }
+                      >
+                        {group.songs.map((candidate) => {
+                          const { number, title } = candidate.bundle.song.meta;
+                          return (
+                            <option key={candidate.id} value={candidate.id}>
+                              {number ? `${number} · ${title}` : title}
+                            </option>
+                          );
+                        })}
+                      </optgroup>
+                    ))}
+                  </select>
+                </label>
+              </nav>
+            )}
+          </div>
+          {entry && <div ref={setTools} className="topbar__tools" />}
         </div>
       </header>
 
-      {entry ? <SongPage key={entry.id} entry={entry} /> : <Home />}
+      {entry ? <SongPage key={entry.id} entry={entry} tools={tools} /> : <Home />}
     </>
   );
 }

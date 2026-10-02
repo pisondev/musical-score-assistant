@@ -162,6 +162,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The controls of a song moved from a row of menus above the sheet into the top bar. One
+  **Options** button opens every setting of the score (left hand, right hand, intro, ending,
+  repeat, key, visible rows) as a list of lines with their current values; a click on a line
+  opens its choices. The notation switch, the guide, printing, and downloads sit beside it as
+  compact buttons. On a phone the row of controls stays at the top while the name of the app
+  scrolls away.
 - The notes under the top note of a right-hand chord are played a little softer than the top,
   so the melody stays in front.
 - A measure that was cut short for the pickup is completed with holds when a bridge, an

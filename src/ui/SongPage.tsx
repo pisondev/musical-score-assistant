@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { engine, type HandMode } from '../audio/engine';
 import { encodeMp3 } from '../audio/mp3';
 import {
@@ -76,6 +76,8 @@ function isTypingTarget(target: EventTarget | null): boolean {
 
 interface SongPageProps {
   entry: SongEntry;
+  /** The place in the top bar for the controls of the song; null until the bar is drawn. */
+  tools: HTMLElement | null;
 }
 
 /**
@@ -83,7 +85,7 @@ interface SongPageProps {
  * The page is mounted afresh for every song, so its choices start from what
  * was remembered for that song.
  */
-export function SongPage({ entry }: SongPageProps) {
+export function SongPage({ entry, tools }: SongPageProps) {
   const { bundle } = entry;
   const songId = entry.id;
   const [arrangementId, setArrangementId] = useState(
@@ -248,23 +250,27 @@ export function SongPage({ entry }: SongPageProps) {
     <>
       <main className="page">
         <SongHeader song={performance.song} isPrivate={entry.isPrivate} />
-        <Toolbar
-          bundle={bundle}
-          arrangement={arrangement}
-          onSelectArrangement={setArrangementId}
-          rightHand={performance.rightHand}
-          chords={performance.chords}
-          intro={intro}
-          ending={ending}
-          lift={lift}
-          semitones={semitones}
-          onTranspose={transposeTo}
-          soundingKey={performance.song.meta.key}
-          onPrint={print}
-          onDownloadMidi={downloadMidi}
-          onDownloadMp3={() => void downloadMp3()}
-          exportStatus={exportStatus}
-        />
+        {tools &&
+          createPortal(
+            <Toolbar
+              bundle={bundle}
+              arrangement={arrangement}
+              onSelectArrangement={setArrangementId}
+              rightHand={performance.rightHand}
+              chords={performance.chords}
+              intro={intro}
+              ending={ending}
+              lift={lift}
+              semitones={semitones}
+              onTranspose={transposeTo}
+              soundingKey={performance.song.meta.key}
+              onPrint={print}
+              onDownloadMidi={downloadMidi}
+              onDownloadMp3={() => void downloadMp3()}
+              exportStatus={exportStatus}
+            />,
+            tools,
+          )}
         <IssueList
           names={names}
           issues={[...performance.song.issues, ...bundle.issues, ...performance.arrangement.issues]}
