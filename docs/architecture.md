@@ -179,6 +179,8 @@ for every song, starting from the left hand remembered for it.
 | `useVerovio`      | Loads the engraver on demand                                              |
 | `sheet-layout.ts` | Measure widths and system breaks                                          |
 | `usePlayhead`     | Follows the audio clock and highlights the slots being played             |
+| `MeasureMenu`     | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
+| `useMeasureMenu`  | Opens that menu on a right click or a long press, on either notation      |
 | `Guide`           | New patterns, practice tips, and per-measure explanations                 |
 | `TransportBar`    | Play, stop, hand mode, tempo, metronome, loop                             |
 | `SongHeader`      | Title, key, time signature, tempo; credits and legend on request          |

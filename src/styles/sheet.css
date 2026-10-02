@@ -20,6 +20,8 @@
   display: grid;
   gap: 18px;
   user-select: none;
+  /* A long press opens the menu of a measure, not the browser's own. */
+  -webkit-touch-callout: none;
 }
 
 .sheet__section {

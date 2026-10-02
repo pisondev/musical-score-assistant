@@ -65,7 +65,8 @@ back so each idea can be heard before it is practised.
   played is highlighted on the score.
 - **Practice controls.** A tempo that can be dragged or typed, a metronome with a count-in,
   looping a range of measures, and switching arrangements, keys, or hands while the music keeps
-  playing.
+  playing. A right click on a measure (a long press on a phone) locks the playback to that
+  measure and repeats it.
 - **Controls that stay out of the way.** Everything that decides what is on the sheet sits
   behind one **Options** button in the top bar: a short list of settings with their current
   values, each of which opens to show its choices.
@@ -142,6 +143,16 @@ changed in one go.
 
 The tempo ranges from 40 to 160 beats per minute; a typed number outside that range is brought
 to the nearest limit.
+
+**Every measure has a menu.** Right-click a measure, or press and hold it on a phone, to work
+on that spot:
+
+| In the menu of a measure    | What it does                                                            |
+| --------------------------- | ----------------------------------------------------------------------- |
+| **Play from here**          | Moves the playhead to the measure and starts playing                    |
+| **Loop this measure**       | Locks the playback to this one measure and repeats it                   |
+| **Extend the loop to here** | Widens a loop that is on, so it runs from its first measure to this one |
+| **Switch the loop off**     | Plays straight through again                                            |
 
 A dot next to a measure number means the guide explains that measure. Chords on a light-blue
 background differ from the printed score. The **Voice** button appears while the right hand

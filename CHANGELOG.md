@@ -125,6 +125,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `npm run check` lists the bridge, the key lift, and the endings of every song, and says which
   of them are not written yet.
 
+- A menu for every measure, opened with a right click, or with a long press on a phone, on
+  the numbered sheet and on the staff alike: play from here, loop this measure, extend the
+  loop to here, and switch the loop off.
 - Chords under the melody (`rightHand.harmony` in `arrangements.json`). In _Melody_ and in
   _Melody + fills_ the right hand plays chord notes under the melody on the downbeats, the long
   notes, and the starts of phrases, taken from the chords of the selected left hand; long

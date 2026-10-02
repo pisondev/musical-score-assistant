@@ -25,13 +25,16 @@ import { usePlayer, type ScoreReset } from '../store/player';
 import { useSettings } from '../store/settings';
 import { cx } from './classnames';
 import { Guide } from './Guide';
+import { LoopIcon, PlayIcon, PlusIcon } from './icons';
 import { IssueList } from './IssueList';
+import { MeasureMenu, type MeasureMenuItem } from './MeasureMenu';
 import { RIGHT_HAND_NAME } from './right-hand-name';
 import { Sheet } from './Sheet';
 import { SongHeader } from './SongHeader';
 import { StaffSheet } from './StaffSheet';
 import { MAX_TRANSPOSE, Toolbar } from './Toolbar';
 import { TransportBar } from './TransportBar';
+import { useMeasureMenu } from './useMeasureMenu';
 
 const LEVEL_LABEL = { easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' } as const;
 
@@ -246,6 +249,61 @@ export function SongPage({ entry, tools }: SongPageProps) {
   const transposeTo = (value: number) =>
     setSemitones(Math.min(MAX_TRANSPOSE, Math.max(-MAX_TRANSPOSE, value)));
 
+  // A right click or a long press on a measure opens its menu.
+  const measureMenu = useMeasureMenu();
+  const loop = usePlayer((state) => state.loop);
+  const menuTarget = measureMenu.target;
+  const menuItems = useMemo((): MeasureMenuItem[] => {
+    if (!menuTarget || !names[menuTarget.index]) return [];
+    const { index } = menuTarget;
+    const player = usePlayer.getState();
+    const items: MeasureMenuItem[] = [
+      {
+        id: 'play',
+        label: 'Play from here',
+        icon: <PlayIcon width={16} height={16} />,
+        onSelect: () => {
+          player.seekToMeasure(index);
+          if (usePlayer.getState().status !== 'playing') void player.toggle();
+        },
+      },
+    ];
+    const alone = loop.enabled && loop.from === index && loop.to === index;
+    if (!alone) {
+      items.push({
+        id: 'loop',
+        label: 'Loop this measure',
+        hint: 'Stay on this measure and repeat it until the loop is switched off.',
+        icon: <LoopIcon width={16} height={16} />,
+        onSelect: () => {
+          player.setLoop({ enabled: true, from: index, to: index });
+          player.seekToMeasure(index);
+        },
+      });
+    }
+    if (loop.enabled && (index < loop.from || index > loop.to)) {
+      const from = Math.min(loop.from, index);
+      const to = Math.max(loop.to, index);
+      items.push({
+        id: 'extend',
+        label: 'Extend the loop to here',
+        hint: `Repeat from ${names[from].position} to ${names[to].position}.`,
+        icon: <PlusIcon width={16} height={16} />,
+        onSelect: () => player.setLoop({ enabled: true, from, to }),
+      });
+    }
+    if (loop.enabled) {
+      items.push({
+        id: 'unloop',
+        label: 'Switch the loop off',
+        hint: 'Play straight through again.',
+        icon: <LoopIcon width={16} height={16} />,
+        onSelect: () => player.setLoop({ enabled: false }),
+      });
+    }
+    return items;
+  }, [menuTarget, names, loop]);
+
   return (
     <>
       <main className="page">
@@ -276,7 +334,7 @@ export function SongPage({ entry, tools }: SongPageProps) {
           issues={[...performance.song.issues, ...bundle.issues, ...performance.arrangement.issues]}
         />
         <div className={cx('workspace', guideOpen && 'workspace--guide')}>
-          <section className="card card--sheet">
+          <section className="card card--sheet" {...measureMenu.handlers}>
             <p className="print-summary">
               Left hand: {arrangement.name} ({LEVEL_LABEL[arrangement.level]}
               {arrangement.style && `, ${arrangement.style}`}) · Right hand:{' '}
@@ -307,6 +365,15 @@ export function SongPage({ entry, tools }: SongPageProps) {
           )}
         </div>
       </main>
+      {menuTarget && menuItems.length > 0 && (
+        <MeasureMenu
+          title={names[menuTarget.index].long}
+          x={menuTarget.x}
+          y={menuTarget.y}
+          items={menuItems}
+          onClose={measureMenu.close}
+        />
+      )}
       <TransportBar song={performance.song} names={names} />
     </>
   );

@@ -51,6 +51,7 @@ The web app itself never generates music; it displays, plays, and explains.
 - A layout for phones and tablets: the controls in one row at the top, menus as bottom sheets,
   and a compact playback bar.
 - The settings of the score behind one Options button in the top bar.
+- A menu on every measure for looping that spot.
 - A tempo that can be typed as well as dragged.
 - Fills as a second voice: the melody keeps its long notes on the sheet and in the sound.
 - Validation of range, hand span, low close intervals, slash-chord bass, and melody clashes.
