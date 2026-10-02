@@ -207,6 +207,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- In staff notation a measure now has a background like a measure of the numbered sheet: it
+  is tinted under the pointer, while it is being played, and while it belongs to a loop, and
+  the whole area between its barlines answers a click, not only its notes.
+
 - The hand control in the playback bar reads **Both**, **Left**, **Right**, in the order of the
   hands on the keyboard, and the keys follow: `2` is the left hand and `3` the right. Each
   choice has a colour of its own: teal for the left hand, blue for the right, and the two side

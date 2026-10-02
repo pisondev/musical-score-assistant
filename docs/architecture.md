@@ -272,6 +272,13 @@ Layout notes:
   encoder runs at a constant bit rate, which makes the size the length of the recording (the
   music plus the tail in which the last notes ring out) times that rate. The download menu and
   the confirmation dialog read the same facts, so they cannot disagree.
+- Measures of the staff have a box: the engraving draws notes and lines but nothing behind
+  them, so the space between the notes belongs to no measure. After every engraving
+  `StaffSheet` puts a rectangle behind the notes of each measure, from its top staff to its
+  bottom one. The rectangle takes the pointer anywhere in the measure, and the style sheet
+  tints it for the same states as on the numbered sheet: under the pointer, under the
+  playhead, in a loop. The tints are see-through, because a tie or a hairpin of the measure
+  before may reach into the box.
 - Staff notation: `mei.ts` gives every note the id of the slot it stands for and every measure
   the id of its index. Verovio keeps those ids in the SVG, so the playhead, the highlight of the
   current measure, and click-to-seek work exactly as on the numbered sheet. The introduction and

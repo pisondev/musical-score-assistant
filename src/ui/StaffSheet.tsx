@@ -21,6 +21,51 @@ const PRINT_WIDTH = 700;
 
 const CURRENT_CLASS = 'is-current';
 const LOOP_CLASS = 'in-loop';
+const BACKGROUND_CLASS = 'measure-bg';
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+
+/**
+ * Puts a box behind the notes of an engraved measure, from its top staff to
+ * its bottom one and a little beyond. The engraving has none: without it the
+ * space between the notes belongs to no measure, and a measure has nothing to
+ * show the pointer, the playhead, or a loop with.
+ */
+function addBackground(measure: SVGGElement): void {
+  if (measure.querySelector(`:scope > rect.${BACKGROUND_CLASS}`)) return;
+  let left = Infinity;
+  let right = -Infinity;
+  let top = Infinity;
+  let bottom = -Infinity;
+  let staffHeight = 0;
+  for (const staff of measure.querySelectorAll<SVGGElement>(':scope > g.staff')) {
+    let staffTop = Infinity;
+    let staffBottom = -Infinity;
+    // The staff lines are the paths directly inside a staff.
+    for (const line of staff.querySelectorAll<SVGPathElement>(':scope > path')) {
+      const box = line.getBBox();
+      left = Math.min(left, box.x);
+      right = Math.max(right, box.x + box.width);
+      staffTop = Math.min(staffTop, box.y);
+      staffBottom = Math.max(staffBottom, box.y + box.height);
+    }
+    if (staffBottom < staffTop) continue;
+    top = Math.min(top, staffTop);
+    bottom = Math.max(bottom, staffBottom);
+    staffHeight = Math.max(staffHeight, staffBottom - staffTop);
+  }
+  if (right <= left || bottom <= top) return;
+
+  // Room for the notes just above and below the staves.
+  const margin = staffHeight * 0.4;
+  const background = document.createElementNS(SVG_NAMESPACE, 'rect');
+  background.setAttribute('class', BACKGROUND_CLASS);
+  background.setAttribute('x', String(left));
+  background.setAttribute('y', String(top - margin));
+  background.setAttribute('width', String(right - left));
+  background.setAttribute('height', String(bottom - top + 2 * margin));
+  background.setAttribute('rx', String(staffHeight * 0.14));
+  measure.insertBefore(background, measure.firstChild);
+}
 
 interface StaffSheetProps {
   performance: Performance;
@@ -115,6 +160,13 @@ export function StaffSheet({
     if (status === 'playing') keepInView(element);
     return () => element.classList.remove(CURRENT_CLASS);
   }, [currentMeasure, active, status, sections]);
+
+  // Give every measure of a fresh engraving its box. This runs before the effects that mark
+  // the playhead and the loop, which only set classes on the measures.
+  useLayoutEffect(() => {
+    if (!sections) return;
+    container.current?.querySelectorAll<SVGGElement>('g.measure').forEach(addBackground);
+  }, [sections]);
 
   // Mark the measures of a loop.
   useEffect(() => {

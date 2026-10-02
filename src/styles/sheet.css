@@ -673,6 +673,36 @@
   fill: var(--muted);
 }
 
+/*
+ * The box behind the notes of a measure, which the app adds to the engraving. It answers the
+ * pointer anywhere in the measure and shows the same states as a measure of the numbered
+ * sheet. The tints are see-through, because a tie or a hairpin of the measure before may
+ * reach into the box.
+ */
+.staff-view rect.measure-bg {
+  fill: transparent;
+  /* The engraving styles its shapes by the id of the image, which outranks a class. */
+  stroke: none !important;
+  pointer-events: all;
+  transition: fill 0.12s;
+}
+
+.staff-view g.measure:hover > rect.measure-bg {
+  fill: rgb(37 99 235 / 6%);
+}
+
+.staff-view g.measure.in-loop > rect.measure-bg {
+  fill: rgb(14 165 233 / 9%);
+}
+
+.staff-view g.measure.is-current > rect.measure-bg {
+  fill: rgb(37 99 235 / 12%);
+}
+
+.staff-view.sheet--print rect.measure-bg {
+  fill: none;
+}
+
 /* The measures of a loop: their staff lines turn sky blue. */
 .staff-view g.measure.in-loop g.staff > path {
   stroke: var(--sky);
@@ -763,6 +793,10 @@
 @media print {
   .sheet {
     --bar: #000;
+  }
+
+  .staff-view g.measure > rect.measure-bg {
+    fill: none !important;
   }
 
   .sheet .measure__staff,
