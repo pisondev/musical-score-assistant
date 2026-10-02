@@ -3,6 +3,7 @@ import type { Performance, SlotSpan } from '../core';
 import { measureElementId, toMei } from '../core/mei';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
+import { keepInView } from './keep-in-view';
 import { useElementWidth } from './useElementWidth';
 import { usePlayhead } from './usePlayhead';
 import { useVerovio } from './useVerovio';
@@ -100,12 +101,7 @@ export function StaffSheet({
     const element = document.getElementById(measureElementId(currentMeasure));
     if (!element) return;
     element.classList.add(CURRENT_CLASS);
-    if (status === 'playing') {
-      const box = element.getBoundingClientRect();
-      if (box.top < 72 || box.bottom > window.innerHeight - 120) {
-        element.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      }
-    }
+    if (status === 'playing') keepInView(element);
     return () => element.classList.remove(CURRENT_CLASS);
   }, [currentMeasure, active, status, sections]);
 

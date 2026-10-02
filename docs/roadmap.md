@@ -43,6 +43,8 @@ The web app itself never generates music; it displays, plays, and explains.
 - MIDI and MP3 download of the performance on the sheet.
 - A compact interface: drop-down menus for the options, and a guide that opens on request.
 - A home page that lists the library, with search, favourites, and "continue practising".
+- A layout for phones and tablets: a scrolling row of options, menus as bottom sheets, and a
+  compact playback bar.
 - A tempo that can be typed as well as dragged.
 - Validation of range, hand span, low close intervals, slash-chord bass, and melody clashes.
 
@@ -57,7 +59,7 @@ The web app itself never generates music; it displays, plays, and explains.
 - **Pattern library** shared across songs: patterns the player liked, and ideas that were
   rejected, so new arrangements build on that history.
 - **More styles** as they are asked for: ragtime, pop, Latin.
-- **Phone and tablet polish** for use at the piano.
+- **Installing the app on a phone** so it opens full screen and works without a connection.
 
 ## Later
 

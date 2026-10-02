@@ -16,6 +16,7 @@ import {
 } from '../core';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
+import { keepInView } from './keep-in-view';
 import { layOutSystems, measureWeight, type SystemLayout } from './sheet-layout';
 import { useElementWidth } from './useElementWidth';
 import { slotElementId, usePlayhead } from './usePlayhead';
@@ -488,11 +489,7 @@ export function Sheet({
   useEffect(() => {
     if (status !== 'playing') return;
     const element = document.getElementById(`measure-${currentMeasure}`);
-    if (!element) return;
-    const box = element.getBoundingClientRect();
-    if (box.top < 72 || box.bottom > window.innerHeight - 120) {
-      element.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }
+    if (element) keepInView(element);
   }, [currentMeasure, status]);
 
   const active = status === 'playing' || status === 'paused';

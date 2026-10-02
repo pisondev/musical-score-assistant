@@ -146,7 +146,7 @@ export function TransportBar({ song }: TransportBarProps) {
         </p>
       )}
       <div className="transport__inner">
-        <div className="transport__group">
+        <div className="transport__group transport__group--play">
           <button
             type="button"
             className="button button--primary"
@@ -200,70 +200,78 @@ export function TransportBar({ song }: TransportBarProps) {
           ))}
         </div>
 
-        <div className="tempo" role="group" aria-label="Tempo">
-          <span aria-hidden="true">Tempo</span>
-          <input
-            type="range"
-            min={MIN_TEMPO}
-            max={MAX_TEMPO}
-            value={tempo}
-            onChange={(event) => setTempo(Number(event.target.value))}
-            aria-label="Tempo slider"
-          />
-          <TempoField tempo={tempo} onChange={setTempo} />
-          <button
-            type="button"
-            className="tempo__reset"
-            onClick={() => setTempo(song.meta.tempo)}
-            disabled={tempo === song.meta.tempo}
-            aria-label={`Back to the printed tempo, ${song.meta.tempo}`}
-            title={`Back to the printed tempo (${song.meta.tempo})`}
-          >
-            <ResetIcon width={16} height={16} />
-          </button>
-        </div>
-
-        <div className="transport__group">
-          {hasVoice && (
+        {/* On a phone these two share the second row; on a wide window the wrapper has no box. */}
+        <div className="transport__controls">
+          <div className="tempo" role="group" aria-label="Tempo">
+            <span aria-hidden="true">Tempo</span>
+            <input
+              type="range"
+              min={MIN_TEMPO}
+              max={MAX_TEMPO}
+              value={tempo}
+              onChange={(event) => setTempo(Number(event.target.value))}
+              aria-label="Tempo slider"
+            />
+            <TempoField tempo={tempo} onChange={setTempo} />
             <button
               type="button"
-              className={cx('button', 'button--toggle', voiceGuide && 'is-on')}
-              onClick={toggleVoiceGuide}
-              aria-pressed={voiceGuide}
-              title="Play the sung melody as a guide (V)"
+              className="tempo__reset"
+              onClick={() => setTempo(song.meta.tempo)}
+              disabled={tempo === song.meta.tempo}
+              aria-label={`Back to the printed tempo, ${song.meta.tempo}`}
+              title={`Back to the printed tempo (${song.meta.tempo})`}
             >
-              <VoiceIcon />
-              <span>Voice</span>
+              <ResetIcon width={16} height={16} />
             </button>
-          )}
-          <button
-            type="button"
-            className={cx('button', 'button--toggle', metronome && 'is-on')}
-            onClick={toggleMetronome}
-            aria-pressed={metronome}
-            title="Metronome with a count-in"
-          >
-            <MetronomeIcon />
-            <span>Click</span>
-          </button>
-          <button
-            type="button"
-            className={cx('button', 'button--toggle', loop.enabled && 'is-on')}
-            onClick={() => setLoop({ enabled: !loop.enabled })}
-            aria-pressed={loop.enabled}
-            title="Repeat a range of measures"
-          >
-            <LoopIcon />
-            <span>Loop</span>
-          </button>
-          {loop.enabled && (
-            <span className="loop-range">
-              {loopSelect(loop.from, (from) => setLoop({ from }), 'Loop from measure')}
-              <span>to</span>
-              {loopSelect(loop.to, (to) => setLoop({ to }), 'Loop to measure')}
-            </span>
-          )}
+          </div>
+
+          <div className="transport__group transport__group--toggles">
+            {hasVoice && (
+              <button
+                type="button"
+                className={cx('button', 'button--toggle', voiceGuide && 'is-on')}
+                onClick={toggleVoiceGuide}
+                aria-pressed={voiceGuide}
+                aria-label="Voice"
+                title="Play the sung melody as a guide (V)"
+              >
+                <VoiceIcon />
+                <span>Voice</span>
+              </button>
+            )}
+            <button
+              type="button"
+              className={cx('button', 'button--toggle', metronome && 'is-on')}
+              onClick={toggleMetronome}
+              aria-pressed={metronome}
+              aria-label="Click"
+              title="Metronome with a count-in"
+            >
+              <MetronomeIcon />
+              <span>Click</span>
+            </button>
+            <button
+              type="button"
+              className={cx('button', 'button--toggle', loop.enabled && 'is-on')}
+              onClick={() => setLoop({ enabled: !loop.enabled })}
+              aria-pressed={loop.enabled}
+              aria-label="Loop"
+              title="Repeat a range of measures"
+            >
+              <LoopIcon />
+              <span>Loop</span>
+            </button>
+          </div>
         </div>
+
+        {loop.enabled && (
+          <div className="loop-range">
+            <span>Loop</span>
+            {loopSelect(loop.from, (from) => setLoop({ from }), 'Loop from measure')}
+            <span>to</span>
+            {loopSelect(loop.to, (to) => setLoop({ to }), 'Loop to measure')}
+          </div>
+        )}
       </div>
     </footer>
   );

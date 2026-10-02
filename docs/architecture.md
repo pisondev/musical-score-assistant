@@ -140,7 +140,7 @@ for every song, starting from the left hand remembered for it.
 | `library-view.ts` | Which songs the home page lists, and in what order                       |
 | `SongPage`        | One song: builds the performance, feeds the engine, handles exports      |
 | `Toolbar`         | Menus for both hands and the intro, transposition, visible rows, export  |
-| `Popover`         | Generic drop-down panel used by the toolbar                              |
+| `Popover`         | Panel behind a toolbar button: a drop-down, or a bottom sheet on a phone |
 | `Sheet`           | The numbered score: introduction and song sections, systems, measures    |
 | `StaffSheet`      | The same score in staff notation, engraved by Verovio as SVG             |
 | `useVerovio`      | Loads the engraver on demand                                             |
@@ -154,6 +154,14 @@ for every song, starting from the left hand remembered for it.
 Navigation uses the address: `#song=<id>` names a song, and an address without one shows the
 home page. Song cards are ordinary links, so the Back button, bookmarks, and opening a song in a
 new tab work without a router. Leaving a song page stops the playback.
+
+The layout adapts with style sheets alone; the components render the same markup at every
+width. Below 900 pixels the playback bar becomes a two-row grid, with the tempo and the toggles
+in a wrapper that has no box of its own on wider windows. Below 720 pixels the toolbar turns
+into one sticky row that scrolls sideways, and a popover panel is fixed to the bottom edge with
+a backdrop behind it. A phone held sideways gets a single-row playback bar. `keep-in-view.ts`
+measures the playback bar before it scrolls the measure under the playhead back into sight,
+because the height of that bar depends on the window.
 
 Layout notes:
 

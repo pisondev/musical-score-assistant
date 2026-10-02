@@ -47,6 +47,9 @@ back so each idea can be heard before it is practised.
 - **Practice controls.** A tempo that can be dragged or typed, a metronome with a count-in,
   looping a range of measures, and switching arrangements, keys, or hands while the music keeps
   playing.
+- **Made for the phone on the music stand.** In a narrow window the options become one row that
+  scrolls sideways and stays in reach, menus open as sheets from the bottom edge, and the
+  playback bar shrinks to two short rows, so most of the screen is left for the score.
 - **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
   key, and introduction.
 - **MIDI and MP3 download.** The same performance as a file: introduction, both hands as

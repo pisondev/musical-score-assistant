@@ -103,12 +103,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   songs" link in the top bar, and the left hand last used for a song restored when it is
   opened again.
 
+- A layout for phones and tablets. In a narrow window the options above the sheet form one
+  row that scrolls sideways and stays at the top, menus open as sheets from the bottom edge
+  with a Done button, the playback bar takes two short rows (one on a phone held sideways),
+  and the guide opens above the sheet instead of below it.
 - The tempo can be typed: click the number, type a value, and press Enter. Escape cancels, the
   arrow keys step by one, and with Shift by ten.
 
 ### Changed
 
 - The tempo number no longer resets the tempo when clicked; the arrow button beside it does.
+- A section label on a short pickup measure no longer runs into the next measure number.
 - Leaving a song page stops the playback.
 - The engine addresses note events and playhead spans by `track` (right, left, or voice)
   instead of `hand`, and the MIDI writer takes a list of tracks.

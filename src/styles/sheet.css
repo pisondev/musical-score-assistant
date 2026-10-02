@@ -85,7 +85,8 @@
 
 .measure {
   position: relative;
-  min-width: 0;
+  /* Never narrower than its header, so a section label on a short pickup measure fits. */
+  min-width: min-content;
   border-radius: 8px;
   cursor: pointer;
   outline-offset: -2px;
@@ -104,6 +105,7 @@
 }
 
 .measure__section {
+  flex: none;
   padding: 2px 7px;
   border-radius: 999px;
   font-weight: 650;

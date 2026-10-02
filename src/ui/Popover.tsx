@@ -14,11 +14,17 @@ interface PopoverProps {
   align?: 'left' | 'right';
 }
 
-/** A button that opens a panel below it. Closes on Escape or a click elsewhere. */
+/**
+ * A button that opens a panel: below the button on a wide window, and as a
+ * sheet that rises from the bottom edge on a phone, where the style sheet
+ * also shows the backdrop and the heading with its Done button. Closes on
+ * Escape or a click elsewhere.
+ */
 export function Popover({ label, value, children, wide, align = 'left' }: PopoverProps) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const panelId = useId();
+  const close = () => setOpen(false);
 
   useEffect(() => {
     if (!open) return;
@@ -50,16 +56,25 @@ export function Popover({ label, value, children, wide, align = 'left' }: Popove
         <ChevronIcon width={14} height={14} className="popover__chevron" />
       </button>
       {open && (
-        <div
-          id={panelId}
-          className={cx(
-            'popover__panel',
-            wide && 'popover__panel--wide',
-            align === 'right' && 'popover__panel--right',
-          )}
-        >
-          {children(() => setOpen(false))}
-        </div>
+        <>
+          <div className="popover__backdrop" onClick={close} aria-hidden="true" />
+          <div
+            id={panelId}
+            className={cx(
+              'popover__panel',
+              wide && 'popover__panel--wide',
+              align === 'right' && 'popover__panel--right',
+            )}
+          >
+            <div className="popover__sheet-head">
+              <span>{label}</span>
+              <button type="button" onClick={close}>
+                Done
+              </button>
+            </div>
+            {children(close)}
+          </div>
+        </>
       )}
     </div>
   );

@@ -408,6 +408,7 @@ export function Toolbar(props: ToolbarProps) {
           className={cx('button', 'button--toggle', guideOpen && 'is-on')}
           onClick={toggleGuide}
           aria-pressed={guideOpen}
+          aria-label="Guide"
           title="Explain this arrangement"
         >
           <BookIcon width={18} height={18} />
@@ -417,6 +418,7 @@ export function Toolbar(props: ToolbarProps) {
           type="button"
           className="button"
           onClick={props.onPrint}
+          aria-label="Print / PDF"
           title="Print the score or save it as a PDF"
         >
           <PrinterIcon width={18} height={18} />
