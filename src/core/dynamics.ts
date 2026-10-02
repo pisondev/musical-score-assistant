@@ -1,14 +1,36 @@
 import type { DynamicLevel, DynamicMark } from './types';
 
-/** Loudness of each dynamic level, as a factor applied to note velocities. */
-const LEVEL_GAIN: Record<DynamicLevel, number> = {
-  pp: 0.42,
-  p: 0.55,
-  mp: 0.68,
-  mf: 0.82,
-  f: 1.0,
-  ff: 1.18,
+/**
+ * Loudness of each dynamic level, in decibels relative to mezzo-forte. One
+ * level is four to five decibels from the next: a smaller step is lost behind
+ * the natural decay of piano notes and is not heard as "louder" or "softer".
+ */
+const LEVEL_DECIBELS: Record<DynamicLevel, number> = {
+  pp: -13.5,
+  p: -9,
+  mp: -4.5,
+  mf: 0,
+  f: 4.5,
+  ff: 8,
 };
+
+/**
+ * How a velocity becomes loudness: the gain is the velocity squared, the
+ * curve most MIDI instruments use. Half the velocity is twelve decibels
+ * softer. The sound engine applies it, so the app and a MIDI file that is
+ * played elsewhere agree on what a velocity means.
+ */
+const VELOCITY_EXPONENT = 2;
+
+/** The gain, from 0 to 1, with which a note of the given velocity sounds. */
+export function velocityToGain(velocity: number): number {
+  return Math.min(1, Math.max(0, velocity)) ** VELOCITY_EXPONENT;
+}
+
+/** The factor that makes a velocity sound the given number of decibels louder. */
+function velocityFactor(decibels: number): number {
+  return 10 ** (decibels / (20 * VELOCITY_EXPONENT));
+}
 
 const LEVEL_ORDER: DynamicLevel[] = ['pp', 'p', 'mp', 'mf', 'f', 'ff'];
 const DEFAULT_LEVEL: DynamicLevel = 'mf';
@@ -81,8 +103,8 @@ export class DynamicsTimeline {
     return this.spans;
   }
 
-  /** Velocity factor in force at a tick. */
-  gainAt(tick: number): number {
+  /** Loudness in force at a tick, in decibels relative to mezzo-forte. */
+  decibelsAt(tick: number): number {
     let level = DEFAULT_LEVEL;
     let hairpin: TimedMark | null = null;
 
@@ -90,8 +112,8 @@ export class DynamicsTimeline {
       if (mark.tick > tick) {
         if (!hairpin || !isLevel(mark.sign)) break;
         // The first level mark after an open hairpin is where the hairpin lands.
-        const from = LEVEL_GAIN[level];
-        const to = LEVEL_GAIN[mark.sign];
+        const from = LEVEL_DECIBELS[level];
+        const to = LEVEL_DECIBELS[mark.sign];
         const span = mark.tick - hairpin.tick;
         return span > 0 ? from + ((to - from) * (tick - hairpin.tick)) / span : to;
       }
@@ -102,6 +124,11 @@ export class DynamicsTimeline {
         hairpin = mark;
       }
     }
-    return LEVEL_GAIN[level];
+    return LEVEL_DECIBELS[level];
+  }
+
+  /** Factor by which the velocity of a note at a tick differs from mezzo-forte. */
+  velocityFactorAt(tick: number): number {
+    return velocityFactor(this.decibelsAt(tick));
   }
 }

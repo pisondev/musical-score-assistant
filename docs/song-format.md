@@ -129,8 +129,22 @@ level mark closes moves one level and lasts to the end of the song. A song witho
 played mezzo-forte throughout.
 
 Dynamics apply to both hands. They are drawn between the two rows of the sheet and scale the
-loudness of every note in playback. Printed hymnals rarely give dynamics, so they are usually an
-interpretation; say so in a comment.
+loudness of every note in playback, in the MP3, and in the MIDI file. Printed hymnals rarely
+give dynamics, so they are usually an interpretation; say so in a comment.
+
+Each level is four to five decibels from the next, enough to be heard as a clear step:
+
+| Mark   | Loudness against `mf` | MIDI velocity of a melody note on beat one |
+| ------ | --------------------- | ------------------------------------------ |
+| `{pp}` | 13.5 dB softer        | 36                                         |
+| `{p}`  | 9 dB softer           | 47                                         |
+| `{mp}` | 4.5 dB softer         | 61                                         |
+| `{mf}` | reference             | 79                                         |
+| `{f}`  | 4.5 dB louder         | 102                                        |
+| `{ff}` | 8 dB louder           | 125                                        |
+
+Only the loudness changes. The piano samples have one tone colour, so a forte does not sound
+brighter than a piano, as it would on a real instrument.
 
 ### Chord symbols
 

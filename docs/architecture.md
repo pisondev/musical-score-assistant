@@ -90,8 +90,13 @@ Key ideas:
 - **Transposition keeps the digits.** Numbered notation is relative to "1", so transposing
   changes pitches, chord symbols, and the key, and leaves every written tone as it is.
 - **Dynamics are a timeline.** Level marks and hairpins from all measures form one timeline.
-  `gainAt(tick)` gives the loudness factor that scales note velocities; `hairpins()` gives the
-  spans that the sheet draws.
+  `decibelsAt(tick)` gives the loudness relative to mezzo-forte, `velocityFactorAt(tick)` the
+  factor that scales note velocities to reach it, and `hairpins()` the spans that the sheet
+  draws.
+- **A velocity means the same everywhere.** Loudness follows the square of the velocity, the
+  curve of MIDI instruments (`velocityToGain`). The audio engine applies that curve before it
+  triggers a note, and the MIDI writer stores the velocity as it is, so the app, the MP3, and a
+  MIDI file played by another instrument keep the same distance between soft and loud.
 - **Issues, not exceptions.** Parsing never throws on bad input. Problems are collected as issues
   with a severity, a measure, and a source position, and the rest of the song still renders.
 

@@ -126,8 +126,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Syllables and chord symbols no longer run into each other where notes follow closely
   ("Yang di", "F♯m/A A♯°7"): a measure is widened when its text needs more room than its notes.
 
+- Dynamics could hardly be heard: from one level to the next the loudness changed by less than
+  two decibels, and from mezzo-piano to forte by three. The levels are now four to five
+  decibels apart (nine from mezzo-piano to forte), in the playback, the MP3, and the MIDI file.
+  Mezzo-forte is as loud as before.
+
 ### Changed
 
+- Loudness follows the square of a note's velocity, as on MIDI instruments, so a MIDI file
+  played elsewhere keeps the balance of the app. The velocities in MIDI files changed
+  accordingly: the hands are closer in number and the dynamic levels further apart.
 - On paper the notes and the final barline are black, a hold is the size of a full stop, and
   the "Local only" badge is left out.
 - The song menu in the top bar is grouped by hymnal and sorted by number.

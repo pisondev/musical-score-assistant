@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createSongBundle } from '../src/core/bundle';
 import { parseChord, transposeChordSymbol } from '../src/core/chord';
-import { DynamicsTimeline } from '../src/core/dynamics';
+import { DynamicsTimeline, velocityToGain } from '../src/core/dynamics';
 import { parseNotationLine } from '../src/core/notation';
 import { buildPerformance } from '../src/core/performance';
 import { buildNoteEvents } from '../src/core/playback';
@@ -92,18 +92,44 @@ describe('DynamicsTimeline', () => {
   const measure = (number: number) => 2 * beat + (number - 1) * 4 * beat;
 
   it('holds a level until the next mark', () => {
-    expect(timeline.gainAt(0)).toBe(timeline.gainAt(measure(1) + 3 * beat));
-    expect(timeline.gainAt(measure(3))).toBeGreaterThan(timeline.gainAt(0));
+    expect(timeline.decibelsAt(0)).toBe(timeline.decibelsAt(measure(1) + 3 * beat));
+    expect(timeline.decibelsAt(measure(3))).toBeGreaterThan(timeline.decibelsAt(0));
   });
 
   it('glides through a hairpin to the next level', () => {
-    const start = timeline.gainAt(measure(2));
-    const middle = timeline.gainAt(measure(2) + 2 * beat);
-    const end = timeline.gainAt(measure(3));
-    expect(start).toBe(timeline.gainAt(0));
+    const start = timeline.decibelsAt(measure(2));
+    const middle = timeline.decibelsAt(measure(2) + 2 * beat);
+    const end = timeline.decibelsAt(measure(3));
+    expect(start).toBe(timeline.decibelsAt(0));
     expect(middle).toBeGreaterThan(start);
     expect(middle).toBeLessThan(end);
     expect(middle).toBeCloseTo((start + end) / 2, 5);
+  });
+
+  it('sets the levels far enough apart to be heard', () => {
+    const levelOf = (sign: string) =>
+      new DynamicsTimeline(
+        parseSong(`key: C\ntime: 4/4\n| {${sign}}1 2 3 4 |`).measures,
+      ).decibelsAt(0);
+    const levels = ['pp', 'p', 'mp', 'mf', 'f', 'ff'].map(levelOf);
+    expect(levelOf('mf')).toBe(0);
+    levels.slice(1).forEach((level, index) => {
+      expect(level - levels[index]).toBeGreaterThanOrEqual(3.5);
+    });
+  });
+
+  it('turns decibels into velocities that the engine turns back into loudness', () => {
+    const forte = new DynamicsTimeline(parseSong('key: C\ntime: 4/4\n| {f}1 2 3 4 |').measures);
+    const decibels = (gain: number) => 20 * Math.log10(gain);
+    const velocity = 0.6;
+    const louder = velocity * forte.velocityFactorAt(0);
+    expect(decibels(velocityToGain(louder)) - decibels(velocityToGain(velocity))).toBeCloseTo(
+      forte.decibelsAt(0),
+      5,
+    );
+    expect(velocityToGain(0.5)).toBe(0.25);
+    expect(velocityToGain(1.4)).toBe(1);
+    expect(velocityToGain(-1)).toBe(0);
   });
 
   it('lists hairpins with the range they span', () => {
@@ -116,8 +142,10 @@ describe('DynamicsTimeline', () => {
   it('assumes mezzo-forte without marks and steps one level for an open hairpin', () => {
     const plain = new DynamicsTimeline(parseSong('key: C\ntime: 4/4\n| 1 2 3 4 |').measures);
     const open = new DynamicsTimeline(parseSong('key: C\ntime: 4/4\n| {<}1 2 3 4 |').measures);
-    expect(open.gainAt(0)).toBe(plain.gainAt(0));
-    expect(open.gainAt(4 * 480)).toBeGreaterThan(plain.gainAt(0));
+    expect(plain.decibelsAt(0)).toBe(0);
+    expect(plain.velocityFactorAt(0)).toBe(1);
+    expect(open.decibelsAt(0)).toBe(plain.decibelsAt(0));
+    expect(open.decibelsAt(4 * 480)).toBeGreaterThan(plain.decibelsAt(0));
   });
 
   it('scales the velocity of the notes', () => {
@@ -128,6 +156,14 @@ describe('DynamicsTimeline', () => {
     const loud = events.find((event) => event.tick === measure(3))!;
     expect(loud.velocity).toBeGreaterThan(soft.velocity);
     expect(events.every((event) => event.velocity > 0 && event.velocity <= 1)).toBe(true);
+  });
+
+  it('leaves room for fortissimo: the loudest melody note is not cut off', () => {
+    const loudest = createSongBundle('key: C\ntime: 4/4\n| {ff}[C]1 2 3 4 ||');
+    const events = buildNoteEvents(loudest.song, loudest.arrangements[0]);
+    const melody = events.filter((event) => event.track === 'right');
+    expect(Math.max(...melody.map((event) => event.velocity))).toBeLessThan(1);
+    expect(melody[0].velocity).toBeGreaterThan(melody[1].velocity);
   });
 });
 

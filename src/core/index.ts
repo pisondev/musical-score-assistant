@@ -12,7 +12,7 @@ export {
   type SongBundle,
 } from './bundle';
 export { formatChordSymbol, normalizeChordSymbol, parseChord, type Chord } from './chord';
-export { DynamicsTimeline, type Hairpin } from './dynamics';
+export { DynamicsTimeline, velocityToGain, type Hairpin } from './dynamics';
 export { findGaps, type Gap } from './gaps';
 export { KEYBOARD_HIGHEST, KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard';
 export { exportFileName, toMidiFile, type MidiOptions } from './midi';

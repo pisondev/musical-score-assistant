@@ -9,17 +9,22 @@ interface StaffMeasure {
   slots: Slot[];
 }
 
-/** Velocities at mezzo-forte; the dynamics of the song scale them up or down. */
+/**
+ * Velocities at mezzo-forte, where 1 is the highest MIDI velocity; the
+ * dynamics of the song scale them up or down. Loudness follows the square of
+ * the velocity (see `velocityToGain`), so the left hand at 0.51 sounds a good
+ * three decibels under a melody at 0.62. The melody leaves room above itself:
+ * at fortissimo its downbeats come to just under 1.
+ */
 const VELOCITY: Record<Track, { downbeat: number; beat: number; offbeat: number }> = {
-  right: { downbeat: 0.7, beat: 0.64, offbeat: 0.58 },
-  left: { downbeat: 0.48, beat: 0.42, offbeat: 0.38 },
-  voice: { downbeat: 0.62, beat: 0.6, offbeat: 0.56 },
+  right: { downbeat: 0.62, beat: 0.59, offbeat: 0.56 },
+  left: { downbeat: 0.51, beat: 0.48, offbeat: 0.46 },
+  voice: { downbeat: 0.58, beat: 0.57, offbeat: 0.55 },
 };
 
 /** Fills are played a little under the melody they decorate. */
-const FILL_VELOCITY = { downbeat: 0.6, beat: 0.56, offbeat: 0.52 };
+const FILL_VELOCITY = { downbeat: 0.57, beat: 0.55, offbeat: 0.53 };
 
-const MEZZO_FORTE_GAIN = 0.82;
 const MIN_VELOCITY = 0.08;
 const MAX_VELOCITY = 1;
 
@@ -124,7 +129,7 @@ export function buildNoteEvents(song: Song, arrangement: Arrangement): NoteEvent
 
   const dynamics = new DynamicsTimeline(song.measures);
   for (const event of events) {
-    const scaled = (event.velocity * dynamics.gainAt(event.tick)) / MEZZO_FORTE_GAIN;
+    const scaled = event.velocity * dynamics.velocityFactorAt(event.tick);
     event.velocity = Math.min(MAX_VELOCITY, Math.max(MIN_VELOCITY, scaled));
   }
   return events.sort((a, b) => a.tick - b.tick || a.midi - b.midi);

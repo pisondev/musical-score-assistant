@@ -1,5 +1,5 @@
 import type * as ToneModule from 'tone';
-import { PPQ, type NoteEvent, type Track } from '../core';
+import { PPQ, velocityToGain, type NoteEvent, type Track } from '../core';
 
 type Tone = typeof ToneModule;
 
@@ -47,7 +47,12 @@ const SAMPLE_NOTES = [
 
 const SAMPLE_BASE_URL = `${import.meta.env.BASE_URL}samples/piano/`;
 const TRACKS: Track[] = ['right', 'left', 'voice'];
-const CHANNEL_VOLUME: Record<Track, number> = { right: 2, left: -1, voice: -19 };
+/**
+ * Level of each track, in decibels. The instruments are driven with the gain of
+ * `velocityToGain`, which is well under 1 at mezzo-forte, so the piano channels
+ * lift the level again and leave the difference between soft and loud intact.
+ */
+const CHANNEL_VOLUME: Record<Track, number> = { right: 7, left: 4, voice: -14 };
 const SAMPLER_RELEASE = 1.2;
 /** Silence appended to a recording so the last notes can ring out, in seconds. */
 const RECORDING_TAIL = 2.5;
@@ -165,7 +170,7 @@ export class PlaybackEngine {
           tone.Frequency(event.midi, 'midi').toNote(),
           tone.Ticks(event.duration).toSeconds(),
           time,
-          event.velocity,
+          velocityToGain(event.velocity),
         );
       }, events);
       part.start(0);
@@ -365,7 +370,7 @@ export class PlaybackEngine {
               tone.Frequency(event.midi, 'midi').toNote(),
               event.duration * secondsPerTick,
               event.tick * secondsPerTick,
-              event.velocity,
+              velocityToGain(event.velocity),
             );
           }
         }
