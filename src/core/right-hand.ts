@@ -50,6 +50,34 @@ function restMeasure(measure: Measure, prefix: string): RightHandMeasure {
 }
 
 /**
+ * Separates what a fill adds from the melody it is written around. A part
+ * writes the measure on one line, melody included, but a long melody note is
+ * meant to ring on while the fill moves. So the melody stays as printed, and
+ * the added notes become a second voice: a slot that adds nothing turns into
+ * a rest, which keeps that voice in time.
+ */
+function addedVoice(measure: Measure, slots: Slot[]): Slot[] {
+  const melody = new Map<number, number>();
+  for (const slot of measure.slots) {
+    const top = slot.pitches[slot.pitches.length - 1];
+    if (slot.kind === 'note' && top) melody.set(slot.start, top.midi);
+  }
+
+  let sounding = false;
+  return slots.map((slot): Slot => {
+    const silent: Slot = { ...slot, kind: 'rest', pitches: [] };
+    // A hold dot continues the added note before it, or the melody, which needs nothing here.
+    if (slot.kind === 'hold') return sounding ? slot : silent;
+    const added =
+      slot.kind === 'note'
+        ? slot.pitches.filter((pitch) => pitch.midi !== melody.get(slot.start))
+        : [];
+    sounding = added.length > 0;
+    return sounding ? { ...slot, pitches: added } : silent;
+  });
+}
+
+/**
  * Builds one right-hand part of an arrangement from its stored description.
  * The right hand is written relative to the key, like the melody. A measure
  * may also replace the left hand, for the places where the hands trade roles.
@@ -136,14 +164,6 @@ export function buildRightHandPart(
       report('Dynamics belong in song.txt; those in a right-hand part are ignored.', 'warning');
     }
 
-    // Fills keep the melody, so its syllables stay under the notes they belong to.
-    const lyrics = new Map<number, string | undefined>();
-    if (mode === 'fills') {
-      for (const slot of measure.slots) {
-        if (slot.kind === 'note') lyrics.set(slot.start, slot.lyric);
-      }
-    }
-
     const slots: Slot[] = raw.slots.map((slot, slotIndex) => ({
       id: `${prefix}${measure.index}-${slotIndex}`,
       kind: slot.kind,
@@ -155,7 +175,6 @@ export function buildRightHandPart(
       beat: slot.beat,
       beams: slot.beams,
       tuplet: slot.tuplet,
-      lyric: slot.kind === 'note' ? lyrics.get(slot.start) : undefined,
       uncertain: slot.uncertain || undefined,
     }));
 
@@ -171,17 +190,19 @@ export function buildRightHandPart(
       }
     }
 
-    return { slots, left, note: entry.note };
+    const fills = mode === 'fills' ? addedVoice(measure, slots) : undefined;
+    return { slots, fills, left, note: entry.note };
   });
 
   return { mode, summary: spec.summary ?? '', measures, issues };
 }
 
 /**
- * Puts a right-hand part in the place of the printed melody. The result is an
- * ordinary song and arrangement: the right hand holds the part, the left hand
- * holds the arrangement with the measures the part replaces, and, for an
- * accompaniment, every measure keeps the sung melody as its `voice`.
+ * Puts a right-hand part into a song. The result is an ordinary song and
+ * arrangement. Fills leave the melody as printed and add their notes as the
+ * second voice `fills`; an accompaniment takes the place of the melody, which
+ * every measure keeps as its `voice`. The left hand is the arrangement with
+ * the measures the part replaces.
  */
 export function composeRightHand(
   song: Song,
@@ -190,8 +211,10 @@ export function composeRightHand(
 ): { song: Song; arrangement: Arrangement } {
   const measures: Measure[] = song.measures.map((measure, index) => {
     const written = part.measures[index];
-    const voice = part.mode === 'accompaniment' ? measure.slots : undefined;
-    return written ? { ...measure, slots: written.slots, voice } : measure;
+    if (!written) return measure;
+    return part.mode === 'fills'
+      ? { ...measure, fills: written.fills }
+      : { ...measure, slots: written.slots, voice: measure.slots };
   });
 
   const parts: ArrangementMeasure[] = arrangement.measures.map((own, index) => {

@@ -295,8 +295,13 @@ the app plays the melody instead.
 **Fills** list only the measures they change; every other measure keeps the printed melody.
 Each listed measure is written out in full: the melody notes at their printed positions, and
 the added notes around them. A melody note may get notes underneath it (`<1 3>` under an A),
-but it must stay the top note and stay on its beat. Lyrics follow the melody notes
-automatically.
+but it must stay the top note and stay on its beat.
+
+The app then takes the line apart again. The melody stays on its row exactly as printed, so a
+long note is still shown, and still sounds, for its full length; the notes the fill adds form
+a second voice on a row of their own, marked `+`, right below it. In staff notation they are a
+second layer on the staff of the melody. Nothing has to be written for this: a note of the
+part that coincides with a melody note is the melody, and everything else is added.
 
 **Accompaniment** lists every measure, the pickup included. A measure that is missing is a
 measure of rest and is reported by the checker. The app shows the sung melody as a small row

@@ -116,6 +116,11 @@ export interface Measure {
    * It is shown as a cue above the right hand and can be played as a guide.
    */
   voice?: Slot[];
+  /**
+   * What the right hand adds to the melody where it waits: a second voice
+   * beside `slots`, which keep the melody exactly as printed.
+   */
+  fills?: Slot[];
   chords: ChordMark[];
   dynamics: DynamicMark[];
   barline: Barline;
@@ -178,8 +183,10 @@ export type RightHandMode = 'melody' | 'fills' | 'accompaniment';
 export type WrittenRightHandMode = Exclude<RightHandMode, 'melody'>;
 
 export interface RightHandMeasure {
-  /** Right-hand slots that take the place of the printed melody. */
+  /** The right hand of the measure as it is written in the part, on one line. */
   slots: Slot[];
+  /** For fills: the same line without the melody notes, as a voice of its own. */
+  fills?: Slot[];
   /** Left hand that replaces the arrangement's own here, when the hands trade roles. */
   left?: ArrangementMeasure;
   note?: string;

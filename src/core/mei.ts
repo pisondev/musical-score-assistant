@@ -68,11 +68,17 @@ class LyricWriter {
   }
 }
 
-function eventElement(event: StaffEvent, track: Track, lyrics: LyricWriter | null): string {
+function eventElement(
+  event: StaffEvent,
+  track: Track,
+  lyrics: LyricWriter | null,
+  quiet: boolean,
+): string {
   // The track becomes a class on the drawn symbol, which the playhead colours by.
   const id = `xml:id="${staffElementId(event.id)}" type="${track}"`;
   const duration = `dur="${event.value}"${event.dots > 0 ? ` dots="${event.dots}"` : ''}`;
-  if (event.kind === 'rest') return `<rest ${id} ${duration}/>`;
+  // A second voice that is silent takes up its time without drawing a rest.
+  if (event.kind === 'rest') return quiet ? `<space ${duration}/>` : `<rest ${id} ${duration}/>`;
 
   const tie = event.tie === '' ? '' : ` tie="${event.tie}"`;
   const lyric = lyrics && event.lyric ? lyrics.element(event.lyric) : '';
@@ -83,18 +89,23 @@ function eventElement(event: StaffEvent, track: Track, lyrics: LyricWriter | nul
   return `<chord ${id} ${duration}>${notes}${lyric}</chord>`;
 }
 
-/** Wraps beamed and triplet groups around the events of one staff in one measure. */
+/**
+ * Wraps beamed and triplet groups around the events of one voice in one
+ * measure. A `quiet` voice leaves its rests blank; it is only written for
+ * measures in which it has notes.
+ */
 function layerContent(
   events: StaffEvent[],
   measureLength: number,
   track: Track,
   lyrics: LyricWriter | null,
+  quiet = false,
 ): string {
   const wholeRest =
     events.length > 0 &&
     events.every((event) => event.kind === 'rest') &&
     events.reduce((sum, event) => sum + event.duration, 0) >= measureLength;
-  if (events.length === 0 || wholeRest) {
+  if (!quiet && (events.length === 0 || wholeRest)) {
     const id = events[0] ? ` xml:id="${staffElementId(events[0].id)}"` : '';
     return `<mRest${id}/>`;
   }
@@ -103,7 +114,7 @@ function layerContent(
   for (const event of events) {
     if (event.triplet === 'start') content += '<tuplet num="3" numbase="2">';
     if (event.beam === 'start') content += '<beam>';
-    content += eventElement(event, track, lyrics);
+    content += eventElement(event, track, lyrics, quiet);
     if (event.beam === 'end') content += '</beam>';
     if (event.triplet === 'end') content += '</tuplet>';
   }
@@ -140,6 +151,12 @@ export function toMei(
     time,
     key,
   );
+  // The notes a fill adds share the staff of the melody as a second voice.
+  const fills = engraveRow(
+    measures.map((measure) => ({ length: measure.length, slots: measure.fills ?? [] })),
+    time,
+    key,
+  );
   const hasVoice = measures.some((measure) => measure.voice !== undefined);
   const voice = hasVoice
     ? engraveRow(
@@ -168,7 +185,14 @@ export function toMei(
 
   const body = measures
     .map((measure, position) => {
+      const added = fills[position];
+      const hasFill = added.some((event) => event.kind === 'note');
       collect('right', measure, right[position]);
+      collect(
+        'right',
+        measure,
+        added.filter((event) => event.kind === 'note'),
+      );
       collect('left', measure, left[position]);
       if (voice) collect('voice', measure, voice[position]);
 
@@ -221,12 +245,21 @@ export function toMei(
       else if (measure.barline === 'repeat-end') attributes.push('right="rptend"');
       else if (isLast) attributes.push('right="dbl"');
 
-      const staff = (number: number, track: Track, events: StaffEvent[], words: boolean) =>
-        `<staff n="${number}"><layer n="1">${layerContent(events, measure.length, track, words ? lyrics : null)}</layer></staff>`;
+      const staff = (
+        number: number,
+        track: Track,
+        events: StaffEvent[],
+        words: boolean,
+        second = '',
+      ) =>
+        `<staff n="${number}"><layer n="1">${layerContent(events, measure.length, track, words ? lyrics : null)}</layer>${second}</staff>`;
+      const fillLayer = hasFill
+        ? `<layer n="2">${layerContent(added, measure.length, 'right', null, true)}</layer>`
+        : '';
       return (
         `<measure ${attributes.join(' ')}>` +
         (voice ? staff(1, 'voice', voice[position], true) : '') +
-        staff(rightStaff, 'right', right[position], !voice) +
+        staff(rightStaff, 'right', right[position], !voice, fillLayer) +
         staff(leftStaff, 'left', left[position], false) +
         controls.join('') +
         '</measure>'

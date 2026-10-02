@@ -26,7 +26,8 @@ back so each idea can be heard before it is practised.
   intermediate, and advanced, and each teaches a style: ballad, hymn, classical, gospel,
   majestic, jazz. A guide explains the new patterns and every changed measure.
 - **Three roles for the right hand.** _Melody_ plays the printed tune. _Melody + fills_ keeps
-  every printed note and adds fills where the tune waits. _Accompaniment_ leaves the tune to
+  every printed note, long notes held as written, and adds fills on a row of their own where
+  the tune waits. _Accompaniment_ leaves the tune to
   the singers and plays chords, rhythm, and fills instead; the sung melody stays on the sheet
   as a small row and can be played as a soft guide. Fills and accompaniment are written for
   each left hand, so they agree with its chords and share the gaps with its fills.

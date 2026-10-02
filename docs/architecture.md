@@ -77,12 +77,14 @@ Key ideas:
   symbols are already transposed. Everything downstream (sheet, audio, playhead, loop) works on
   that result and needs no special cases. Introduction measures carry `part: 'intro'` and slot
   ids of their own.
-- **A right-hand part replaces measures, not the model.** Each arrangement carries the fills
-  and the accompaniment written for it. `applyRightHand` swaps the part's slots into the song's
-  measures (and the left hand of a measure, where the part replaces it), so everything
-  downstream still sees a plain song and arrangement. For an accompaniment the printed melody
-  moves to `Measure.voice`: a third line that the sheet shows, the playhead follows, and the
-  engine plays as its own track. The introduction is built from the unchanged song, so it keeps
+- **A right-hand part extends measures, not the model.** Each arrangement carries the fills
+  and the accompaniment written for it, and `applyRightHand` puts one into the song's measures
+  (and replaces the left hand of a measure, where the part says so), so everything downstream
+  still sees a plain song and arrangement. Fills leave the melody slots untouched and add
+  `Measure.fills`, a second voice with the notes that are new; it is derived from the part by
+  removing the melody notes, so a long melody note keeps its printed length while the fill
+  plays. An accompaniment takes the place of the melody, which moves to `Measure.voice`: a
+  line that the sheet shows, the playhead follows, and the engine plays as its own track. The introduction is built from the unchanged song, so it keeps
   the tune in every mode.
 - **Transposition keeps the digits.** Numbered notation is relative to "1", so transposing
   changes pitches, chord symbols, and the key, and leaves every written tone as it is.

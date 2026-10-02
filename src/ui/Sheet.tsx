@@ -111,7 +111,14 @@ function tallestStack(slots: Slot[]): number {
   return Math.max(1, ...slots.map(cellCount));
 }
 
-function StaffRow({ slots, length }: { slots: Slot[]; length: number }) {
+interface StaffRowProps {
+  slots: Slot[];
+  length: number;
+  /** Leaves rests blank, for a voice that is silent most of the time. */
+  quiet?: boolean;
+}
+
+function StaffRow({ slots, length, quiet = false }: StaffRowProps) {
   // Beams within one beat share a height, set by the tallest stack under them.
   const beamHeights = new Map<number, number>();
   for (const slot of slots) {
@@ -122,9 +129,13 @@ function StaffRow({ slots, length }: { slots: Slot[]; length: number }) {
   return (
     <>
       {slots.map((slot, index) => {
+        const blank = (candidate: Slot | undefined) =>
+          candidate === undefined || (quiet && candidate.kind === 'rest');
+        if (blank(slot)) return null;
         const next = slots[index + 1];
         const previous = slots[index - 1];
-        const sameBeat = next !== undefined && next.beat === slot.beat;
+        // A beam joins the next symbol of the beat, but never reaches over a blank.
+        const sameBeat = !blank(next) && next.beat === slot.beat;
         const joinsFirst = sameBeat && next.beams >= 1;
         const joinsSecond = sameBeat && next.beams >= 2;
         const startsTuplet =
@@ -256,6 +267,8 @@ interface MeasureViewProps {
   isLastOfIntro: boolean;
   inLoop: boolean;
   severity: Issue['severity'] | null;
+  /** Reserves the row of added notes, when any measure of the system has them. */
+  showFills: boolean;
   showLyrics: boolean;
   showDynamics: boolean;
   onSelect: (index: number) => void;
@@ -272,6 +285,7 @@ const MeasureView = memo(function MeasureView({
   isLastOfIntro,
   inLoop,
   severity,
+  showFills,
   showLyrics,
   showDynamics,
   onSelect,
@@ -332,6 +346,11 @@ const MeasureView = memo(function MeasureView({
             <LyricRow slots={measure.slots} length={measure.length} />
           </div>
         )}
+        {showFills && (
+          <div className="track track--fills">
+            {measure.fills && <StaffRow slots={measure.fills} length={measure.length} quiet />}
+          </div>
+        )}
         {showDynamics && (
           <div className="track track--dynamics">
             <DynamicsRow measure={measure} hairpins={hairpins} />
@@ -347,10 +366,12 @@ const MeasureView = memo(function MeasureView({
 
 function RowLabels({
   showVoice,
+  showFills,
   showLyrics,
   showDynamics,
 }: {
   showVoice: boolean;
+  showFills: boolean;
   showLyrics: boolean;
   showDynamics: boolean;
 }) {
@@ -368,6 +389,11 @@ function RowLabels({
         <span>R</span>
       </div>
       {!showVoice && showLyrics && <div className="track track--lyrics" />}
+      {showFills && (
+        <div className="track track--fills">
+          <span>+</span>
+        </div>
+      )}
       {showDynamics && <div className="track track--dynamics" />}
       <div className="track track--left">
         <span>L</span>
@@ -415,8 +441,8 @@ const NO_HAIRPINS: HairpinPiece[] = [];
 
 /**
  * The numbered-notation score: the right hand above, the chosen left hand
- * below, and the sung melody as a small row on top when the right hand
- * accompanies.
+ * below. Fills add a second right-hand row under the melody where they play,
+ * and an accompaniment gets the sung melody as a small row on top.
  */
 export function Sheet({
   bundle,
@@ -505,11 +531,23 @@ export function Sheet({
         '--left-cells': Math.max(
           ...system.measures.map((index) => tallestStack(arrangement.measures[index].slots)),
         ),
+        '--fill-cells': Math.max(
+          ...system.measures.map((index) => tallestStack(song.measures[index].fills ?? [])),
+        ),
       } as CSSProperties;
       const showVoice = system.measures.some((index) => song.measures[index].voice !== undefined);
+      // Only the systems with a fill get the extra row, so the rest of the page stays compact.
+      const showFills = system.measures.some((index) =>
+        song.measures[index].fills?.some((slot) => slot.kind === 'note'),
+      );
       return (
         <div key={system.measures[0]} className="system" style={rowHeights}>
-          <RowLabels showVoice={showVoice} showLyrics={lyrics} showDynamics={dynamics} />
+          <RowLabels
+            showVoice={showVoice}
+            showFills={showFills}
+            showLyrics={lyrics}
+            showDynamics={dynamics}
+          />
           {system.measures.map((index, position) => {
             const measure = song.measures[index];
             const label = measure.part === 'intro' ? `${index + 1}` : `${measure.number ?? ''}`;
@@ -526,6 +564,7 @@ export function Sheet({
                 isLastOfIntro={index === introMeasures - 1}
                 inLoop={loop.enabled && index >= loop.from && index <= loop.to}
                 severity={severities.get(index) ?? null}
+                showFills={showFills}
                 showLyrics={lyrics}
                 showDynamics={dynamics}
                 onSelect={seekToMeasure}

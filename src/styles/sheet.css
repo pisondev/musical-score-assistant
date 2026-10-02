@@ -195,6 +195,12 @@
   color: var(--ink);
 }
 
+/* What the right hand adds to the melody: a second voice, directly under it. */
+.track--fills {
+  height: calc(var(--fill-cells, 1) * var(--cell-height) + var(--beam-zone));
+  color: var(--right-hand);
+}
+
 /* The sung melody above an accompaniment: a smaller, quieter row to follow, not to play. */
 .track--voice {
   --note-size: 14px;
@@ -456,6 +462,15 @@
   background: var(--right-hand);
 }
 
+.track--fills .slot.is-active .slot__body {
+  color: #fff;
+  background: var(--right-hand);
+}
+
+.track--fills .slot--hold.is-active .slot__body {
+  background: #93b4f5;
+}
+
 .track--left .slot.is-active .slot__body {
   color: #fff;
   background: var(--left-hand);
@@ -627,6 +642,10 @@
 
   .track--voice {
     color: #444;
+  }
+
+  .track--fills {
+    color: #000;
   }
 
   .chord--changed {

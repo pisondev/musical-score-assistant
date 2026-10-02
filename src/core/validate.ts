@@ -355,7 +355,13 @@ export function validateRightHand(
   });
 
   const gaps = findGaps(song);
-  const rightOnsets = noteOnsets(composed.song.measures);
+  const fillOnsets = noteOnsets(
+    composed.song.measures.map((measure) => ({
+      startTick: measure.startTick,
+      slots: measure.fills ?? [],
+    })),
+  );
+  const rightOnsets = [...noteOnsets(composed.song.measures), ...fillOnsets];
   checkGaps(
     song,
     gaps,
@@ -367,7 +373,7 @@ export function validateRightHand(
 
   if (part.mode === 'fills') {
     for (const gap of gaps) {
-      if (rightOnsets.some((tick) => tick > gap.start && tick < gap.end)) continue;
+      if (fillOnsets.some((tick) => tick > gap.start && tick < gap.end)) continue;
       issues.push({
         severity: 'warning',
         message: 'The melody waits here, but the right hand adds no fill.',

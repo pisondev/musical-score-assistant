@@ -46,13 +46,12 @@ The web app itself never generates music; it displays, plays, and explains.
 - A layout for phones and tablets: a scrolling row of options, menus as bottom sheets, and a
   compact playback bar.
 - A tempo that can be typed as well as dragged.
+- Fills as a second voice: the melody keeps its long notes on the sheet and in the sound.
 - Validation of range, hand span, low close intervals, slash-chord bass, and melody clashes.
 
 ## Next
 
 - **Repeats in playback.** Repeat barlines are displayed but played straight through.
-- **Two voices in the right hand.** A fill is written in the same line as the melody, so a
-  long note is restruck or cut where the fill begins. A second voice would let it ring on.
 - **Tempo changes** such as ritardando and a fermata on the last chord.
 - **Dynamics per arrangement**, so that a majestic version can be louder than a ballad.
 - **Volume balance** between the hands and the voice guide.

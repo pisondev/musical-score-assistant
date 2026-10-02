@@ -72,13 +72,53 @@ describe('right-hand parts', () => {
     expect(arrangement.rightHand).toEqual({});
   });
 
-  it('keep the lyrics under the melody notes of a fill', () => {
+  it('separate the notes a fill adds from the melody it is written around', () => {
     const fills = bundleWith({ fills: FILLS }).arrangements[1].rightHand.fills!;
-    const slots = fills.measures[1]!.slots;
-    expect(slots[0].lyric).toBe('five');
-    expect(slots.slice(1).every((slot) => slot.lyric === undefined)).toBe(true);
-    // Slot ids must not collide with those of the melody they replace.
-    expect(slots[0].id).toBe('f1-0');
+    const written = fills.measures[1]!;
+    // The measure as written: the melody note, then five added notes.
+    expect(written.slots.map((slot) => slot.kind)).toEqual(Array(6).fill('note'));
+    // As a voice of its own, the melody note is a rest; the ids stay, apart from the melody's.
+    expect(written.fills!.map((slot) => slot.kind)).toEqual([
+      'rest',
+      'note',
+      'note',
+      'note',
+      'note',
+      'note',
+    ]);
+    expect(written.fills!.map((slot) => slot.id)).toEqual(written.slots.map((slot) => slot.id));
+    expect(written.fills![0].id).toBe('f1-0');
+
+    // The next measure ends with two melody notes, which the added voice sits out.
+    expect(fills.measures[2]!.fills!.map((slot) => slot.kind)).toEqual([
+      'note',
+      'note',
+      'note',
+      'rest',
+      'rest',
+    ]);
+    expect(
+      bundleWith({ accompaniment: ACCOMPANIMENT }).arrangements[1].rightHand.accompaniment!
+        .measures[1]!.fills,
+    ).toBeUndefined();
+  });
+
+  it('keep the notes stacked under a melody note and follow hold dots', () => {
+    const fills = bundleWith({
+      fills: {
+        measures: [
+          // E under the melody note, held; then a note of its own, held for a beat.
+          { measure: 2, right: '<3 5> . 7 .' },
+          // A melody-only measure with hold dots adds nothing.
+          { measure: 4, right: '1 . . .' },
+        ],
+      },
+    }).arrangements[1].rightHand.fills!;
+
+    const second = fills.measures[1]!.fills!;
+    expect(second.map((slot) => slot.kind)).toEqual(['note', 'hold', 'note', 'hold']);
+    expect(second[0].pitches.map((pitch) => pitch.midi)).toEqual([64]);
+    expect(fills.measures[3]!.fills!.map((slot) => slot.kind)).toEqual(Array(4).fill('rest'));
   });
 
   it('reports malformed parts', () => {
@@ -252,21 +292,77 @@ describe('a performance with a right-hand part', () => {
     expect(performance.song.measures).toEqual(bundle.song.measures);
   });
 
-  it('puts fills in the place of the melody, measure by measure', () => {
+  it('adds fills as a second voice and leaves the melody as printed', () => {
     const performance = buildPerformance(bundle, arrangement, 'off', 0, 'fills');
+    const { song } = performance;
     expect(performance.rightHand).toBe('fills');
-    expect(performance.song.measures[0].slots).toBe(bundle.song.measures[0].slots);
-    expect(performance.song.measures[1].slots.map((slot) => slot.id)).toEqual([
-      'f1-0',
-      'f1-1',
-      'f1-2',
-      'f1-3',
-      'f1-4',
-      'f1-5',
+    // Every measure keeps the printed melody, lyrics included.
+    expect(song.measures.map((measure) => measure.slots)).toEqual(
+      bundle.song.measures.map((measure) => measure.slots),
+    );
+    expect(song.measures[1].slots[0].lyric).toBe('five');
+    expect(song.measures.map((measure) => measure.fills !== undefined)).toEqual([
+      false,
+      true,
+      true,
+      false,
     ]);
-    expect(performance.song.measures.every((measure) => measure.voice === undefined)).toBe(true);
+    expect(song.measures[1].fills).toBe(arrangement.rightHand.fills!.measures[1]!.fills);
+    expect(song.measures.every((measure) => measure.voice === undefined)).toBe(true);
     expect(performance.arrangement.measures[1].rightNote).toBe('Fill: an arch on the G chord.');
     expect(performance.arrangement.measures[1].note).toBe('Fill: rolling eighths.');
+  });
+
+  it('lets a long melody note ring while the fill plays under it', () => {
+    const performance = buildPerformance(bundle, arrangement, 'off', 0, 'fills');
+    const right = buildNoteEvents(performance.song, performance.arrangement).filter(
+      (event) => event.track === 'right',
+    );
+    // The G of measure 2 lasts its four printed beats, although the fill starts after one.
+    const held = right.find((event) => event.slotId === 'r1-0')!;
+    expect(held).toMatchObject({ tick: 1920, duration: 1920, midi: 67 });
+
+    const added = right.filter((event) => event.slotId.startsWith('f'));
+    expect(added.map((event) => event.midi)).toEqual([71, 74, 71, 67, 71, 74, 71, 67]);
+    expect(added.every((event) => event.tick > held.tick)).toBe(true);
+    // The added notes are played under the melody, not over it.
+    expect(Math.max(...added.map((event) => event.velocity))).toBeLessThan(held.velocity);
+
+    // The playhead follows both voices, each symbol under an id of its own.
+    const spans = buildSlotSpans(performance.song, performance.arrangement);
+    expect(spans.some((span) => span.id === 'f1-1')).toBe(true);
+    expect(new Set(spans.map((span) => span.id)).size).toBe(spans.length);
+  });
+
+  it('writes the fills as a second layer on the staff of the melody', () => {
+    const performance = buildPerformance(bundle, arrangement, 'off', 0, 'fills');
+    const { mei, spans } = toMei(performance.song, performance.arrangement, 0, 4, {
+      showLyrics: true,
+      showDynamics: true,
+    });
+    const measures = mei.split('<measure ').slice(1);
+    expect(measures.map((measure) => measure.includes('<layer n="2">'))).toEqual([
+      false,
+      true,
+      true,
+      false,
+    ]);
+    const layer = measures[1].slice(measures[1].indexOf('<layer n="2">'));
+    const second = layer.slice(0, layer.indexOf('</layer>'));
+    // Where the added voice is silent it leaves a blank, not a rest.
+    expect(second).toContain('<space dur="4"/>');
+    expect(second).not.toContain('<rest');
+    expect(second).toContain('xml:id="slot-f1-1"');
+    // The melody is written once, as the whole note it is.
+    expect(measures[1]).toContain('xml:id="slot-r1-0" type="right" dur="1"');
+    expect(spans.some((span) => span.id === 'f1-1' && span.track === 'right')).toBe(true);
+  });
+
+  it('transposes the fills with the melody', () => {
+    const performance = buildPerformance(bundle, arrangement, 'off', 2, 'fills');
+    const fills = performance.song.measures[1].fills!;
+    expect(fills[1].pitches[0].midi).toBe(73);
+    expect(performance.song.measures[1].slots[0].pitches[0].midi).toBe(69);
   });
 
   it('keeps the sung melody as a voice beside an accompaniment', () => {

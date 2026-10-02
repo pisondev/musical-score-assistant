@@ -62,7 +62,7 @@ export function Guide({ performance }: GuideProps) {
           <p className="guide__text">{rightPart.summary}</p>
           <p className="guide__footnote">
             {rightHand === 'fills'
-              ? 'The printed melody stays as it is; the notes around it are added where it waits.'
+              ? 'The printed melody stays as it is and its long notes keep sounding. The notes that are added where it waits are on the row marked +, right below it.'
               : 'The singers carry the melody, shown on the small row above the right hand. Switch Voice on to hear it with the accompaniment.'}
           </p>
         </section>

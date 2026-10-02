@@ -16,12 +16,20 @@ const VELOCITY: Record<Track, { downbeat: number; beat: number; offbeat: number 
   voice: { downbeat: 0.62, beat: 0.6, offbeat: 0.56 },
 };
 
+/** Fills are played a little under the melody they decorate. */
+const FILL_VELOCITY = { downbeat: 0.6, beat: 0.56, offbeat: 0.52 };
+
 const MEZZO_FORTE_GAIN = 0.82;
 const MIN_VELOCITY = 0.08;
 const MAX_VELOCITY = 1;
 
 /** Turns the written slots of one track into sounding notes; hold dots extend them. */
-function eventsForTrack(track: Track, measures: StaffMeasure[], beat: number): NoteEvent[] {
+function eventsForTrack(
+  track: Track,
+  measures: StaffMeasure[],
+  beat: number,
+  levels = VELOCITY[track],
+): NoteEvent[] {
   const events: NoteEvent[] = [];
   let sounding: NoteEvent[] = [];
 
@@ -34,7 +42,6 @@ function eventsForTrack(track: Track, measures: StaffMeasure[], beat: number): N
       sounding = [];
       if (slot.kind === 'rest') continue;
 
-      const levels = VELOCITY[track];
       const velocity =
         slot.start === 0 ? levels.downbeat : slot.start % beat === 0 ? levels.beat : levels.offbeat;
       for (const pitch of slot.pitches) {
@@ -86,7 +93,7 @@ function sustainLeftHand(events: NoteEvent[], song: Song, arrangement: Arrangeme
  */
 export function buildWrittenNotes(song: Song, arrangement: Arrangement): NoteEvent[] {
   const beat = beatTicks(song.meta.time);
-  const rows = (track: Track, slotsOf: (index: number) => Slot[]) =>
+  const rows = (track: Track, slotsOf: (index: number) => Slot[], levels = VELOCITY[track]) =>
     eventsForTrack(
       track,
       song.measures.map((measure, index) => ({
@@ -95,10 +102,12 @@ export function buildWrittenNotes(song: Song, arrangement: Arrangement): NoteEve
         slots: slotsOf(index),
       })),
       beat,
+      levels,
     );
 
   return [
     ...rows('right', (index) => song.measures[index].slots),
+    ...rows('right', (index) => song.measures[index].fills ?? [], FILL_VELOCITY),
     ...rows('left', (index) => arrangement.measures[index].slots),
     ...rows('voice', (index) => song.measures[index].voice ?? []),
   ];
@@ -127,6 +136,7 @@ export function buildSlotSpans(song: Song, arrangement: Arrangement): SlotSpan[]
   song.measures.forEach((measure, index) => {
     const rows: [Track, Slot[]][] = [
       ['right', measure.slots],
+      ['right', measure.fills ?? []],
       ['left', arrangement.measures[index].slots],
       ['voice', measure.voice ?? []],
     ];

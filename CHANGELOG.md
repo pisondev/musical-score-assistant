@@ -112,6 +112,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- In _Melody + fills_ the melody row now stays exactly as printed, and the notes a fill adds
+  are shown as a second voice: a row marked `+` below the melody on the numbered sheet, and a
+  second layer on the same staff in staff notation. A long melody note is no longer cut short
+  where the fill begins: it is drawn, and sounds, for its full length. The added notes are
+  played slightly softer than the melody. Song files do not change.
 - The tempo number no longer resets the tempo when clicked; the arrow button beside it does.
 - A section label on a short pickup measure no longer runs into the next measure number.
 - Leaving a song page stops the playback.
