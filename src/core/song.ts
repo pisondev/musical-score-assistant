@@ -312,10 +312,12 @@ export function parseSong(text: string): Song {
       measures.push({
         index,
         number: isPickup ? null : nextNumber,
+        part: 'song',
         startTick,
         length: raw.length,
         slots,
         chords,
+        dynamics: raw.dynamics.map(({ start, sign }) => ({ start, sign })),
         barline: raw.barline,
         repeatStart: raw.repeatStart,
         section: positionInLine === 0 ? sections.get(raw.line) : undefined,

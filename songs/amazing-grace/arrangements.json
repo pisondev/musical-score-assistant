@@ -1,9 +1,38 @@
 {
+  "intro": {
+    "lastPhraseFrom": 13,
+    "improvised": {
+      "summary": "Four measures that echo the shape of the tune, pass through a diminished chord, and pause on D7 before the first note.",
+      "measures": [
+        {
+          "right": "{mp}5 (. 6) (5 3)",
+          "left": "[G](1 5) (1' 3') 5'",
+          "note": "A small turn around the note D over a rising G arpeggio."
+        },
+        {
+          "right": "1' . (6 5)",
+          "left": "[C](1 5) (1' 3') [C#dim7]<1 7>",
+          "note": "The line reaches the high G over C; the bass then rises a half step to C sharp diminished."
+        },
+        {
+          "right": "{<}5 (3 2) (1 2)",
+          "left": "[G/D]<5, 5> (1' 3') [Em7](1 7)",
+          "note": "The diminished chord resolves to G over D, and the line walks down to G."
+        },
+        {
+          "right": "{mf}<1 3> <7, 2>",
+          "left": "[Am9]<1 5 7> [D7]<1' 3' 7'>",
+          "note": "Two chords in thirds, A minor nine and D7, leave the ear waiting for G."
+        }
+      ]
+    }
+  },
   "arrangements": [
     {
       "id": "one-step-further",
       "name": "One step further",
       "level": "easy",
+      "style": "Ballad",
       "summary": "Same chords as the score. The arpeggio reaches a tenth, and the left hand rolls in eighths whenever the melody holds a long note.",
       "tips": [
         "Practise the left hand alone at tempo 60 until the reach from the fifth to the tenth feels relaxed.",
@@ -22,7 +51,10 @@
         }
       ],
       "measures": [
-        { "measure": 0, "left": "0" },
+        {
+          "measure": 0,
+          "left": "0"
+        },
         {
           "measure": 1,
           "left": "[G]1 5 3'",
@@ -33,10 +65,22 @@
           "left": "1 5 1'",
           "note": "Your usual pattern, so the new one stands out against it."
         },
-        { "measure": 3, "left": "[C]1 5 3'" },
-        { "measure": 4, "left": "[G]1 5 3'" },
-        { "measure": 5, "left": "1 5 3'" },
-        { "measure": 6, "left": "1 5 1'" },
+        {
+          "measure": 3,
+          "left": "[C]1 5 3'"
+        },
+        {
+          "measure": 4,
+          "left": "[G]1 5 3'"
+        },
+        {
+          "measure": 5,
+          "left": "1 5 3'"
+        },
+        {
+          "measure": 6,
+          "left": "1 5 1'"
+        },
         {
           "measure": 7,
           "left": "[D](1 5) (1' 3') (5' 3')",
@@ -47,28 +91,48 @@
           "left": "[D7](1 5) (7 3') 5'",
           "note": "The seventh (7) appears inside the roll and pulls towards G."
         },
-        { "measure": 9, "left": "[G]1 5 3'" },
+        {
+          "measure": 9,
+          "left": "[G]1 5 3'"
+        },
         {
           "measure": 10,
           "left": "[G7]1 5 7",
           "note": "Ending on the seventh leads the ear into the C chord."
         },
-        { "measure": 11, "left": "[C]1 5 3'" },
-        { "measure": 12, "left": "[G]1 5 3'" },
-        { "measure": 13, "left": "[Em]1 5 3'" },
+        {
+          "measure": 11,
+          "left": "[C]1 5 3'"
+        },
+        {
+          "measure": 12,
+          "left": "[G]1 5 3'"
+        },
+        {
+          "measure": 13,
+          "left": "[Em]1 5 3'"
+        },
         {
           "measure": 14,
           "left": "[G/D]5, 3 [D7]7",
           "note": "Single notes only: bass D, then B rising to C, which falls back to B in the last chord."
         },
-        { "measure": 15, "left": "[G](1 5) (1' 3') (5' 3')" },
-        { "measure": 16, "left": "<1 5 1'> .", "note": "Close with all three notes together." }
+        {
+          "measure": 15,
+          "left": "[G](1 5) (1' 3') (5' 3')"
+        },
+        {
+          "measure": 16,
+          "left": "<1 5 1'> .",
+          "note": "Close with all three notes together."
+        }
       ]
     },
     {
       "id": "walking-bass",
       "name": "Walking bass",
       "level": "easy",
+      "style": "Waltz",
       "summary": "A waltz texture: one bass note, then two notes together. Inversions let the bass move by step instead of jumping from root to root.",
       "tips": [
         "Play only the first note of every measure and listen to the bass line as a melody of its own.",
@@ -87,53 +151,87 @@
         }
       ],
       "measures": [
-        { "measure": 0, "left": "0" },
-        { "measure": 1, "left": "[G]1 <5 1'> <5 1'>" },
+        {
+          "measure": 0,
+          "left": "0"
+        },
+        {
+          "measure": 1,
+          "left": "[G]1 <5 1'> <5 1'>"
+        },
         {
           "measure": 2,
           "left": "[G/B]3 <5 1'> <5 1'>",
           "note": "G/B: the bass steps up from G through B to reach C in the next measure."
         },
-        { "measure": 3, "left": "[C]1' <3' 5'> <3' 5'>" },
+        {
+          "measure": 3,
+          "left": "[C]1' <3' 5'> <3' 5'>"
+        },
         {
           "measure": 4,
           "left": "[G/B]3 <5 1'> <5 1'>",
           "note": "The bass steps back down from C to B."
         },
-        { "measure": 5, "left": "[G]1 <5 1'> <5 1'>" },
+        {
+          "measure": 5,
+          "left": "[G]1 <5 1'> <5 1'>"
+        },
         {
           "measure": 6,
           "left": "[Em]1 <5 1'> <5 1'>",
           "note": "Em replaces G: it shares two notes with G, and its bass E walks down to D."
         },
-        { "measure": 7, "left": "[D]1 <3' 5'> <3' 5'>" },
+        {
+          "measure": 7,
+          "left": "[D]1 <3' 5'> <3' 5'>"
+        },
         {
           "measure": 8,
           "left": "[D7/C]7 <3' 5'> <3' 5'>",
           "note": "D7/C puts the seventh in the bass. It wants to fall one step, to the B of G/B."
         },
-        { "measure": 9, "left": "[G/B]3 <5 1'> <5 1'>" },
+        {
+          "measure": 9,
+          "left": "[G/B]3 <5 1'> <5 1'>"
+        },
         {
           "measure": 10,
           "left": "[G7/B]3 <5 7> <5 7>",
           "note": "The bass stays on B while the pair changes to include the seventh."
         },
-        { "measure": 11, "left": "[C]1' <3' 5'> <3' 5'>" },
-        { "measure": 12, "left": "[G/B]3 <5 1'> <5 1'>" },
-        { "measure": 13, "left": "[Em]1' <3' 5'> <3' 5'>" },
+        {
+          "measure": 11,
+          "left": "[C]1' <3' 5'> <3' 5'>"
+        },
+        {
+          "measure": 12,
+          "left": "[G/B]3 <5 1'> <5 1'>"
+        },
+        {
+          "measure": 13,
+          "left": "[Em]1' <3' 5'> <3' 5'>"
+        },
         {
           "measure": 14,
           "left": "[G/D]5 <1' 3'> [D7]<7 3'>",
           "note": "The bass walks E to D and stays there; the last pair holds the two notes that define D7."
         },
-        { "measure": 15, "left": "[G]1 <5 1'> <5 1'>" },
-        { "measure": 16, "left": "<1 5 1'> ." }
+        {
+          "measure": 15,
+          "left": "[G]1 <5 1'> <5 1'>"
+        },
+        {
+          "measure": 16,
+          "left": "<1 5 1'> ."
+        }
       ]
     },
     {
       "id": "new-chords",
       "name": "New chords",
       "level": "intermediate",
+      "style": "Contemporary",
       "summary": "Several printed chords are replaced: a secondary dominant, a suspended chord that resolves, and an Amen ending.",
       "tips": [
         "Learn the shell shape 1 7 3' on Em7 first; the A7 in the next measure uses exactly the same shape.",
@@ -157,15 +255,27 @@
         }
       ],
       "measures": [
-        { "measure": 0, "left": "0" },
-        { "measure": 1, "left": "[G]1 5 3'" },
+        {
+          "measure": 0,
+          "left": "0"
+        },
+        {
+          "measure": 1,
+          "left": "[G]1 5 3'"
+        },
         {
           "measure": 2,
           "left": "[G7/B]3 5 7",
           "note": "G7/B turns the home chord into a dominant of C and puts the leading note B in the bass."
         },
-        { "measure": 3, "left": "[C]1' 3' 5'" },
-        { "measure": 4, "left": "[G/B]3 5 1'" },
+        {
+          "measure": 3,
+          "left": "[C]1' 3' 5'"
+        },
+        {
+          "measure": 4,
+          "left": "[G/B]3 5 1'"
+        },
         {
           "measure": 5,
           "left": "[Em7]1 7 3'",
@@ -186,18 +296,450 @@
           "left": "[D7](1 5) (7 3') 5'",
           "note": "The suspended G falls to F sharp and the chord finally sounds complete."
         },
-        { "measure": 9, "left": "[G]1 5 3'" },
-        { "measure": 10, "left": "[G7/B]3 5 7" },
-        { "measure": 11, "left": "[C]1' 3' 5'" },
-        { "measure": 12, "left": "[G/B]3 5 1'" },
-        { "measure": 13, "left": "[Em7]1 7 3'" },
-        { "measure": 14, "left": "[G/D]5, 5 [D7]7" },
+        {
+          "measure": 9,
+          "left": "[G]1 5 3'"
+        },
+        {
+          "measure": 10,
+          "left": "[G7/B]3 5 7"
+        },
+        {
+          "measure": 11,
+          "left": "[C]1' 3' 5'"
+        },
+        {
+          "measure": 12,
+          "left": "[G/B]3 5 1'"
+        },
+        {
+          "measure": 13,
+          "left": "[Em7]1 7 3'"
+        },
+        {
+          "measure": 14,
+          "left": "[G/D]5, 5 [D7]7"
+        },
         {
           "measure": 15,
           "left": "[C/G]5 <1' 3'> <1' 3'>",
           "note": "The bass arrives home on G, but the chord above is still C. The real ending waits one more measure."
         },
-        { "measure": 16, "left": "[G]<1 5 1'> .", "note": "The Amen resolves." }
+        {
+          "measure": 16,
+          "left": "[G]<1 5 1'> .",
+          "note": "The Amen resolves."
+        }
+      ]
+    },
+    {
+      "id": "alberti-bass",
+      "name": "Alberti bass",
+      "level": "intermediate",
+      "style": "Classical",
+      "summary": "A classical broken-chord figure in even eighths: lowest note, then the two upper notes in turn.",
+      "tips": [
+        "Practise each chord as a block of three notes before breaking it up.",
+        "The first note of every measure is the bass; give it slightly more weight than the rest.",
+        "Measures 8 and 9 put the seventh and then the third in the bass. Hear how the bass falls C to B."
+      ],
+      "patterns": [
+        {
+          "name": "Alberti figure in three",
+          "notation": "(1' 5') (3' 5') (3' 5')",
+          "description": "The chord close together: lowest note, highest, then middle and highest twice. Six even eighths fill a measure of three."
+        },
+        {
+          "name": "Open figure",
+          "notation": "(1 5) (3' 5) (3' 5)",
+          "description": "The same idea with the root an octave lower, for a fuller sound on the home chord."
+        }
+      ],
+      "measures": [
+        {
+          "measure": 0,
+          "left": "0"
+        },
+        {
+          "measure": 1,
+          "left": "[G](1 5) (3' 5) (3' 5)",
+          "note": "Open figure: root at the bottom, third at the top."
+        },
+        {
+          "measure": 2,
+          "left": "(1 5) (3' 5) (3' 5)"
+        },
+        {
+          "measure": 3,
+          "left": "[C](1' 5') (3' 5') (3' 5')",
+          "note": "Close figure on C, one position for the whole measure."
+        },
+        {
+          "measure": 4,
+          "left": "[G](1 5) (3' 5) (3' 5)"
+        },
+        {
+          "measure": 5,
+          "left": "(1 5) (3' 5) (3' 5)"
+        },
+        {
+          "measure": 6,
+          "left": "[G/B](3 1') (5 1') (5 1')",
+          "note": "G with B in the bass, so the bass can step up to D."
+        },
+        {
+          "measure": 7,
+          "left": "[D](1' 5') (3' 5') (3' 5')"
+        },
+        {
+          "measure": 8,
+          "left": "[D7/C](7 5') (3' 5') (3' 5')",
+          "note": "D7 with its seventh, C, in the bass. That note must fall to B."
+        },
+        {
+          "measure": 9,
+          "left": "[G/B](3 1') (5 1') (5 1')",
+          "note": "And it does: G over B."
+        },
+        {
+          "measure": 10,
+          "left": "[G7](1 5) (7 5) (7 5)"
+        },
+        {
+          "measure": 11,
+          "left": "[C](1' 5') (3' 5') (3' 5')"
+        },
+        {
+          "measure": 12,
+          "left": "[G](1 5) (3' 5) (3' 5)"
+        },
+        {
+          "measure": 13,
+          "left": "[Em](1' 5') (3' 5') (3' 5')"
+        },
+        {
+          "measure": 14,
+          "left": "[G/D](5 3') (1' 3') [D7](7 3')"
+        },
+        {
+          "measure": 15,
+          "left": "[G](1 5) (3' 5) (3' 5)"
+        },
+        {
+          "measure": 16,
+          "left": "<1 5 1'> ."
+        }
+      ]
+    },
+    {
+      "id": "gospel",
+      "name": "Gospel waltz",
+      "level": "intermediate",
+      "style": "Gospel",
+      "summary": "Octaves in the bass, a passing diminished chord, and a secondary dominant: the sound of this hymn in a gospel church.",
+      "tips": [
+        "Play the octave with a relaxed, heavy arm and the eighths that follow lightly.",
+        "Measures 3 and 4 are the heart of the style: C, C sharp diminished, G over D. Practise them as one gesture.",
+        "Let the tempo breathe a little at the end of each line."
+      ],
+      "patterns": [
+        {
+          "name": "Octave and roll",
+          "notation": "<1 1'> (5 1') (3' 1')",
+          "description": "An octave on the first beat, then the upper chord notes as rolling eighths."
+        },
+        {
+          "name": "Passing diminished chord",
+          "notation": "[C]<1 1'> (5 1') [C#dim7]<1 1'> then [G/D]<5, 5>",
+          "description": "Between the four chord and the home chord, the bass rises by half steps: C, C sharp, D."
+        },
+        {
+          "name": "Secondary dominant",
+          "notation": "[Em7]<1 1'> ... [A7]<1 1'> ... [D]<1 1'>",
+          "description": "A7 is not in the key of G. It is the dominant of D and makes the arrival on D stronger."
+        }
+      ],
+      "measures": [
+        {
+          "measure": 0,
+          "left": "0"
+        },
+        {
+          "measure": 1,
+          "left": "[G]<1 1'> (5 1') (3' 1')"
+        },
+        {
+          "measure": 2,
+          "left": "[G7/B]<3 3'> (5 7) (5 7)",
+          "note": "G7 over B: the seventh, F, appears and the bass prepares the step to C."
+        },
+        {
+          "measure": 3,
+          "left": "[C]<1 1'> (5 1') [C#dim7]<1 1'>",
+          "note": "C sharp diminished on the third beat; the melody note E belongs to it."
+        },
+        {
+          "measure": 4,
+          "left": "[G/D]<5, 5> (1' 3') (1' 3')",
+          "note": "The diminished chord resolves to G over D."
+        },
+        {
+          "measure": 5,
+          "left": "[Em7]<1 1'> (5 7) (3' 7)",
+          "note": "E minor seven replaces G for the second line of the verse."
+        },
+        {
+          "measure": 6,
+          "left": "[A7]<1 1'> (5 7) (3' 7)",
+          "note": "A7, the dominant of D. Its C sharp is the note outside the key."
+        },
+        {
+          "measure": 7,
+          "left": "[D]<1 1'> (5 1') (3' 1')"
+        },
+        {
+          "measure": 8,
+          "left": "[D7/C]<7, 7> (3' 5') (3' 5')",
+          "note": "The seventh in the bass again, falling to B."
+        },
+        {
+          "measure": 9,
+          "left": "[G/B]<3 3'> (5 1') (5 1')"
+        },
+        {
+          "measure": 10,
+          "left": "[G7]<1 1'> (5 7) (3' 7)"
+        },
+        {
+          "measure": 11,
+          "left": "[C]<1 1'> (5 1') [C#dim7]<1 1'>"
+        },
+        {
+          "measure": 12,
+          "left": "[G/D]<5, 5> (1' 3') (1' 3')"
+        },
+        {
+          "measure": 13,
+          "left": "[Em7]<1 1'> (5 7) (3' 7)"
+        },
+        {
+          "measure": 14,
+          "left": "[Am9]<1 1'> (5 7) [D7]<1 7>",
+          "note": "A minor and D7, the two-five of G, replace G over D."
+        },
+        {
+          "measure": 15,
+          "left": "[G]<1 1'> [C/G]<5 1' 3'> .",
+          "note": "The bass is home, but the chord above is C: the Amen is on its way."
+        },
+        {
+          "measure": 16,
+          "left": "[G]<1 5 1'> ."
+        }
+      ]
+    },
+    {
+      "id": "majestic",
+      "name": "Grand octaves",
+      "level": "advanced",
+      "style": "Majestic",
+      "summary": "A broad, festive accompaniment: an octave in the bass on the first beat and full chords on the other two.",
+      "tips": [
+        "The leap from the octave to the chord is the whole difficulty; practise it slowly and without looking.",
+        "Change the pedal on every first beat.",
+        "Follow the dynamics so that measure 9 is clearly the loudest point."
+      ],
+      "patterns": [
+        {
+          "name": "Octave and chords",
+          "notation": "<1 1'> <5 1' 3'> <5 1' 3'>",
+          "description": "The root in octaves, then the full chord twice. The foundation of a grand hymn accompaniment in three."
+        },
+        {
+          "name": "Four-note final chord",
+          "notation": "<1 5 1' 3'>",
+          "description": "Root, fifth, octave and tenth together. If the reach is too wide, roll the chord from the bottom."
+        }
+      ],
+      "measures": [
+        {
+          "measure": 0,
+          "left": "0"
+        },
+        {
+          "measure": 1,
+          "left": "[G]<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 2,
+          "left": "<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 3,
+          "left": "[C]<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 4,
+          "left": "[G]<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 5,
+          "left": "<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 6,
+          "left": "<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 7,
+          "left": "[D]<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 8,
+          "left": "[D7]<1 1'> <7 1' 3'> <7 1' 3'>",
+          "note": "The chord C, D, F sharp adds the seventh; it builds towards the loudest measure."
+        },
+        {
+          "measure": 9,
+          "left": "[G]<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 10,
+          "left": "[G7]<1 1'> <5 7 3'> <5 7 3'>"
+        },
+        {
+          "measure": 11,
+          "left": "[C]<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 12,
+          "left": "[G]<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 13,
+          "left": "[Em]<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 14,
+          "left": "[G/D]<5, 5> <1' 3' 5'> [D7]<7 1' 3'>"
+        },
+        {
+          "measure": 15,
+          "left": "[G]<1 1'> <5 1' 3'> <5 1' 3'>"
+        },
+        {
+          "measure": 16,
+          "left": "<1 5 1' 3'> .",
+          "note": "The final chord spans a tenth."
+        }
+      ]
+    },
+    {
+      "id": "jazz",
+      "name": "Jazz waltz",
+      "level": "advanced",
+      "style": "Jazz",
+      "summary": "A jazz-waltz reharmonization: a bass note, then a two-note shell, with sixth chords, two-five-one chains, and rootless thirteenths.",
+      "tips": [
+        "The rhythm is bass on one, shell on two, silence on three. Count it aloud before adding the melody.",
+        "The shell is the seventh and the third of the chord (written 7 3'). Find it for G6, Em7, A9 and D7 first.",
+        "Play quietly; the colour of these chords carries without force."
+      ],
+      "patterns": [
+        {
+          "name": "Bass, then shell",
+          "notation": "1 <7 3'> .",
+          "description": "The root on the first beat, the seventh and third together on the second, held through the third."
+        },
+        {
+          "name": "Two-five-one",
+          "notation": "[Dm13]1 <7 3'> [G7]<1 7 3'> then [Cmaj7]1 <7 3'>",
+          "description": "D minor and G7 are the second and fifth steps of C; they turn the arrival on C into an event."
+        },
+        {
+          "name": "Rootless thirteenth",
+          "notation": "[D13]<7 3' 6'>",
+          "description": "Seventh, third and thirteenth without the root. The melody or the previous bass note supplies the rest."
+        }
+      ],
+      "measures": [
+        {
+          "measure": 0,
+          "left": "0"
+        },
+        {
+          "measure": 1,
+          "left": "[G6]1 <6 3'> .",
+          "note": "G6 instead of G: the sixth, E, adds warmth without a seventh."
+        },
+        {
+          "measure": 2,
+          "left": "[Dm13]1 <7 3'> [G7]<1 7 3'>",
+          "note": "The two-five of C. The melody note B is the thirteenth of D minor."
+        },
+        {
+          "measure": 3,
+          "left": "[Cmaj7]1 <7 3'> [C#dim7]<1 7 3'>",
+          "note": "C major seven, then the passing diminished chord a half step higher."
+        },
+        {
+          "measure": 4,
+          "left": "[G6/D]5 <6 3'> .",
+          "note": "G6 with D in the bass completes the rise C, C sharp, D."
+        },
+        {
+          "measure": 5,
+          "left": "[Em7]1 <7 3'> ."
+        },
+        {
+          "measure": 6,
+          "left": "[A9]1 <7 3'> .",
+          "note": "A9 is the dominant of D; the melody note B is its ninth."
+        },
+        {
+          "measure": 7,
+          "left": "[Am7]1 <7 3'> .",
+          "note": "A minor seven delays D7 by a measure and makes a two-five."
+        },
+        {
+          "measure": 8,
+          "left": "[D7]1 <7 3'> [D13]<7 3' 6'>",
+          "note": "On the last beat the chord drops its root and adds the thirteenth, B, the note of the melody."
+        },
+        {
+          "measure": 9,
+          "left": "[G6]1 <6 3'> ."
+        },
+        {
+          "measure": 10,
+          "left": "[Dm13]1 <7 3'> [G7]<1 7 3'>"
+        },
+        {
+          "measure": 11,
+          "left": "[Cmaj7]1 <7 3'> [C#dim7]<1 7 3'>"
+        },
+        {
+          "measure": 12,
+          "left": "[G6/D]5 <6 3'> ."
+        },
+        {
+          "measure": 13,
+          "left": "[Em7]1 <7 3'> ."
+        },
+        {
+          "measure": 14,
+          "left": "[Am9]1 <7 3'> [D13]<7 3' 6'>",
+          "note": "The two-five of G under the last line of the verse."
+        },
+        {
+          "measure": 15,
+          "left": "[G6]1 <6 3'> ."
+        },
+        {
+          "measure": 16,
+          "left": "[G69]<1 6 2' 3'> .",
+          "note": "The final chord: G with its sixth and ninth."
+        }
       ]
     }
   ]

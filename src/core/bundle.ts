@@ -1,12 +1,29 @@
 import { buildArrangement, buildBaseline } from './arrangement';
+import { buildImprovisedIntro, lastPhraseStart } from './intro';
 import { parseSong } from './song';
-import type { Arrangement, ArrangementSpec, Issue, Level, PatternIdea, Song } from './types';
+import type {
+  Arrangement,
+  ArrangementSpec,
+  ImprovisedIntro,
+  IntroMeasureSpec,
+  IntroSpec,
+  Issue,
+  Level,
+  PatternIdea,
+  Song,
+} from './types';
 import { validateArrangement } from './validate';
 
-/** A song together with its baseline and every stored arrangement. */
+/** A song together with its baseline, every stored arrangement, and its introductions. */
 export interface SongBundle {
   song: Song;
   arrangements: Arrangement[];
+  intro: {
+    /** Index of the measure where the last phrase begins. */
+    lastPhraseStart: number;
+    /** The written introduction, when the song has one. */
+    improvised: ImprovisedIntro | null;
+  };
   /** Problems with the arrangement file itself, such as a malformed entry. */
   issues: Issue[];
 }
@@ -86,6 +103,7 @@ export function readArrangementSpecs(data: unknown, issues: Issue[]): Arrangemen
       name: entry.name,
       summary: typeof entry.summary === 'string' ? entry.summary : undefined,
       level: LEVELS.includes(entry.level as Level) ? (entry.level as Level) : undefined,
+      style: typeof entry.style === 'string' ? entry.style : undefined,
       tips: readStrings(entry.tips),
       patterns: readPatterns(entry.patterns),
       measures,
@@ -94,9 +112,58 @@ export function readArrangementSpecs(data: unknown, issues: Issue[]): Arrangemen
   return specs;
 }
 
+/** Reads the introduction settings from parsed JSON. */
+export function readIntroSpec(data: unknown, issues: Issue[]): IntroSpec {
+  if (!isRecord(data) || data.intro === undefined) return {};
+  const intro = data.intro;
+  if (!isRecord(intro)) {
+    issues.push({ severity: 'error', message: 'The "intro" entry must be an object.' });
+    return {};
+  }
+
+  const spec: IntroSpec = {};
+  if (typeof intro.lastPhraseFrom === 'number') spec.lastPhraseFrom = intro.lastPhraseFrom;
+
+  if (intro.improvised !== undefined) {
+    const improvised = intro.improvised;
+    if (!isRecord(improvised) || !Array.isArray(improvised.measures)) {
+      issues.push({
+        severity: 'error',
+        message: 'The improvised intro needs a "measures" array.',
+      });
+      return spec;
+    }
+    const measures: IntroMeasureSpec[] = [];
+    for (const measure of improvised.measures) {
+      if (
+        !isRecord(measure) ||
+        typeof measure.right !== 'string' ||
+        typeof measure.left !== 'string'
+      ) {
+        issues.push({
+          severity: 'error',
+          message: 'Every intro measure needs a text "right" and a text "left".',
+        });
+        continue;
+      }
+      measures.push({
+        right: measure.right,
+        left: measure.left,
+        note: typeof measure.note === 'string' ? measure.note : undefined,
+      });
+    }
+    spec.improvised = {
+      summary: typeof improvised.summary === 'string' ? improvised.summary : undefined,
+      measures,
+    };
+  }
+  return spec;
+}
+
 /**
  * Builds everything the app needs for one song: the parsed melody, the
- * baseline left hand, and each stored arrangement with its validation results.
+ * baseline left hand, each stored arrangement with its validation results,
+ * and the introductions.
  */
 export function createSongBundle(songText: string, arrangementData?: unknown): SongBundle {
   const issues: Issue[] = [];
@@ -110,5 +177,27 @@ export function createSongBundle(songText: string, arrangementData?: unknown): S
     return arrangement;
   });
 
-  return { song, arrangements: [baseline, ...arrangements], issues };
+  const introSpec = readIntroSpec(arrangementData, issues);
+  if (
+    introSpec.lastPhraseFrom !== undefined &&
+    !song.measures.some((measure) => measure.number === introSpec.lastPhraseFrom)
+  ) {
+    issues.push({
+      severity: 'warning',
+      message: `Intro: measure ${introSpec.lastPhraseFrom} does not exist; the last four measures are used.`,
+    });
+  }
+
+  return {
+    song,
+    arrangements: [baseline, ...arrangements],
+    intro: {
+      lastPhraseStart: lastPhraseStart(song, introSpec.lastPhraseFrom),
+      improvised:
+        introSpec.improvised && introSpec.improvised.measures.length > 0
+          ? buildImprovisedIntro(song, introSpec.improvised)
+          : null,
+    },
+    issues,
+  };
 }

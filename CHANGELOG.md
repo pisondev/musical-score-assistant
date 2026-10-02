@@ -23,7 +23,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `npm run check`, a command-line checker for song folders, with `--dump` to list the left-hand
   notes of every measure.
 - The song and arrangement file format, documented in `docs/song-format.md`.
-- A public-domain demo song, "Amazing Grace", with three left-hand arrangements.
+- A public-domain demo song, "Amazing Grace", with left-hand arrangements.
 - The web app:
   - a numbered score with the melody and the left hand on two aligned rows, chords, lyrics,
     section labels, beams, octave dots, accidentals, and vertically stacked notes;
@@ -41,3 +41,34 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   pull request.
 - Documentation: usage in `README.md`, code structure in `docs/architecture.md`, purpose and
   planned work in `docs/roadmap.md`, and the `new-song` skill for adding a song from a score.
+- Transposition by half steps, up to six in either direction. Pitches and chord symbols move;
+  the written digits stay the same.
+- An introduction section above the song, with two choices: the last phrase of the song, played
+  with the selected left hand, or a newly written ("improvised") introduction stored in
+  `arrangements.json`. Playback starts with the introduction when one is selected.
+- Left-hand arrangements grouped by level (easy, intermediate, advanced) and tagged with a
+  musical style. "Amazing Grace" now has seven: ballad, waltz, contemporary, classical (Alberti
+  bass), gospel, majestic, and jazz.
+- Dynamics: `{pp}` to `{ff}` and the hairpins `{<}` and `{>}` in the notation. They are drawn
+  between the two rows of the sheet and scale the loudness of the playback.
+- Stacked notes in the right hand, used by written introductions.
+- Chord extensions (`C6`, `C69`, `Cm6`, `C9`, `C13`, `C7b9`, …). An extension that a chord names
+  decides what the degrees 2, 4 and 6 mean in left-hand notation and counts as a chord tone when
+  the melody is checked against the chord.
+- Printing and saving as PDF: a print layout for A4 paper with the selected arrangement, key,
+  and introduction.
+- A guide panel, hidden by default, that explains the selected arrangement.
+- The checker reports the level and style of every arrangement and validates the written
+  introduction.
+
+### Changed
+
+- The interface is organised around a toolbar of drop-down menus (left hand, intro, key, visible
+  rows) instead of showing every option at once. Song credits and the notation legend are folded
+  away under "Details", and the explanation panel opens on request.
+- The loop range is chosen from measure names (including introduction measures and the pickup)
+  instead of typed numbers.
+- Note velocities are now relative to mezzo-forte, so that dynamic marks have room in both
+  directions.
+- Spellings that name a plain scale note (such as a flattened 1 or a sharpened 7) are written as
+  that scale note.

@@ -83,17 +83,33 @@ export interface ChordMark {
 
 export type Barline = 'single' | 'final' | 'repeat-end';
 
+export type DynamicLevel = 'pp' | 'p' | 'mp' | 'mf' | 'f' | 'ff';
+
+/** A dynamic level, or the start of a crescendo ("<") or diminuendo (">") hairpin. */
+export type DynamicSign = DynamicLevel | '<' | '>';
+
+export interface DynamicMark {
+  /** Ticks from the start of the measure. */
+  start: number;
+  sign: DynamicSign;
+}
+
+/** Whether a measure belongs to the introduction or to the song itself. */
+export type MeasurePart = 'intro' | 'song';
+
 export interface Measure {
   /** Zero-based position in the song. */
   index: number;
-  /** Printed measure number; null for a pickup measure. */
+  /** Printed measure number; null for pickup and introduction measures. */
   number: number | null;
+  part: MeasurePart;
   /** Absolute tick at which the measure begins. */
   startTick: number;
   /** Actual length in ticks; shorter than a full measure for pickups. */
   length: number;
   slots: Slot[];
   chords: ChordMark[];
+  dynamics: DynamicMark[];
   barline: Barline;
   repeatStart: boolean;
   /** Section label that begins at this measure, if any. */
@@ -147,6 +163,8 @@ export interface Arrangement {
   name: string;
   summary: string;
   level: Level;
+  /** Musical style the arrangement teaches, such as "Gospel" or "Jazz". */
+  style: string;
   /** True for the automatically generated root-fifth-octave baseline. */
   baseline: boolean;
   tips: string[];
@@ -162,6 +180,7 @@ export interface ArrangementSpec {
   name: string;
   summary?: string;
   level?: Level;
+  style?: string;
   tips?: string[];
   patterns?: PatternIdea[];
   measures: ArrangementMeasureSpec[];
@@ -175,9 +194,41 @@ export interface ArrangementMeasureSpec {
   note?: string;
 }
 
+/** One measure of a written introduction: both hands are given explicitly. */
+export interface IntroMeasureSpec {
+  /** Right-hand notation, relative to the key like the melody. */
+  right: string;
+  /** Left-hand notation with chord-relative degrees. */
+  left: string;
+  note?: string;
+}
+
+/** Introduction settings as stored in arrangements.json. */
+export interface IntroSpec {
+  /** Measure number at which the last phrase begins; defaults to the last four measures. */
+  lastPhraseFrom?: number;
+  /** A newly written introduction, offered next to the last phrase. */
+  improvised?: {
+    summary?: string;
+    measures: IntroMeasureSpec[];
+  };
+}
+
 export interface ArrangementFile {
+  intro?: IntroSpec;
   arrangements: ArrangementSpec[];
 }
+
+/** A written introduction, resolved to measures for both hands. */
+export interface ImprovisedIntro {
+  summary: string;
+  measures: Measure[];
+  parts: ArrangementMeasure[];
+  issues: Issue[];
+}
+
+/** Which introduction precedes the song in playback and on the sheet. */
+export type IntroChoice = 'off' | 'last-phrase' | 'improvised';
 
 /** A single sounding note, ready to be scheduled. */
 export interface NoteEvent {

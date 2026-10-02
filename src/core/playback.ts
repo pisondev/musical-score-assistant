@@ -1,4 +1,5 @@
 import { chordTimeline } from './arrangement';
+import { DynamicsTimeline } from './dynamics';
 import { beatTicks } from './time';
 import type { Arrangement, Hand, NoteEvent, Slot, SlotSpan, Song } from './types';
 
@@ -8,10 +9,15 @@ interface StaffMeasure {
   slots: Slot[];
 }
 
+/** Velocities at mezzo-forte; the dynamics of the song scale them up or down. */
 const VELOCITY: Record<Hand, { downbeat: number; beat: number; offbeat: number }> = {
-  right: { downbeat: 0.86, beat: 0.78, offbeat: 0.72 },
-  left: { downbeat: 0.58, beat: 0.5, offbeat: 0.45 },
+  right: { downbeat: 0.7, beat: 0.64, offbeat: 0.58 },
+  left: { downbeat: 0.48, beat: 0.42, offbeat: 0.38 },
 };
+
+const MEZZO_FORTE_GAIN = 0.82;
+const MIN_VELOCITY = 0.08;
+const MAX_VELOCITY = 1;
 
 /** Turns the written slots of one hand into sounding notes; hold dots extend them. */
 function eventsForHand(hand: Hand, measures: StaffMeasure[], beat: number): NoteEvent[] {
@@ -86,7 +92,14 @@ export function buildNoteEvents(song: Song, arrangement: Arrangement): NoteEvent
     beat,
   );
   sustainLeftHand(left, song, arrangement);
-  return [...right, ...left].sort((a, b) => a.tick - b.tick || a.midi - b.midi);
+
+  const dynamics = new DynamicsTimeline(song.measures);
+  const events = [...right, ...left];
+  for (const event of events) {
+    const scaled = (event.velocity * dynamics.gainAt(event.tick)) / MEZZO_FORTE_GAIN;
+    event.velocity = Math.min(MAX_VELOCITY, Math.max(MIN_VELOCITY, scaled));
+  }
+  return events.sort((a, b) => a.tick - b.tick || a.midi - b.midi);
 }
 
 /** Lists the time span of every written slot so the sheet can follow the playhead. */

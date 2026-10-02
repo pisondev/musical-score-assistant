@@ -10,7 +10,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { createSongBundle, formatNoteName, midiToText, toneToText } from '../src/core';
-import type { Arrangement, Issue, Song } from '../src/core';
+import type { Arrangement, ImprovisedIntro, Issue, Slot, Song } from '../src/core';
 
 const SONG_FILE = 'song.txt';
 const ARRANGEMENT_FILE = 'arrangements.json';
@@ -38,22 +38,35 @@ function describeIssue(issue: Issue, song: Song): string {
   return `    ${issue.severity.toUpperCase()}${location}: ${issue.message}`;
 }
 
+function describeSlots(slots: Slot[]): string {
+  return slots
+    .map((slot) => {
+      if (slot.kind === 'hold') return '.';
+      if (slot.kind === 'rest') return '0';
+      const names = slot.pitches.map(
+        (pitch) => `${midiToText(pitch.midi)}=${toneToText(pitch.tone)}`,
+      );
+      return names.length > 1 ? `<${names.join(' ')}>` : names[0];
+    })
+    .join('  ');
+}
+
 function dumpArrangement(song: Song, arrangement: Arrangement): void {
   song.measures.forEach((measure, index) => {
     const part = arrangement.measures[index];
     const chords = part.chords.map((chord) => chord.symbol).join(' ');
-    const notes = part.slots
-      .map((slot) => {
-        if (slot.kind === 'hold') return '.';
-        if (slot.kind === 'rest') return '0';
-        const names = slot.pitches.map(
-          (pitch) => `${midiToText(pitch.midi)}=${toneToText(pitch.tone)}`,
-        );
-        return names.length > 1 ? `<${names.join(' ')}>` : names[0];
-      })
-      .join('  ');
     const label = measure.number === null ? 'pickup' : `m.${measure.number}`;
-    console.log(`      ${label.padEnd(6)} ${chords.padEnd(18)} ${notes}`);
+    console.log(`      ${label.padEnd(6)} ${chords.padEnd(18)} ${describeSlots(part.slots)}`);
+  });
+}
+
+function dumpIntro(intro: ImprovisedIntro): void {
+  intro.measures.forEach((measure, index) => {
+    const part = intro.parts[index];
+    const chords = part.chords.map((chord) => chord.symbol).join(' ');
+    const label = `i.${index + 1}`;
+    console.log(`      ${label.padEnd(6)} ${''.padEnd(18)} R: ${describeSlots(measure.slots)}`);
+    console.log(`      ${''.padEnd(6)} ${chords.padEnd(18)} L: ${describeSlots(part.slots)}`);
   });
 }
 
@@ -85,7 +98,7 @@ function checkFolder(folder: string, dump: boolean): boolean {
     }
   }
 
-  const { song, arrangements, issues } = createSongBundle(songText, arrangementData);
+  const { song, arrangements, intro, issues } = createSongBundle(songText, arrangementData);
   const { meta } = song;
   const reportable = (list: Issue[]) => list.filter((issue) => issue.severity !== 'info');
 
@@ -100,12 +113,35 @@ function checkFolder(folder: string, dump: boolean): boolean {
   [...fileIssues, ...issues].forEach((issue) => console.log(describeIssue(issue, song)));
 
   for (const arrangement of arrangements) {
-    console.log(`  arrangement "${arrangement.name}": ${summarize(arrangement.issues)}`);
+    const kind = [arrangement.level, arrangement.style].filter(Boolean).join(', ');
+    console.log(`  arrangement "${arrangement.name}" (${kind}): ${summarize(arrangement.issues)}`);
     reportable(arrangement.issues).forEach((issue) => console.log(describeIssue(issue, song)));
     if (dump) dumpArrangement(song, arrangement);
   }
 
-  const all = [...song.issues, ...fileIssues, ...issues, ...arrangements.flatMap((a) => a.issues)];
+  const firstOfPhrase = song.measures[intro.lastPhraseStart]?.number ?? 0;
+  console.log(`  intro "Last phrase": from measure ${firstOfPhrase}`);
+  const introIssues = intro.improvised?.issues ?? [];
+  if (intro.improvised) {
+    console.log(
+      `  intro "Improvised": ${intro.improvised.measures.length} measures - ${summarize(introIssues)}`,
+    );
+    reportable(introIssues).forEach((issue) => {
+      const hand = issue.hand === 'right' ? 'right hand' : 'left hand';
+      const where =
+        issue.measure === undefined ? '' : ` (intro measure ${issue.measure + 1}, ${hand})`;
+      console.log(`    ${issue.severity.toUpperCase()}${where}: ${issue.message}`);
+    });
+    if (dump) dumpIntro(intro.improvised);
+  }
+
+  const all = [
+    ...song.issues,
+    ...fileIssues,
+    ...issues,
+    ...arrangements.flatMap((a) => a.issues),
+    ...introIssues,
+  ];
   return !all.some((issue) => issue.severity === 'error');
 }
 

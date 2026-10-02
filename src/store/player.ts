@@ -10,6 +10,8 @@ import {
 
 export type PlayerStatus = 'stopped' | 'loading' | 'playing' | 'paused';
 
+export type ScoreReset = 'none' | 'position' | 'song';
+
 export const MIN_TEMPO = 40;
 export const MAX_TEMPO = 160;
 
@@ -31,7 +33,12 @@ interface PlayerState {
   /** Zero-based index of the measure under the playhead. */
   currentMeasure: number;
 
-  loadScore: (song: Song, arrangement: Arrangement, resetTransport: boolean) => void;
+  /**
+   * Hands the music to the engine. `reset` says how much changed: "none" keeps
+   * the playhead (new left hand or key), "position" rewinds (measures were
+   * added or removed), and "song" also restores the printed tempo.
+   */
+  loadScore: (song: Song, arrangement: Arrangement, reset: ScoreReset) => void;
   toggle: () => Promise<void>;
   stop: () => void;
   seekToMeasure: (index: number) => void;
@@ -68,7 +75,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   loop: { enabled: false, from: 0, to: 0 },
   currentMeasure: 0,
 
-  loadScore(song, arrangement, resetTransport) {
+  loadScore(song, arrangement, reset) {
     activeSong = song;
     engine.setScore({
       events: buildNoteEvents(song, arrangement),
@@ -78,13 +85,18 @@ export const usePlayer = create<PlayerState>((set, get) => ({
       beatsPerMeasure: song.meta.time.beats,
     });
 
-    if (resetTransport) {
-      const loop = { enabled: false, from: 0, to: song.measures.length - 1 };
-      engine.stop();
-      engine.seek(0);
+    if (reset === 'none') return;
+
+    // The measures changed, so the playhead and the loop no longer point anywhere meaningful.
+    const loop = { enabled: false, from: 0, to: song.measures.length - 1 };
+    engine.stop();
+    engine.seek(0);
+    applyLoop(loop);
+    set({ status: 'stopped', loop, currentMeasure: 0, error: null });
+
+    if (reset === 'song') {
       engine.setTempo(quarterNotesPerMinute(song.meta.tempo, song.meta.time));
-      applyLoop(loop);
-      set({ status: 'stopped', tempo: song.meta.tempo, loop, currentMeasure: 0, error: null });
+      set({ tempo: song.meta.tempo });
     }
   },
 

@@ -1,6 +1,6 @@
 ---
 name: new-song
-description: Add a song to the app from a photo or scan of a numbered-notation score. Transcribes the melody and chords into song.txt, writes left-hand arrangements into arrangements.json, and checks both. Use when the user provides a score image and asks for a song, a transcription, or left-hand suggestions.
+description: Add a song to the app from a photo or scan of a numbered-notation score. Transcribes the melody and chords into song.txt, writes left-hand arrangements by level and style plus an introduction into arrangements.json, and checks both. Use when the user provides a score image and asks for a song, a transcription, or left-hand suggestions.
 ---
 
 # Add a song from a printed score
@@ -35,25 +35,47 @@ Read `docs/song-format.md` before writing any file. It is the authority on synta
 Ask the user to listen with **Right** selected and confirm the melody before spending effort on
 arrangements, unless they asked for everything in one go.
 
+After the melody is confirmed, add dynamics to `song.txt` (`{mp}`, `{<}`, `{f}` and so on):
+soft at the start, growing to the most intense line of the text, soft again at the end. Printed
+hymnals rarely give dynamics, so note in a comment that they are an interpretation.
+
 ## 3. Write `arrangements.json`
 
-Write three arrangements unless asked otherwise. Keep these ids and names so the picker is
-consistent across songs.
+Write these seven arrangements unless asked otherwise. Keep the ids so the menu is consistent
+across songs; the `level` decides the column and the `style` is the tag the player sees.
 
-| id                 | name             | What changes                                                                   |
-| ------------------ | ---------------- | ------------------------------------------------------------------------------ |
-| `one-step-further` | One step further | Printed chords. New patterns and rhythm, at most two new patterns per song.    |
-| `walking-bass`     | Walking bass     | Inversions and slash chords so the bass moves by step; bass note, then a pair. |
-| `new-chords`       | New chords       | Some chords replaced or added, with patterns that suit them.                   |
+| id                 | level        | style             | What it teaches                                                             |
+| ------------------ | ------------ | ----------------- | --------------------------------------------------------------------------- |
+| `one-step-further` | easy         | Ballad            | Printed chords. Arpeggios to the tenth, sevenths; at most two new patterns. |
+| `walking-bass`     | easy         | Hymn (Waltz in 3) | Inversions so the bass moves by step; a bass note, then two notes together. |
+| `new-chords`       | intermediate | Contemporary      | Some chords replaced: minor sevenths, IV over V, an Amen ending.            |
+| `alberti-bass`     | intermediate | Classical         | Broken chords, lowest-highest-middle-highest, staying in one hand position. |
+| `gospel`           | intermediate | Gospel            | Octave bass, walk-ups, passing diminished chords, the minor four chord.     |
+| `majestic`         | advanced     | Majestic          | Octave in the bass, then a full chord; broad and loud for a congregation.   |
+| `jazz`             | advanced     | Jazz              | Shell voicings (`<1 7 3'>`), two-five-one chains, tritone substitution.     |
+
+Other styles are welcome when the user asks for them; choose the level by how hard the left
+hand is to play, not by how unusual the chords are.
+
+Then write the introduction under `intro`:
+
+- `lastPhraseFrom`: the measure number where the closing phrase of the song begins.
+- `improvised`: four measures or so, with both hands written out (`right` relative to the key,
+  `left` in chord degrees). Give it a shape: a line that rises and falls, a bass that moves, and
+  an ending on the dominant so the song can enter. Every measure must be full except the last,
+  which together with the pickup of the song must make one full measure.
 
 Guidelines:
 
 - **Left hand moves when the melody rests, and rests when the melody moves.** Flowing eighths
   under long melody notes; plain quarter notes under busy melody.
-- **Keep it playable.** Stacked notes span at most an octave. Stay between C2 and E4 and below
-  the melody. Avoid thirds below C3.
+- **Keep it playable.** Stacked notes span at most an octave (a tenth for `advanced`). Stay
+  between C2 and E4 and below the melody. Avoid thirds below C3.
 - **Check every new chord against the melody** on the beats where it sounds. A melody note that
-  lasts a beat or more must not sit a half step from a chord tone.
+  lasts a beat or more must not sit a half step from a chord tone. When the note is meant to be
+  a ninth or thirteenth, name it in the symbol (`Gm9`, `C13`).
+- **Name extensions you use.** The degrees `2`, `4` and `6` follow the chord symbol when it names
+  them (`Dm6`, `A9`); otherwise they follow the key of the song.
 - **Slash chords** need their bass as the first left-hand note of the chord (`[C/E]3 ...`).
 - **Reuse shapes.** An arrangement that introduces two or three ideas and repeats them is easier
   to learn than one that changes every measure.
@@ -76,6 +98,7 @@ Tell the user:
 
 - where the song is and how to open it (`npm run dev`, then pick the song);
 - which notes were uncertain in the transcription;
-- what each arrangement does in one line, and any chord that was replaced.
+- what each arrangement does in one line, and any chord that was replaced;
+- that the dynamics and the improvised introduction are your own suggestions.
 
 Do not commit or push unless the user asks.

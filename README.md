@@ -4,20 +4,29 @@ A personal practice tool for pianists who read numbered notation (_not angka_). 
 a two-row numbered score, offers several left-hand arrangements to choose from, and plays them
 back so each idea can be heard before it is practised.
 
-![The score of Amazing Grace with the walking-bass arrangement during playback](docs/images/screenshot.png)
+![The score of Amazing Grace with an improvised introduction and a gospel left hand during playback](docs/images/screenshot.png)
 
 ## What it does
 
 - **Numbered score for both hands.** The melody is on the upper row and the left hand on the
-  lower row, aligned beat for beat, with chords above and lyrics below the melody. Notes that are
-  struck together are written one above the other.
-- **Left-hand arrangements to compare.** Every song starts with _My style_, a plain
-  root-fifth-octave pattern on the printed chords. Further arrangements vary the pattern, walk the
-  bass through inversions, or replace chords, and each change comes with a short explanation.
+  lower row, aligned beat for beat, with chords above, lyrics below the melody, and dynamics
+  between the hands. Notes that are struck together are written one above the other.
+- **Left-hand arrangements by level and style.** Every song starts with _My style_, a plain
+  root-fifth-octave pattern on the printed chords. Further arrangements are grouped as easy,
+  intermediate, and advanced, and each teaches a style: ballad, hymn, classical, gospel,
+  majestic, jazz. A guide explains the new patterns and every changed measure.
+- **An introduction.** An optional intro plays before the song: either the last phrase of the
+  song or a newly written one. It has its own block at the top of the sheet.
+- **Transposition.** Move the song up or down by half steps. The digits stay the same; the key,
+  the chord symbols, and the sound change.
+- **Dynamics.** Marks from _pp_ to _ff_ and crescendo or diminuendo hairpins are shown on the
+  sheet and shape the loudness of the playback.
 - **Playback that follows the page.** Play both hands, the right hand alone to check the melody,
   or the left hand alone to hear a suggestion. The note being played is highlighted on the score.
 - **Practice controls.** Tempo, metronome with a count-in, looping a range of measures, and
-  switching arrangements or hands while the music keeps playing.
+  switching arrangements, keys, or hands while the music keeps playing.
+- **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
+  key, and introduction.
 
 The web app only displays and plays. Songs and arrangements are plain files in `songs/`, written
 outside the app (see [Adding a song](#adding-a-song)).
@@ -39,23 +48,34 @@ git at the versioned hooks in `.githooks/`.
 
 ## Using the app
 
-| Action                    | Mouse                  | Keyboard                     |
+The toolbar above the sheet decides what is shown; the bar at the bottom controls playback.
+
+| Control         | What it does                                                                 |
+| --------------- | ---------------------------------------------------------------------------- |
+| **Left hand**   | Opens the arrangements, grouped by level, each tagged with its style         |
+| **Intro**       | Off, _Last phrase_, or _Improvised_; when on, playback starts with the intro |
+| **Key**         | Transposes by half steps; click the key to return to the original            |
+| **Show**        | Shows or hides lyrics and dynamics                                           |
+| **Guide**       | Opens the panel that explains the arrangement: patterns, tips, measure notes |
+| **Print / PDF** | Opens the print dialog; choose "Save as PDF" as the destination for a file   |
+
+| Playback action           | Mouse                  | Keyboard                     |
 | ------------------------- | ---------------------- | ---------------------------- |
 | Play or pause             | Round button           | `Space`                      |
 | Stop and return to start  | Square button          | `Home`                       |
 | Both hands / right / left | Segmented control      | `1` `2` `3`                  |
 | Move the playhead         | Click a measure        | `Enter` on a focused measure |
-| Change arrangement        | Cards above the score  |                              |
 | Reset the tempo           | Click the tempo number |                              |
 
-A dot next to a measure number means the selected arrangement explains that measure in the side
-panel. Chords on a light-blue background differ from the printed score.
+A dot next to a measure number means the guide explains that measure. Chords on a light-blue
+background differ from the printed score. The intro choice and the visible rows are remembered
+between visits.
 
 ## Adding a song
 
 1. Create a folder under `songs/` (or under `songs/private/` for copyrighted material).
-2. Write `song.txt`: header, melody, chords, lyrics.
-3. Optionally write `arrangements.json` with left-hand arrangements.
+2. Write `song.txt`: header, melody, chords, lyrics, dynamics.
+3. Optionally write `arrangements.json` with left-hand arrangements and an introduction.
 4. Run `npm run check` and fix what it reports.
 
 The formats are described in [docs/song-format.md](docs/song-format.md). With the development

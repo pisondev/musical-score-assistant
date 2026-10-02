@@ -1,17 +1,28 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { engine } from './audio/engine';
-import { BASELINE_ID, type Song } from './core';
+import { BASELINE_ID, buildPerformance, formatNoteName, type IntroChoice } from './core';
 import { library } from './library';
-import { usePlayer } from './store/player';
-import { ArrangementPicker } from './ui/ArrangementPicker';
+import { usePlayer, type ScoreReset } from './store/player';
+import { useSettings } from './store/settings';
+import { Guide } from './ui/Guide';
 import { NoteIcon } from './ui/icons';
-import { Insights } from './ui/Insights';
 import { IssueList } from './ui/IssueList';
 import { Sheet } from './ui/Sheet';
 import { SongHeader } from './ui/SongHeader';
+import { MAX_TRANSPOSE, Toolbar } from './ui/Toolbar';
 import { TransportBar } from './ui/TransportBar';
+import { cx } from './ui/classnames';
 
 const SONG_PARAMETER = 'song';
+const APP_NAME = 'Musical Score Assistant';
+
+const INTRO_TITLE: Record<Exclude<IntroChoice, 'off'>, string> = {
+  'last-phrase': 'Last phrase',
+  improvised: 'Improvised',
+};
+
+const LEVEL_LABEL = { easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' } as const;
 
 function songIdFromLocation(): string | null {
   return new URLSearchParams(window.location.hash.slice(1)).get(SONG_PARAMETER);
@@ -27,29 +38,53 @@ export function App() {
     return library.some((entry) => entry.id === requested) ? requested! : (library[0]?.id ?? '');
   });
   const [arrangementId, setArrangementId] = useState(BASELINE_ID);
+  const [semitones, setSemitones] = useState(0);
+  const [printing, setPrinting] = useState(false);
+
+  const introSetting = useSettings((state) => state.intro);
+  const showLyrics = useSettings((state) => state.showLyrics);
+  const showDynamics = useSettings((state) => state.showDynamics);
+  const guideOpen = useSettings((state) => state.guideOpen);
 
   const entry = library.find((candidate) => candidate.id === songId);
+  const bundle = entry?.bundle;
   const arrangement = useMemo(
     () =>
-      entry?.bundle.arrangements.find((candidate) => candidate.id === arrangementId) ??
-      entry?.bundle.arrangements[0],
-    [entry, arrangementId],
+      bundle?.arrangements.find((candidate) => candidate.id === arrangementId) ??
+      bundle?.arrangements[0],
+    [bundle, arrangementId],
   );
 
-  const loadScore = usePlayer((state) => state.loadScore);
-  const loadedSong = useRef<Song | null>(null);
-  useEffect(() => {
-    if (!entry || !arrangement) return;
-    const songChanged = loadedSong.current !== entry.bundle.song;
-    loadedSong.current = entry.bundle.song;
-    loadScore(entry.bundle.song, arrangement, songChanged);
-  }, [entry, arrangement, loadScore]);
+  // A song without a written introduction falls back to its last phrase.
+  const intro: IntroChoice =
+    introSetting === 'improvised' && !bundle?.intro.improvised ? 'last-phrase' : introSetting;
 
+  const performance = useMemo(
+    () => (bundle && arrangement ? buildPerformance(bundle, arrangement, intro, semitones) : null),
+    [bundle, arrangement, intro, semitones],
+  );
+
+  // Tell the engine what changed, so it keeps the playhead whenever it can.
+  const loadScore = usePlayer((state) => state.loadScore);
+  const loaded = useRef<{ songId: string; intro: IntroChoice } | null>(null);
   useEffect(() => {
-    document.title = entry
-      ? `${entry.bundle.song.meta.title} · Musical Score Assistant`
-      : 'Musical Score Assistant';
-  }, [entry]);
+    if (!performance) return;
+    let reset: ScoreReset = 'none';
+    if (loaded.current?.songId !== songId) reset = 'song';
+    else if (loaded.current.intro !== intro) reset = 'position';
+    loaded.current = { songId, intro };
+    loadScore(performance.song, performance.arrangement, reset);
+  }, [performance, songId, intro, loadScore]);
+
+  // The document title becomes the default file name when saving a PDF.
+  useEffect(() => {
+    if (!performance) {
+      document.title = APP_NAME;
+      return;
+    }
+    const { meta } = performance.song;
+    document.title = `${meta.title} - ${performance.arrangement.name} (1 = ${formatNoteName(meta.key)})`;
+  }, [performance]);
 
   // Fetch the piano samples as soon as the player touches the page, so the
   // first press of Play starts without a delay.
@@ -79,12 +114,34 @@ export function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
+  // Lay the score out for paper just before the browser prints, including
+  // when the player uses the browser's own print command.
+  useEffect(() => {
+    const before = () => flushSync(() => setPrinting(true));
+    const after = () => setPrinting(false);
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
+  }, []);
+
+  const print = useCallback(() => {
+    usePlayer.getState().stop();
+    window.print();
+  }, []);
+
   const selectSong = (id: string) => {
     setSongId(id);
     setArrangementId(BASELINE_ID);
+    setSemitones(0);
     window.history.replaceState(null, '', `#${SONG_PARAMETER}=${encodeURIComponent(id)}`);
     window.scrollTo({ top: 0 });
   };
+
+  const transposeTo = (value: number) =>
+    setSemitones(Math.min(MAX_TRANSPOSE, Math.max(-MAX_TRANSPOSE, value)));
 
   const publicSongs = library.filter((candidate) => !candidate.isPrivate);
   const privateSongs = library.filter((candidate) => candidate.isPrivate);
@@ -97,7 +154,7 @@ export function App() {
             <span className="brand__mark">
               <NoteIcon width={18} height={18} />
             </span>
-            Musical Score Assistant
+            {APP_NAME}
           </span>
           {library.length > 0 && (
             <label className="song-select">
@@ -123,36 +180,57 @@ export function App() {
         </div>
       </header>
 
-      {entry && arrangement ? (
+      {entry && bundle && arrangement && performance ? (
         <>
           <main className="page">
-            <SongHeader song={entry.bundle.song} isPrivate={entry.isPrivate} />
-            <section className="arrangements" aria-label="Left-hand arrangements">
-              <h2 className="section-title">Left hand</h2>
-              <ArrangementPicker
-                arrangements={entry.bundle.arrangements}
-                selectedId={arrangement.id}
-                onSelect={setArrangementId}
-              />
-            </section>
-            <IssueList
-              song={entry.bundle.song}
-              issues={[...entry.bundle.song.issues, ...entry.bundle.issues, ...arrangement.issues]}
+            <SongHeader song={performance.song} isPrivate={entry.isPrivate} />
+            <Toolbar
+              bundle={bundle}
+              arrangement={arrangement}
+              onSelectArrangement={setArrangementId}
+              intro={intro}
+              semitones={semitones}
+              onTranspose={transposeTo}
+              soundingKey={performance.song.meta.key}
+              onPrint={print}
             />
-            <div className="workspace">
+            <IssueList
+              song={performance.song}
+              issues={[
+                ...performance.song.issues,
+                ...bundle.issues,
+                ...performance.arrangement.issues,
+              ]}
+            />
+            <div className={cx('workspace', guideOpen && 'workspace--guide')}>
               <section className="card card--sheet">
+                <p className="print-summary">
+                  Left hand: {arrangement.name} ({LEVEL_LABEL[arrangement.level]}
+                  {arrangement.style && `, ${arrangement.style}`})
+                </p>
                 <Sheet
-                  song={entry.bundle.song}
-                  arrangement={arrangement}
-                  arrangements={entry.bundle.arrangements}
+                  bundle={bundle}
+                  performance={performance}
+                  showLyrics={showLyrics}
+                  showDynamics={showDynamics}
+                  printing={printing}
+                  introHeading={
+                    intro !== 'off' && (
+                      <h3 className="sheet__heading">
+                        Intro <span>{INTRO_TITLE[intro]}</span>
+                      </h3>
+                    )
+                  }
                 />
               </section>
-              <section className="card card--insights">
-                <Insights song={entry.bundle.song} arrangement={arrangement} />
-              </section>
+              {guideOpen && (
+                <section className="card card--guide">
+                  <Guide performance={performance} />
+                </section>
+              )}
             </div>
           </main>
-          <TransportBar song={entry.bundle.song} />
+          <TransportBar song={performance.song} />
         </>
       ) : (
         <main className="page page--empty">

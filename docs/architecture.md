@@ -7,24 +7,27 @@ parsed in the browser.
 songs/<song>/song.txt ──────────┐
 songs/<song>/arrangements.json ─┤
                                 ▼
-                    createSongBundle()                 src/core
+                    createSongBundle()                      src/core
                                 │
-          ┌─────────────────────┼──────────────────────┐
-          ▼                     ▼                      ▼
-   Song (melody,         Arrangement[]           Issue[] (errors
-   chords, lyrics)       (baseline first)        and warnings)
-          │                     │
-          ├──────────┬──────────┤
-          ▼          ▼          ▼
-     <Sheet>   buildNoteEvents()   buildSlotSpans()
-    src/ui           │                  │
-                     ▼                  ▼
-              PlaybackEngine       usePlayhead()
-               src/audio        (highlights the score)
+        Song, Arrangement[], introductions, Issue[]
+                                │
+        selected arrangement + intro choice + transposition
+                                ▼
+                     buildPerformance()                     src/core
+                                │
+              Performance { song, arrangement }
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          ▼                     ▼                     ▼
+       <Sheet>          buildNoteEvents()      buildSlotSpans()
+      src/ui                    │                     │
+                                ▼                     ▼
+                         PlaybackEngine          usePlayhead()
+                          src/audio          (highlights the score)
 ```
 
 One model drives both the page and the sound. The score and the audio are derived from the same
-`Song` and `Arrangement` objects, so what is highlighted is always what is heard.
+`Performance`, so what is highlighted is always what is heard.
 
 ## Modules
 
@@ -38,13 +41,17 @@ in the command-line checker.
 | `types.ts`       | Domain types: `Song`, `Measure`, `Slot`, `Arrangement`, `NoteEvent`, `Issue` |
 | `time.ts`        | Tick arithmetic (480 ticks per quarter note)                                 |
 | `notes.ts`       | Note names, pitch classes, and spelling a pitch as a scale degree            |
-| `chord.ts`       | Chord-symbol parsing and chord degrees                                       |
+| `chord.ts`       | Chord-symbol parsing, extensions, chord degrees, and transposing symbols     |
 | `notation.ts`    | Tokenizer and layout for one line of numbered notation                       |
-| `song.ts`        | `song.txt` parser: header, measures, lyrics, pickup detection                |
+| `song.ts`        | `song.txt` parser: header, measures, lyrics, dynamics, pickup detection      |
 | `left-hand.ts`   | Resolves chord-relative left-hand notation to pitches                        |
 | `arrangement.ts` | Builds the baseline and the stored arrangements                              |
+| `intro.ts`       | Builds the written introduction and locates the last phrase                  |
+| `dynamics.ts`    | Dynamic levels and hairpins on one timeline; loudness at any tick            |
+| `transpose.ts`   | Moves a song and an arrangement to another key                               |
+| `performance.ts` | Combines song, arrangement, introduction, and transposition                  |
 | `validate.ts`    | Playability and harmony checks                                               |
-| `playback.ts`    | Converts a song and an arrangement to timed note events                      |
+| `playback.ts`    | Converts a performance to timed note events                                  |
 | `bundle.ts`      | Reads `arrangements.json` and assembles everything for one song              |
 
 Key ideas:
@@ -58,6 +65,16 @@ Key ideas:
 - **Chord-relative left hand.** Arrangements store the left hand as chord degrees (`1 5 1'`), so a
   pattern reads the same on every chord. The engine resolves the degrees to pitches and spells
   them in the key for display.
+- **A performance is a song.** `buildPerformance` returns an ordinary `Song` and `Arrangement`
+  whose measures start with the introduction, if one is selected, and whose pitches and chord
+  symbols are already transposed. Everything downstream (sheet, audio, playhead, loop) works on
+  that result and needs no special cases. Introduction measures carry `part: 'intro'` and slot
+  ids of their own.
+- **Transposition keeps the digits.** Numbered notation is relative to "1", so transposing
+  changes pitches, chord symbols, and the key, and leaves every written tone as it is.
+- **Dynamics are a timeline.** Level marks and hairpins from all measures form one timeline.
+  `gainAt(tick)` gives the loudness factor that scales note velocities; `hairpins()` gives the
+  spans that the sheet draws.
 - **Issues, not exceptions.** Parsing never throws on bad input. Problems are collected as issues
   with a severity, a measure, and a source position, and the rest of the song still renders.
 
@@ -70,29 +87,39 @@ keep the first page view light.
   between both hands, right, and left only mutes a channel, so it is instant and never interrupts
   playback.
 - Notes are scheduled on the Tone.js transport in ticks. Tempo changes therefore take effect
-  immediately, and replacing the left-hand part while the transport runs keeps the position.
+  immediately, and replacing the notes while the transport runs (a new left hand or key) keeps
+  the position.
 - Left-hand notes ring until the next chord symbol or the end of the measure, which imitates a
   sustain pedal changed on every chord.
 - The metronome is a repeating transport event; the count-in is scheduled on the audio clock
   before the transport starts.
 
-### `src/store`: player state
+### `src/store`: state
 
-A small Zustand store holds what the controls show (status, hand mode, tempo, metronome, loop,
-current measure) and forwards every change to the engine.
+Two small Zustand stores:
+
+- `player.ts` holds what the playback controls show (status, hand mode, tempo, metronome, loop,
+  current measure) and forwards every change to the engine. When new music is loaded it is told
+  how much changed: nothing structural (keep the playhead), the measures (rewind), or the song
+  (rewind and restore the tempo).
+- `settings.ts` holds display preferences (introduction, visible rows, guide) and persists them
+  in the browser.
+
+The selected arrangement and the transposition live in `App` and reset when the song changes.
 
 ### `src/ui`: the interface
 
-| Component           | Responsibility                                                |
-| ------------------- | ------------------------------------------------------------- |
-| `Sheet`             | The score: systems, measures, chords, both staff rows, lyrics |
-| `sheet-layout.ts`   | Measure widths and system breaks                              |
-| `usePlayhead`       | Follows the audio clock and highlights the slots being played |
-| `ArrangementPicker` | Switches between the baseline and the stored arrangements     |
-| `Insights`          | New patterns, practice tips, and per-measure explanations     |
-| `TransportBar`      | Play, stop, hand mode, tempo, metronome, loop                 |
-| `SongHeader`        | Title, credits, key, time signature, tempo                    |
-| `IssueList`         | Errors and warnings for the song and the selected arrangement |
+| Component         | Responsibility                                                          |
+| ----------------- | ----------------------------------------------------------------------- |
+| `Toolbar`         | Left-hand menu by level, intro menu, transposition, visible rows, print |
+| `Popover`         | Generic drop-down panel used by the toolbar                             |
+| `Sheet`           | The score: introduction and song sections, systems, measures, rows      |
+| `sheet-layout.ts` | Measure widths and system breaks                                        |
+| `usePlayhead`     | Follows the audio clock and highlights the slots being played           |
+| `Guide`           | New patterns, practice tips, and per-measure explanations               |
+| `TransportBar`    | Play, stop, hand mode, tempo, metronome, loop                           |
+| `SongHeader`      | Title, key, time signature, tempo; credits and legend on request        |
+| `IssueList`       | Errors and warnings for the song and the selected arrangement           |
 
 Layout notes:
 
@@ -100,8 +127,13 @@ Layout notes:
   two hands always line up.
 - Measure widths are weighted by how densely each beat is subdivided, taking every arrangement
   into account. The layout therefore does not shift when the arrangement changes.
+- The introduction and the song are laid out as separate runs of systems, so the song always
+  starts on a new system.
 - The playhead toggles a CSS class directly on the slot elements instead of re-rendering React
   components on every animation frame.
+- Printing: on `beforeprint` the sheet switches to a fixed paper width with smaller symbols, so
+  four measures fit across an A4 page; `afterprint` restores the screen layout. Print styles hide
+  the controls. Saving as PDF is the browser's print-to-PDF.
 
 ### `src/library.ts`
 
@@ -110,8 +142,9 @@ Collects every `songs/**/song.txt` and its `arrangements.json` at build time thr
 
 ### `scripts/check-songs.ts`
 
-Runs the same engine from the command line and prints the issues for every song. It is the
-quickest way to verify a transcription or an arrangement before opening the app.
+Runs the same engine from the command line and prints the issues for every song, arrangement,
+and written introduction. It is the quickest way to verify a transcription or an arrangement
+before opening the app.
 
 ## Testing
 
@@ -119,6 +152,7 @@ quickest way to verify a transcription or an arrangement before opening the app.
 
 - notation, chord, and song parsing;
 - left-hand resolution, the baseline, validation, and playback events;
+- dynamics, transposition, introductions, and chord extensions;
 - sheet layout;
 - every committed song must load without errors or warnings.
 

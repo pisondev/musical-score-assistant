@@ -1,4 +1,4 @@
-import type { Barline, Issue, SlotKind } from './types';
+import type { Barline, DynamicSign, Issue, SlotKind } from './types';
 
 /**
  * Numbered-notation text shared by the melody and the left hand.
@@ -9,6 +9,7 @@ import type { Barline, Issue, SlotKind } from './types';
  *   ( … )      splits one beat (or one parent unit) evenly among its contents
  *   < … >      notes struck together, written as a vertical stack
  *   [C]        a chord symbol that applies from the next note onward
+ *   {mf}       a dynamic mark (pp p mp mf f ff); {<} and {>} start a hairpin
  *   ?          marks the preceding note as uncertain
  *   | || |: :| barlines
  */
@@ -38,9 +39,16 @@ export interface RawChordMark {
   column: number;
 }
 
+export interface RawDynamicMark {
+  start: number;
+  sign: DynamicSign;
+  column: number;
+}
+
 export interface RawMeasure {
   slots: RawSlot[];
   chords: RawChordMark[];
+  dynamics: RawDynamicMark[];
   /** Sum of the written durations, in ticks. */
   length: number;
   barline: Barline;
@@ -59,6 +67,7 @@ type Token =
   | { type: 'open'; column: number }
   | { type: 'close'; column: number }
   | { type: 'chord'; symbol: string; column: number }
+  | { type: 'dynamic'; sign: DynamicSign; column: number }
   | { type: 'leaf'; kind: SlotKind; tones: RawTone[]; uncertain: boolean; column: number };
 
 interface LeafNode {
@@ -68,6 +77,7 @@ interface LeafNode {
   uncertain: boolean;
   column: number;
   chords: { symbol: string; column: number }[];
+  dynamics: { sign: DynamicSign; column: number }[];
 }
 
 interface GroupNode {
@@ -79,6 +89,7 @@ interface GroupNode {
 type Node = LeafNode | GroupNode;
 
 const NOTE_PATTERN = /^([#b]?)([1-7])([',]*)(\??)/;
+const DYNAMIC_SIGNS: readonly string[] = ['pp', 'p', 'mp', 'mf', 'f', 'ff', '<', '>'];
 
 function parseTone(match: RegExpExecArray): RawTone {
   const accidental = match[1] === '#' ? 1 : match[1] === 'b' ? -1 : 0;
@@ -127,6 +138,19 @@ function tokenize(text: string, line: number, issues: Issue[]): Token[] {
         break;
       }
       tokens.push({ type: 'chord', symbol: text.slice(index + 1, end).trim(), column });
+      index = end + 1;
+    } else if (char === '{') {
+      const end = text.indexOf('}', index);
+      if (end === -1) {
+        fail('Dynamic mark is missing its closing "}".', column);
+        break;
+      }
+      const sign = text.slice(index + 1, end).trim();
+      if (DYNAMIC_SIGNS.includes(sign)) {
+        tokens.push({ type: 'dynamic', sign: sign as DynamicSign, column });
+      } else {
+        fail(`"{${sign}}" is not a dynamic mark; use pp, p, mp, mf, f, ff, < or >.`, column);
+      }
       index = end + 1;
     } else if (char === '<') {
       const end = text.indexOf('>', index);
@@ -189,9 +213,10 @@ function layOut(
   beat: number,
   line: number,
   issues: Issue[],
-): Pick<RawMeasure, 'slots' | 'chords' | 'length'> {
+): Pick<RawMeasure, 'slots' | 'chords' | 'dynamics' | 'length'> {
   const slots: RawSlot[] = [];
   const chords: RawChordMark[] = [];
+  const dynamics: RawDynamicMark[] = [];
 
   const place = (
     node: Node,
@@ -203,6 +228,9 @@ function layOut(
     if (node.type === 'leaf') {
       for (const chord of node.chords) {
         chords.push({ start, symbol: chord.symbol, column: chord.column });
+      }
+      for (const dynamic of node.dynamics) {
+        dynamics.push({ start, sign: dynamic.sign, column: dynamic.column });
       }
       const beams = duration >= beat ? 0 : Math.floor(Math.log2(beat / duration) + 1e-9);
       slots.push({
@@ -246,7 +274,7 @@ function layOut(
   };
 
   nodes.forEach((node, index) => place(node, index * beat, beat, index));
-  return { slots, chords, length: nodes.length * beat };
+  return { slots, chords, dynamics, length: nodes.length * beat };
 }
 
 /**
@@ -261,6 +289,7 @@ export function parseNotationLine(text: string, beat: number, line: number): Par
   let nodes: Node[] = [];
   let stack: GroupNode[] = [];
   let pendingChords: { symbol: string; column: number }[] = [];
+  let pendingDynamics: { sign: DynamicSign; column: number }[] = [];
   let measureColumn = 1;
   let repeatStart = false;
 
@@ -277,6 +306,15 @@ export function parseNotationLine(text: string, beat: number, line: number): Par
         column: pendingChords[0].column,
       });
       pendingChords = [];
+    }
+    if (pendingDynamics.length > 0) {
+      issues.push({
+        severity: 'error',
+        message: `Dynamic mark {${pendingDynamics[0].sign}} is not followed by a note.`,
+        line,
+        column: pendingDynamics[0].column,
+      });
+      pendingDynamics = [];
     }
     if (nodes.length > 0) {
       measures.push({
@@ -323,6 +361,9 @@ export function parseNotationLine(text: string, beat: number, line: number): Par
       case 'chord':
         pendingChords.push({ symbol: token.symbol, column: token.column });
         break;
+      case 'dynamic':
+        pendingDynamics.push({ sign: token.sign, column: token.column });
+        break;
       case 'leaf':
         target.push({
           type: 'leaf',
@@ -331,8 +372,10 @@ export function parseNotationLine(text: string, beat: number, line: number): Par
           uncertain: token.uncertain,
           column: token.column,
           chords: pendingChords,
+          dynamics: pendingDynamics,
         });
         pendingChords = [];
+        pendingDynamics = [];
         break;
     }
   }

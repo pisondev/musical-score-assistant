@@ -25,22 +25,31 @@ The web app itself never generates music; it displays, plays, and explains.
 - Numbered score for both hands with chords, lyrics, sections, and stacked notes.
 - Baseline left hand generated from the printed chords.
 - Stored arrangements with per-measure explanations, new-pattern descriptions, and practice tips.
+- Arrangements grouped by level (easy, intermediate, advanced) and tagged with a style: ballad,
+  hymn or waltz, contemporary, classical, gospel, majestic, jazz.
+- An introduction before the song: its last phrase, or a newly written one.
+- Transposition by half steps.
+- Dynamics (pp to ff, crescendo, diminuendo) on the sheet and in the playback.
 - Playback with separate hands, tempo control, metronome with count-in, and looping.
 - Playhead highlighting on the score and automatic scrolling.
+- Printing and saving as PDF, laid out for A4.
+- A compact interface: drop-down menus for the options, and a guide that opens on request.
 - Validation of range, hand span, low close intervals, slash-chord bass, and melody clashes.
 
 ## Next
 
 - **Repeats in playback.** Repeat barlines are displayed but played straight through.
+- **Tempo changes** such as ritardando and a fermata on the last chord.
+- **Dynamics per arrangement**, so that a majestic version can be louder than a ballad.
 - **Volume balance** between the hands.
 - **Pattern library** shared across songs: patterns the player liked, and ideas that were
   rejected, so new arrangements build on that history.
-- **Print layout** tuned for paper: page breaks, margins, and a compact header.
+- **More styles** as they are asked for: ragtime, pop, Latin.
 - **Phone and tablet polish** for use at the piano.
 
 ## Later
 
 - Staff-notation view or MusicXML export.
-- Suggested introductions and endings.
+- Written endings and interludes, like the introduction.
 - Different arrangements per verse.
 - Practice with a MIDI keyboard that waits for the right notes.

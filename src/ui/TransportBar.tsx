@@ -1,5 +1,5 @@
 import type { HandMode } from '../audio/engine';
-import type { Song } from '../core';
+import type { Measure, Song } from '../core';
 import { MAX_TEMPO, MIN_TEMPO, usePlayer } from '../store/player';
 import { cx } from './classnames';
 import { LoopIcon, MetronomeIcon, PauseIcon, PlayIcon, StopIcon } from './icons';
@@ -11,7 +11,15 @@ const HAND_MODES: { mode: HandMode; label: string; hint: string }[] = [
 ];
 
 interface TransportBarProps {
+  /** The song as performed, including any introduction. */
   song: Song;
+}
+
+/** How a measure is named in the position readout and the loop menus. */
+function measureLabel(measure: Measure, long: boolean): string {
+  if (measure.part === 'intro') return `Intro ${measure.index + 1}`;
+  if (measure.number === null) return 'Pickup';
+  return long ? `m. ${measure.number}` : `${measure.number}`;
 }
 
 /** Playback controls, fixed to the bottom of the window. */
@@ -25,16 +33,23 @@ export function TransportBar({ song }: TransportBarProps) {
   const currentMeasure = usePlayer((state) => state.currentMeasure);
   const { toggle, stop, setHandMode, setTempo, toggleMetronome, setLoop } = usePlayer.getState();
 
-  // Measure numbers shown to the player; a pickup measure counts as 0.
-  const numberOf = (index: number) => song.measures[index]?.number ?? 0;
-  const indexOf = (number: number) => {
-    const found = song.measures.findIndex((measure) => (measure.number ?? 0) === number);
-    return found === -1 ? 0 : found;
-  };
-  const firstNumber = numberOf(0);
-  const lastNumber = numberOf(song.measures.length - 1);
   const playing = status === 'playing';
-  const position = song.measures[currentMeasure]?.number;
+  const current = song.measures[currentMeasure];
+  const lastNumber = song.measures[song.measures.length - 1]?.number;
+
+  const loopSelect = (value: number, onChange: (index: number) => void, label: string) => (
+    <select
+      value={value}
+      onChange={(event) => onChange(Number(event.target.value))}
+      aria-label={label}
+    >
+      {song.measures.map((measure) => (
+        <option key={measure.index} value={measure.index}>
+          {measureLabel(measure, false)}
+        </option>
+      ))}
+    </select>
+  );
 
   return (
     <footer className="transport">
@@ -75,8 +90,8 @@ export function TransportBar({ song }: TransportBarProps) {
               'Loading piano…'
             ) : (
               <>
-                <strong>{position === null ? 'Pickup' : `m. ${position}`}</strong>
-                <span> / {lastNumber}</span>
+                <strong>{current ? measureLabel(current, true) : ''}</strong>
+                {lastNumber !== null && lastNumber !== undefined && <span> / {lastNumber}</span>}
               </>
             )}
           </span>
@@ -141,23 +156,9 @@ export function TransportBar({ song }: TransportBarProps) {
           </button>
           {loop.enabled && (
             <span className="loop-range">
-              <input
-                type="number"
-                min={firstNumber}
-                max={lastNumber}
-                value={numberOf(loop.from)}
-                onChange={(event) => setLoop({ from: indexOf(Number(event.target.value)) })}
-                aria-label="Loop from measure"
-              />
+              {loopSelect(loop.from, (from) => setLoop({ from }), 'Loop from measure')}
               <span>to</span>
-              <input
-                type="number"
-                min={firstNumber}
-                max={lastNumber}
-                value={numberOf(loop.to)}
-                onChange={(event) => setLoop({ to: indexOf(Number(event.target.value)) })}
-                aria-label="Loop to measure"
-              />
+              {loopSelect(loop.to, (to) => setLoop({ to }), 'Loop to measure')}
             </span>
           )}
         </div>

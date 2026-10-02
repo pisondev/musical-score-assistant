@@ -44,7 +44,7 @@ const SAMPLE_NOTES = [
 
 const SAMPLE_BASE_URL = `${import.meta.env.BASE_URL}samples/piano/`;
 const HANDS: Hand[] = ['right', 'left'];
-const CHANNEL_VOLUME: Record<Hand, number> = { right: 0, left: -3 };
+const CHANNEL_VOLUME: Record<Hand, number> = { right: 2, left: -1 };
 const CLICK_ACCENT = 'C6';
 const CLICK_BEAT = 'G5';
 

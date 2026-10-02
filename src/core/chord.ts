@@ -1,4 +1,13 @@
-import { formatNoteName, isInKey, mod, parseNoteName, pitchClass, spellAbove } from './notes';
+import {
+  formatNoteName,
+  isInKey,
+  mod,
+  noteNameToText,
+  parseNoteName,
+  pitchClass,
+  simplifyNoteName,
+  spellAbove,
+} from './notes';
 import type { NoteName } from './types';
 
 export type ChordQuality = 'major' | 'minor' | 'diminished' | 'augmented' | 'suspended';
@@ -17,6 +26,8 @@ export interface Chord {
   fifth: number;
   /** Semitones above the root for the seventh, or null when the chord has none. */
   seventh: number | null;
+  /** Added notes such as the sixth, ninth, or thirteenth, in semitones above the root (0-11). */
+  extensions: number[];
 }
 
 interface ChordTone {
@@ -25,6 +36,16 @@ interface ChordTone {
 }
 
 const CHORD_PATTERN = /^([A-G][#b♯♭]?)([^/]*)(?:\/([A-G][#b♯♭]?))?$/;
+
+/** Semitones above the root for the natural form of each extension number. */
+const EXTENSION_SEMITONES: Record<string, number> = {
+  '2': 2,
+  '4': 5,
+  '6': 9,
+  '9': 2,
+  '11': 5,
+  '13': 9,
+};
 
 /** Parses a chord symbol; returns null when the symbol is not understood. */
 export function parseChord(symbol: string): Chord | null {
@@ -42,12 +63,17 @@ export function parseChord(symbol: string): Chord | null {
   let thirdSteps = 2;
   let fifth = 7;
   let seventh: number | null = null;
+  const extensions: number[] = [];
 
-  const take = (pattern: RegExp): boolean => {
+  const take = (pattern: RegExp): RegExpExecArray | null => {
     const found = pattern.exec(rest);
-    if (!found) return false;
-    rest = rest.slice(found[0].length);
-    return true;
+    if (found) rest = rest.slice(found[0].length);
+    return found;
+  };
+  /** Records an extension such as "9", "b9", or "#11". */
+  const extend = (number: string, accidental = ''): void => {
+    const shift = accidental === '' ? 0 : /[#♯]/.test(accidental) ? 1 : -1;
+    extensions.push(mod(EXTENSION_SEMITONES[number] + shift, 12));
   };
 
   if (take(/^(dim|o|°)/)) {
@@ -62,12 +88,18 @@ export function parseChord(symbol: string): Chord | null {
     third = 3;
   }
 
-  if (take(/^(maj|M|Δ)(7|9|11|13)?/)) {
+  // A chord named after its ninth, eleventh, or thirteenth also has a seventh.
+  const major = take(/^(?:maj|M|Δ)(7|9|11|13)?/);
+  const dominant = major ? null : take(/^(7|9|11|13)/);
+  if (major) {
     seventh = 11;
-  } else if (take(/^(7|9|11|13)/)) {
+    if (major[1] && major[1] !== '7') extend(major[1]);
+  } else if (dominant) {
     seventh = quality === 'diminished' ? 9 : 10;
+    if (dominant[1] !== '7') extend(dominant[1]);
   } else {
-    take(/^(6|69|2)/);
+    const added = take(/^(6|2)/);
+    if (added) extend(added[1]);
   }
 
   let progressed = true;
@@ -89,33 +121,50 @@ export function parseChord(symbol: string): Chord | null {
     } else if (take(/^[#♯]5/)) {
       fifth = 8;
       progressed = true;
-    } else if (take(/^(add)?[b#♭♯]?(2|4|6|9|11|13)/)) {
-      progressed = true;
+    } else {
+      const added = take(/^(?:add)?([b#♭♯]?)(2|4|6|9|11|13)/);
+      if (added) {
+        extend(added[2], added[1]);
+        progressed = true;
+      }
     }
   }
   if (rest !== '') return null;
 
-  return { symbol: symbol.trim(), root, bass, quality, third, thirdSteps, fifth, seventh };
+  return {
+    symbol: symbol.trim(),
+    root,
+    bass,
+    quality,
+    third,
+    thirdSteps,
+    fifth,
+    seventh,
+    extensions,
+  };
 }
 
 /**
  * Resolves a chord degree (1-7) to semitones above the root. Degrees 1, 3, 5
- * and 7 are chord tones; 2, 4 and 6 are the scale notes of the song key that
- * lie between them, so they work as passing tones.
+ * and 7 are chord tones. Degrees 2, 4 and 6 are the ninth, eleventh and
+ * thirteenth when the chord names them (the 6 of "Dm6", the 9 of "A9");
+ * otherwise they are the scale notes of the song key that lie between the
+ * chord tones, so they work as passing tones.
  */
 export function chordDegree(chord: Chord, degree: number, key: NoteName): ChordTone {
   const rootClass = pitchClass(chord.root);
-  const fromKey = (preferred: number, alternative: number): number => {
-    if (isInKey(rootClass + preferred, key)) return preferred;
-    if (isInKey(rootClass + alternative, key)) return alternative;
-    return preferred;
+  const fromKey = (preferred: number, ...alternatives: number[]): number => {
+    const candidates = [preferred, ...alternatives];
+    const named = candidates.find((semitones) => chord.extensions.includes(semitones));
+    if (named !== undefined) return named;
+    return candidates.find((semitones) => isInKey(rootClass + semitones, key)) ?? preferred;
   };
 
   switch (degree) {
     case 1:
       return { semitones: 0, letterSteps: 0 };
     case 2:
-      return { semitones: fromKey(2, 1), letterSteps: 1 };
+      return { semitones: fromKey(2, 1, 3), letterSteps: 1 };
     case 3:
       return { semitones: chord.third, letterSteps: chord.thirdSteps };
     case 4:
@@ -145,6 +194,7 @@ export function chordPitchClasses(chord: Chord): number[] {
   const rootClass = pitchClass(chord.root);
   const classes = [rootClass, rootClass + chord.third, rootClass + chord.fifth];
   if (chord.seventh !== null) classes.push(rootClass + chord.seventh);
+  for (const extension of chord.extensions) classes.push(rootClass + extension);
   if (chord.bass) classes.push(pitchClass(chord.bass));
   return [...new Set(classes.map((value) => mod(value, 12)))];
 }
@@ -167,4 +217,26 @@ export function formatChordSymbol(symbol: string): string {
 /** Normalizes a symbol so that equivalent spellings compare equal. */
 export function normalizeChordSymbol(symbol: string): string {
   return formatChordSymbol(symbol).replace(/\s+/g, '');
+}
+
+/**
+ * Moves a chord symbol to another key. `letterSteps` and `semitones` describe
+ * the interval between the old and the new key, so the chord keeps its
+ * relation to the key ("Bb" in F becomes "C" in G).
+ */
+export function transposeChordSymbol(
+  symbol: string,
+  letterSteps: number,
+  semitones: number,
+): string {
+  const match = CHORD_PATTERN.exec(symbol.trim());
+  if (!match) return symbol;
+  const move = (text: string): string | null => {
+    const name = parseNoteName(text);
+    return name ? noteNameToText(simplifyNoteName(spellAbove(name, letterSteps, semitones))) : null;
+  };
+  const root = move(match[1]);
+  const bass = match[3] ? move(match[3]) : null;
+  if (!root || (match[3] && !bass)) return symbol;
+  return root + match[2] + (bass ? `/${bass}` : '');
 }

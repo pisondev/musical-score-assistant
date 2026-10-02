@@ -1,4 +1,4 @@
-import { beatTicks, type Arrangement, type Slot, type Song } from '../core';
+import type { Slot } from '../core';
 
 /** Share of a beat's width that each extra symbol inside the beat adds. */
 const SYMBOL_WEIGHT = 0.75;
@@ -19,35 +19,31 @@ function symbolsPerBeat(slots: Slot[], beats: number): number[] {
 }
 
 /**
- * Relative width of every measure. A plain beat weighs 1; a beat that is
+ * Relative width of one measure. A plain beat weighs 1; a beat that is
  * subdivided weighs more, so busy measures get the room their symbols need.
- * All arrangements are taken into account, which keeps the layout still when
- * the player switches between them.
+ * `rows` holds the slots of every staff row that may be shown in the measure:
+ * passing the left hand of every arrangement keeps the layout still when the
+ * player switches between them.
  */
-export function measureWeights(song: Song, arrangements: Arrangement[]): number[] {
-  const beat = beatTicks(song.meta.time);
-  return song.measures.map((measure, index) => {
-    const beats = Math.max(1, Math.ceil(measure.length / beat));
-    const rows = [
-      measure.slots,
-      ...arrangements.map((arrangement) => arrangement.measures[index]?.slots ?? []),
-    ].map((slots) => symbolsPerBeat(slots, beats));
-
-    let weight = 0;
-    for (let position = 0; position < beats; position += 1) {
-      const busiest = Math.max(...rows.map((row) => row[position]));
-      weight += Math.max(1, busiest * SYMBOL_WEIGHT);
-    }
-    return weight;
-  });
+export function measureWeight(length: number, beat: number, rows: Slot[][]): number {
+  const beats = Math.max(1, Math.ceil(length / beat));
+  const counts = rows.map((slots) => symbolsPerBeat(slots, beats));
+  let weight = 0;
+  for (let position = 0; position < beats; position += 1) {
+    const busiest = Math.max(0, ...counts.map((row) => row[position]));
+    weight += Math.max(1, busiest * SYMBOL_WEIGHT);
+  }
+  return weight;
 }
 
 /**
- * Breaks measures into systems. A system takes measures until its weight
- * capacity or the measure limit is reached; a pickup measure rides along with
- * the first system without counting towards either.
+ * Breaks a run of measures into systems. `indexes` lists the measures in
+ * order and `weights` is addressed by those indexes. A system takes measures
+ * until its weight capacity or the measure limit is reached; a pickup measure
+ * rides along with the first system without counting towards either.
  */
 export function layOutSystems(
+  indexes: number[],
   weights: number[],
   isPickup: (index: number) => boolean,
   capacity: number,
@@ -58,9 +54,9 @@ export function layOutSystems(
   let weight = 0;
   let counted = 0;
 
-  weights.forEach((measureWeight, index) => {
+  for (const index of indexes) {
     const pickup = isPickup(index);
-    const full = counted >= maxMeasures || (counted > 0 && weight + measureWeight > capacity);
+    const full = counted >= maxMeasures || (counted > 0 && weight + weights[index] > capacity);
     if (!pickup && full) {
       systems.push({ measures, weight });
       measures = [];
@@ -69,15 +65,15 @@ export function layOutSystems(
     }
     measures.push(index);
     if (!pickup) {
-      weight += measureWeight;
+      weight += weights[index];
       counted += 1;
     }
-  });
+  }
   if (measures.length > 0) systems.push({ measures, weight });
 
   const widest = Math.max(0, ...systems.map((system) => system.weight));
-  return systems.map((system, index) => ({
+  return systems.map((system, position) => ({
     measures: system.measures,
-    filler: index === systems.length - 1 ? Math.max(0, widest - system.weight) : 0,
+    filler: position === systems.length - 1 ? Math.max(0, widest - system.weight) : 0,
   }));
 }

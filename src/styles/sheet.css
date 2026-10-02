@@ -1,9 +1,9 @@
 /*
  * Numbered-notation sheet.
  *
- * A system is a row of measures. Every measure stacks four tracks: chords,
- * right hand, lyrics, left hand. Symbols are placed along a track by time, so
- * both hands line up beat for beat.
+ * A system is a row of measures. Every measure stacks its tracks: chords,
+ * right hand, lyrics, dynamics, left hand. Symbols are placed along a track by
+ * time, so both hands line up beat for beat.
  */
 
 .sheet {
@@ -13,11 +13,46 @@
   --dot-zone: 7px;
   --cell-height: calc(var(--digit-height) + 2 * var(--dot-zone));
   --beam-zone: 11px;
+  --chord-size: 12.5px;
+  --lyric-size: 11px;
   --bar: #9fb4d3;
 
   display: grid;
-  gap: 22px;
+  gap: 18px;
   user-select: none;
+}
+
+.sheet__section {
+  display: grid;
+  gap: 22px;
+}
+
+/* The introduction sits in its own tinted block above the song. */
+.sheet__section--intro {
+  margin: -4px -8px 0 4px;
+  padding: 12px 8px 14px 0;
+  border: 1px dashed #bcd7f5;
+  border-radius: 12px;
+  background: #f7fbff;
+}
+
+.sheet__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 -12px 22px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary-strong);
+}
+
+.sheet__heading span {
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
 }
 
 .system {
@@ -154,12 +189,41 @@
 }
 
 .track--right {
-  height: calc(var(--cell-height) + var(--beam-zone));
+  height: calc(var(--right-cells, 1) * var(--cell-height) + var(--beam-zone));
   color: var(--ink);
 }
 
 .track--lyrics {
   height: 20px;
+}
+
+.track--dynamics {
+  height: 20px;
+}
+
+.dynamic {
+  position: absolute;
+  top: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--ink-soft);
+}
+
+.hairpin {
+  position: absolute;
+  top: 3px;
+  height: 14px;
+  overflow: visible;
+}
+
+.hairpin line {
+  stroke: var(--ink-soft);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .track--left {
@@ -181,7 +245,7 @@
   position: absolute;
   bottom: 3px;
   padding: 0 1px;
-  font-size: 12.5px;
+  font-size: var(--chord-size);
   font-weight: 650;
   line-height: 16px;
   white-space: nowrap;
@@ -205,7 +269,7 @@
 .lyric {
   position: absolute;
   top: 1px;
-  font-size: 11px;
+  font-size: var(--lyric-size);
   line-height: 16px;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -389,9 +453,87 @@
   }
 }
 
+/* Paper: smaller symbols so four measures fit across an A4 page. */
+.sheet--print {
+  --note-size: 15px;
+  --digit-width: 10px;
+  --digit-height: 17px;
+  --dot-zone: 5px;
+  --beam-zone: 9px;
+  --chord-size: 10.5px;
+  --lyric-size: 9px;
+  --bar: #000;
+
+  gap: 12px;
+  width: 700px;
+}
+
+.sheet--print .sheet__section {
+  gap: 12px;
+}
+
+.sheet--print .tone__dots i {
+  width: 2.5px;
+  height: 2.5px;
+}
+
+.sheet--print .dynamic {
+  font-size: 12px;
+}
+
+/* A section label must fit above a narrow pickup measure. */
+.sheet--print .measure__section {
+  padding: 0;
+  font-size: 8px;
+  color: #000;
+  background: none;
+}
+
 @media print {
   .sheet {
     --bar: #000;
+  }
+
+  .sheet .measure__staff,
+  .sheet .measure:hover .measure__staff,
+  .sheet .measure.is-current .measure__staff,
+  .sheet .measure.in-loop .measure__staff {
+    background: none;
+    box-shadow: none;
+  }
+
+  .sheet__section--intro {
+    margin: 0;
+    padding: 8px 6px 10px 0;
+    border-color: #999;
+    background: none;
+  }
+
+  .sheet__heading,
+  .sheet__heading span,
+  .chord,
+  .chord--changed,
+  .lyric,
+  .dynamic,
+  .measure__meta,
+  .system__labels .track span,
+  .slot--rest .glyph {
+    color: #000;
+  }
+
+  .chord--changed {
+    background: none;
+    box-shadow: none;
+    padding: 0 1px;
+    margin-left: 0;
+  }
+
+  .hairpin line {
+    stroke: #000;
+  }
+
+  .glyph--hold::after {
+    background: #000;
   }
 
   .measure__flag {

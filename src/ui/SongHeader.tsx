@@ -2,11 +2,12 @@ import { formatNoteName, midiToText, type Song } from '../core';
 import { LockIcon } from './icons';
 
 interface SongHeaderProps {
+  /** The song as performed: its key reflects any transposition. */
   song: Song;
   isPrivate: boolean;
 }
 
-/** Title, credits, and the facts a player needs before starting: key, time, tempo. */
+/** Title and the facts a player needs before starting; credits are tucked away. */
 export function SongHeader({ song, isPrivate }: SongHeaderProps) {
   const { meta } = song;
   const credits = [
@@ -29,30 +30,27 @@ export function SongHeader({ song, isPrivate }: SongHeaderProps) {
           </span>
         )}
       </div>
-      {credits.length > 0 && <p className="song-header__credits">{credits.join(' · ')}</p>}
-      <ul className="facts" aria-label="Song details">
-        <li>
-          <span>Key</span>1 = {formatNoteName(meta.key)}
-          {meta.mode === 'minor' && ' (minor, from 6)'}
-        </li>
-        <li>
-          <span>Time</span>
+      <p className="song-header__facts">
+        <span>
+          1 = {formatNoteName(meta.key)}
+          {meta.mode === 'minor' && ' (minor)'}
+        </span>
+        <span>
           {meta.time.beats}/{meta.time.unit}
-        </li>
-        <li>
-          <span>Tempo</span>
-          {meta.tempo}
-        </li>
-        <li>
-          <span>Length</span>
-          {numbered} measures
-        </li>
-      </ul>
-      <p className="song-header__legend">
-        Right-hand row: 1 = {midiToText(song.rightDo)}. Left-hand row: 1 = {midiToText(song.leftDo)}
-        , {octaves === 1 ? 'one octave' : `${octaves} octaves`} lower. Notes written one above the
-        other are played together.
+        </span>
+        <span>Tempo {meta.tempo}</span>
+        <span>{numbered} measures</span>
       </p>
+      <details className="song-header__details">
+        <summary>Details</summary>
+        {credits.length > 0 && <p>{credits.join(' · ')}</p>}
+        <p>
+          On the right-hand row 1 is {midiToText(song.rightDo)}; on the left-hand row 1 is{' '}
+          {midiToText(song.leftDo)}, {octaves === 1 ? 'one octave' : `${octaves} octaves`} lower.
+          Notes written one above the other are played together. A stroke through a digit raises (/)
+          or lowers (\) the note by a half step.
+        </p>
+      </details>
     </section>
   );
 }

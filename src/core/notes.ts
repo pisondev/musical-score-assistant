@@ -80,6 +80,23 @@ export function formatNoteName(name: NoteName): string {
   return LETTER_NAMES[name.letter] + accidentalSymbols(name.accidental, '♯', '♭');
 }
 
+/** Writes a note name in plain text, as used in chord symbols, e.g. "Bb". */
+export function noteNameToText(name: NoteName): string {
+  return LETTER_NAMES[name.letter] + accidentalSymbols(name.accidental, '#', 'b');
+}
+
+/**
+ * Replaces spellings that are correct but hard to read (double accidentals,
+ * E sharp, C flat) with the everyday name of the same pitch.
+ */
+export function simplifyNoteName(name: NoteName): NoteName {
+  const awkward =
+    Math.abs(name.accidental) > 1 ||
+    (name.accidental === 1 && (name.letter === 2 || name.letter === 6)) ||
+    (name.accidental === -1 && (name.letter === 0 || name.letter === 3));
+  return awkward ? parseNoteName(FLAT_PITCH_NAMES[pitchClass(name)])! : name;
+}
+
 /** Formats a MIDI pitch as a plain-text name with its octave, e.g. "Bb2". */
 export function midiToText(midi: number): string {
   return `${FLAT_PITCH_NAMES[mod(midi, 12)]}${Math.floor(midi / 12) - 1}`;
@@ -121,7 +138,11 @@ export function describeMidi(
     const degree = mod(name.letter - key.letter, 7) + 1;
     const diatonic = mod(pitchClass(key) + MAJOR_SCALE[degree - 1], 12);
     const accidental = mod(midi - diatonic + 6, 12) - 6;
-    if (Math.abs(accidental) <= 1) {
+    // "b1", "b4", "#3" and "#7" name plain scale notes (7, 3, 4 and 1); write those instead.
+    const namesScaleNote =
+      (accidental === -1 && (degree === 1 || degree === 4)) ||
+      (accidental === 1 && (degree === 3 || degree === 7));
+    if (Math.abs(accidental) <= 1 && !namesScaleNote) {
       const octave = Math.floor((midi - accidental - referenceDo) / 12);
       return { degree, accidental, octave };
     }
