@@ -20,3 +20,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - arrangement validation (range, hand span, low close intervals, slash-chord bass, clashes
     with the melody);
   - conversion of a song and an arrangement into timed note events.
+- `npm run check`, a command-line checker for song folders, with `--dump` to list the left-hand
+  notes of every measure.
+- The song and arrangement file format, documented in `docs/song-format.md`.
+- A public-domain demo song, "Amazing Grace", with three left-hand arrangements.

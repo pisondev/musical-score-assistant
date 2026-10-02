@@ -1,0 +1,204 @@
+{
+  "arrangements": [
+    {
+      "id": "one-step-further",
+      "name": "One step further",
+      "level": "easy",
+      "summary": "Same chords as the score. The arpeggio reaches a tenth, and the left hand rolls in eighths whenever the melody holds a long note.",
+      "tips": [
+        "Practise the left hand alone at tempo 60 until the reach from the fifth to the tenth feels relaxed.",
+        "In measures 7 and 15 the melody stands still, so let the left hand sing there and keep it quiet elsewhere."
+      ],
+      "patterns": [
+        {
+          "name": "Tenth arpeggio",
+          "notation": "1 5 3'",
+          "description": "Root, fifth, then the third one octave up instead of the root. One changed note makes the chord sound open and warm."
+        },
+        {
+          "name": "Rolling eighths",
+          "notation": "(1 5) (1' 3') (5' 3')",
+          "description": "Climb through the chord in eighth notes and turn back at the top. Use it while the melody holds a long note."
+        }
+      ],
+      "measures": [
+        { "measure": 0, "left": "0" },
+        {
+          "measure": 1,
+          "left": "[G]1 5 3'",
+          "note": "Tenth arpeggio: the last note is 3' instead of 1'."
+        },
+        {
+          "measure": 2,
+          "left": "1 5 1'",
+          "note": "Your usual pattern, so the new one stands out against it."
+        },
+        { "measure": 3, "left": "[C]1 5 3'" },
+        { "measure": 4, "left": "[G]1 5 3'" },
+        { "measure": 5, "left": "1 5 3'" },
+        { "measure": 6, "left": "1 5 1'" },
+        {
+          "measure": 7,
+          "left": "[D](1 5) (1' 3') (5' 3')",
+          "note": "The melody holds one note for five beats, so the left hand takes over the movement."
+        },
+        {
+          "measure": 8,
+          "left": "[D7](1 5) (7 3') 5'",
+          "note": "The seventh (7) appears inside the roll and pulls towards G."
+        },
+        { "measure": 9, "left": "[G]1 5 3'" },
+        {
+          "measure": 10,
+          "left": "[G7]1 5 7",
+          "note": "Ending on the seventh leads the ear into the C chord."
+        },
+        { "measure": 11, "left": "[C]1 5 3'" },
+        { "measure": 12, "left": "[G]1 5 3'" },
+        { "measure": 13, "left": "[Em]1 5 3'" },
+        {
+          "measure": 14,
+          "left": "[G/D]5, 3 [D7]7",
+          "note": "Single notes only: bass D, then B rising to C, which falls back to B in the last chord."
+        },
+        { "measure": 15, "left": "[G](1 5) (1' 3') (5' 3')" },
+        { "measure": 16, "left": "<1 5 1'> .", "note": "Close with all three notes together." }
+      ]
+    },
+    {
+      "id": "walking-bass",
+      "name": "Walking bass",
+      "level": "easy",
+      "summary": "A waltz texture: one bass note, then two notes together. Inversions let the bass move by step instead of jumping from root to root.",
+      "tips": [
+        "Play only the first note of every measure and listen to the bass line as a melody of its own.",
+        "Keep the two-note chords lighter than the bass note."
+      ],
+      "patterns": [
+        {
+          "name": "Bass and pair",
+          "notation": "1 <5 1'> <5 1'>",
+          "description": "Bass note on the first beat, fifth and octave together on the other beats."
+        },
+        {
+          "name": "Slash-chord bass",
+          "notation": "[G/B]3 <5 1'> <5 1'>",
+          "description": "Keep the same pair on top and put the third of the chord in the bass. G/B sits one step below C, so the bass walks."
+        }
+      ],
+      "measures": [
+        { "measure": 0, "left": "0" },
+        { "measure": 1, "left": "[G]1 <5 1'> <5 1'>" },
+        {
+          "measure": 2,
+          "left": "[G/B]3 <5 1'> <5 1'>",
+          "note": "G/B: the bass steps up from G through B to reach C in the next measure."
+        },
+        { "measure": 3, "left": "[C]1' <3' 5'> <3' 5'>" },
+        {
+          "measure": 4,
+          "left": "[G/B]3 <5 1'> <5 1'>",
+          "note": "The bass steps back down from C to B."
+        },
+        { "measure": 5, "left": "[G]1 <5 1'> <5 1'>" },
+        {
+          "measure": 6,
+          "left": "[Em]1 <5 1'> <5 1'>",
+          "note": "Em replaces G: it shares two notes with G, and its bass E walks down to D."
+        },
+        { "measure": 7, "left": "[D]1 <3' 5'> <3' 5'>" },
+        {
+          "measure": 8,
+          "left": "[D7/C]7 <3' 5'> <3' 5'>",
+          "note": "D7/C puts the seventh in the bass. It wants to fall one step, to the B of G/B."
+        },
+        { "measure": 9, "left": "[G/B]3 <5 1'> <5 1'>" },
+        {
+          "measure": 10,
+          "left": "[G7/B]3 <5 7> <5 7>",
+          "note": "The bass stays on B while the pair changes to include the seventh."
+        },
+        { "measure": 11, "left": "[C]1' <3' 5'> <3' 5'>" },
+        { "measure": 12, "left": "[G/B]3 <5 1'> <5 1'>" },
+        { "measure": 13, "left": "[Em]1' <3' 5'> <3' 5'>" },
+        {
+          "measure": 14,
+          "left": "[G/D]5 <1' 3'> [D7]<7 3'>",
+          "note": "The bass walks E to D and stays there; the last pair holds the two notes that define D7."
+        },
+        { "measure": 15, "left": "[G]1 <5 1'> <5 1'>" },
+        { "measure": 16, "left": "<1 5 1'> ." }
+      ]
+    },
+    {
+      "id": "new-chords",
+      "name": "New chords",
+      "level": "intermediate",
+      "summary": "Several printed chords are replaced: a secondary dominant, a suspended chord that resolves, and an Amen ending.",
+      "tips": [
+        "Learn the shell shape 1 7 3' on Em7 first; the A7 in the next measure uses exactly the same shape.",
+        "Listen for the single note that moves when Dsus4 turns into D7."
+      ],
+      "patterns": [
+        {
+          "name": "Shell voicing",
+          "notation": "1 7 3'",
+          "description": "Root, seventh, and the third one octave up. Three notes are enough to show the whole colour of a seventh chord."
+        },
+        {
+          "name": "Suspend, then resolve",
+          "notation": "[Dsus4](1 5) (1' 4') (5' 4') then [D7](1 5) (7 3') 5'",
+          "description": "Hold back the third of the dominant by playing the fourth, then let it fall one step."
+        },
+        {
+          "name": "Amen ending",
+          "notation": "[C/G]5 <1' 3'> <1' 3'> then [G]<1 5 1'>",
+          "description": "Place the IV chord over the home bass note before the final chord, the way a sung Amen closes a hymn."
+        }
+      ],
+      "measures": [
+        { "measure": 0, "left": "0" },
+        { "measure": 1, "left": "[G]1 5 3'" },
+        {
+          "measure": 2,
+          "left": "[G7/B]3 5 7",
+          "note": "G7/B turns the home chord into a dominant of C and puts the leading note B in the bass."
+        },
+        { "measure": 3, "left": "[C]1' 3' 5'" },
+        { "measure": 4, "left": "[G/B]3 5 1'" },
+        {
+          "measure": 5,
+          "left": "[Em7]1 7 3'",
+          "note": "Em7 stands in for G. The melody notes G and B both belong to it."
+        },
+        {
+          "measure": 6,
+          "left": "[A7]1 7 3'",
+          "note": "A7 is the dominant of D, the chord that follows. The hand shape is the same as in the previous measure."
+        },
+        {
+          "measure": 7,
+          "left": "[Dsus4](1 5) (1' 4') (5' 4')",
+          "note": "Dsus4 delays the arrival: the fourth (G) replaces the third."
+        },
+        {
+          "measure": 8,
+          "left": "[D7](1 5) (7 3') 5'",
+          "note": "The suspended G falls to F sharp and the chord finally sounds complete."
+        },
+        { "measure": 9, "left": "[G]1 5 3'" },
+        { "measure": 10, "left": "[G7/B]3 5 7" },
+        { "measure": 11, "left": "[C]1' 3' 5'" },
+        { "measure": 12, "left": "[G/B]3 5 1'" },
+        { "measure": 13, "left": "[Em7]1 7 3'" },
+        { "measure": 14, "left": "[G/D]5, 5 [D7]7" },
+        {
+          "measure": 15,
+          "left": "[C/G]5 <1' 3'> <1' 3'>",
+          "note": "The bass arrives home on G, but the chord above is still C. The real ending waits one more measure."
+        },
+        { "measure": 16, "left": "[G]<1 5 1'> .", "note": "The Amen resolves." }
+      ]
+    }
+  ]
+}

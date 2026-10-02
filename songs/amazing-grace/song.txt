@@ -1,0 +1,17 @@
+title: Amazing Grace
+composer: Traditional American melody (New Britain)
+lyricist: John Newton, 1779
+source: Public domain
+key: G
+time: 3/4
+tempo: 84
+
+section: Verse
+| 5, | [G]1 . (3 1) | 3 . 2 | [C]1 . 6, | [G]5, . 5, |
+L: A-ma-zing _ grace! how sweet the sound, that
+| [G]1 . (3 1) | 3 . 2 | [D]5 . . | [D7]. . 3 |
+L: saved a _ wretch like me! I
+| [G]5 . (3 1) | [G7]3 . 2 | [C]1 . 6, | [G]5, . 5, |
+L: once was _ lost, but now am found, was
+| [Em]1 . (3 1) | [G/D]3 . [D7]2 | [G]1 . . | . . ||
+L: blind, but _ now I see.

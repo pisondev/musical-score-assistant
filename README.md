@@ -27,7 +27,17 @@ npm install
 | `npm run lint`      | Lint the source with ESLint     |
 | `npm run typecheck` | Type-check the project          |
 | `npm test`          | Run the unit tests              |
+| `npm run check`     | Check every song under `songs/` |
 | `npm run format`    | Format the source with Prettier |
+
+## Songs
+
+Each song is a folder under `songs/` with a `song.txt` (melody, chords, lyrics) and an optional
+`arrangements.json` (left-hand arrangements). The format is described in
+[docs/song-format.md](docs/song-format.md).
+
+`songs/private/` is git-ignored. Keep copyrighted songs and scans of printed scores there so they
+never leave your machine.
 
 ## Contributing
 
