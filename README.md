@@ -44,8 +44,9 @@ back so each idea can be heard before it is practised.
 - **Playback that follows the page.** Play both hands, the right hand alone to check the melody,
   or the left hand alone to hear a suggestion, with or without the voice guide. The note being
   played is highlighted on the score.
-- **Practice controls.** Tempo, metronome with a count-in, looping a range of measures, and
-  switching arrangements, keys, or hands while the music keeps playing.
+- **Practice controls.** A tempo that can be dragged or typed, a metronome with a count-in,
+  looping a range of measures, and switching arrangements, keys, or hands while the music keeps
+  playing.
 - **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
   key, and introduction.
 - **MIDI and MP3 download.** The same performance as a file: introduction, both hands as
@@ -93,14 +94,18 @@ controls playback.
 | **Print / PDF**   | Opens the print dialog; choose "Save as PDF" as the destination for a file                                    |
 | **Download**      | Saves what is on the sheet as MIDI (`.mid`) or MP3, at the current tempo, with what is switched on in the bar |
 
-| Playback action           | Mouse                  | Keyboard                     |
-| ------------------------- | ---------------------- | ---------------------------- |
-| Play or pause             | Round button           | `Space`                      |
-| Stop and return to start  | Square button          | `Home`                       |
-| Both hands / right / left | Segmented control      | `1` `2` `3`                  |
-| Voice guide on or off     | **Voice** button       | `V`                          |
-| Move the playhead         | Click a measure        | `Enter` on a focused measure |
-| Reset the tempo           | Click the tempo number |                              |
+| Playback action           | Mouse                                         | Keyboard                                                                 |
+| ------------------------- | --------------------------------------------- | ------------------------------------------------------------------------ |
+| Play or pause             | Round button                                  | `Space`                                                                  |
+| Stop and return to start  | Square button                                 | `Home`                                                                   |
+| Both hands / right / left | Segmented control                             | `1` `2` `3`                                                              |
+| Voice guide on or off     | **Voice** button                              | `V`                                                                      |
+| Move the playhead         | Click a measure                               | `Enter` on a focused measure                                             |
+| Set the tempo             | Drag the slider, or click the number and type | `Enter` applies, `Esc` cancels, `↑` `↓` step by one, with `Shift` by ten |
+| Back to the printed tempo | Arrow button beside the number                |                                                                          |
+
+The tempo ranges from 40 to 160 beats per minute; a typed number outside that range is brought
+to the nearest limit.
 
 A dot next to a measure number means the guide explains that measure. Chords on a light-blue
 background differ from the printed score. The **Voice** button appears while the right hand

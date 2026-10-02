@@ -1,14 +1,26 @@
+import { useRef, useState, type KeyboardEvent } from 'react';
 import type { HandMode } from '../audio/engine';
 import type { Measure, Song } from '../core';
 import { MAX_TEMPO, MIN_TEMPO, usePlayer } from '../store/player';
 import { cx } from './classnames';
-import { LoopIcon, MetronomeIcon, PauseIcon, PlayIcon, StopIcon, VoiceIcon } from './icons';
+import {
+  LoopIcon,
+  MetronomeIcon,
+  PauseIcon,
+  PlayIcon,
+  ResetIcon,
+  StopIcon,
+  VoiceIcon,
+} from './icons';
 
 const HAND_MODES: { mode: HandMode; label: string; hint: string }[] = [
   { mode: 'both', label: 'Both', hint: 'Both hands (1)' },
   { mode: 'right', label: 'Right', hint: 'Right hand only (2)' },
   { mode: 'left', label: 'Left', hint: 'Left hand only (3)' },
 ];
+
+/** How far Shift with an arrow key moves the tempo. */
+const TEMPO_LEAP = 10;
 
 interface TransportBarProps {
   /** The song as performed, including any introduction. */
@@ -20,6 +32,77 @@ function measureLabel(measure: Measure, long: boolean): string {
   if (measure.part === 'intro') return `Intro ${measure.index + 1}`;
   if (measure.number === null) return 'Pickup';
   return long ? `m. ${measure.number}` : `${measure.number}`;
+}
+
+interface TempoFieldProps {
+  tempo: number;
+  onChange: (tempo: number) => void;
+}
+
+/**
+ * The tempo as a number that can be typed. The value is applied on Enter or
+ * when the field loses focus, so a tempo is never set halfway through typing
+ * it; Escape puts the old value back, and the arrow keys step it.
+ */
+function TempoField({ tempo, onChange }: TempoFieldProps) {
+  // The text being typed, or null while the field just shows the tempo.
+  const [draft, setDraft] = useState<string | null>(null);
+  const cancelled = useRef(false);
+  const freshFocus = useRef(false);
+
+  const commit = () => {
+    freshFocus.current = false;
+    const value = Number.parseInt(draft ?? '', 10);
+    if (!cancelled.current && Number.isFinite(value)) onChange(value);
+    cancelled.current = false;
+    setDraft(null);
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    } else if (event.key === 'Escape') {
+      cancelled.current = true;
+      event.currentTarget.blur();
+    } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      const typed = Number.parseInt(draft ?? '', 10);
+      const from = Number.isFinite(typed) ? typed : tempo;
+      const step = (event.shiftKey ? TEMPO_LEAP : 1) * (event.key === 'ArrowUp' ? 1 : -1);
+      const next = Math.min(MAX_TEMPO, Math.max(MIN_TEMPO, from + step));
+      onChange(next);
+      setDraft(String(next));
+    }
+  };
+
+  return (
+    <input
+      className="tempo__value"
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      maxLength={3}
+      autoComplete="off"
+      enterKeyHint="done"
+      value={draft ?? String(tempo)}
+      aria-label={`Tempo in beats per minute, ${MIN_TEMPO} to ${MAX_TEMPO}`}
+      title={`Type a tempo from ${MIN_TEMPO} to ${MAX_TEMPO}`}
+      onFocus={(event) => {
+        setDraft(String(tempo));
+        // Typing replaces the number: select it all as soon as the field is entered.
+        event.currentTarget.select();
+        freshFocus.current = true;
+      }}
+      onMouseUp={(event) => {
+        // The click that focused the field would otherwise place a caret and drop the selection.
+        if (freshFocus.current) event.preventDefault();
+        freshFocus.current = false;
+      }}
+      onChange={(event) => setDraft(event.target.value.replace(/\D/g, ''))}
+      onBlur={commit}
+      onKeyDown={onKeyDown}
+    />
+  );
 }
 
 /** Playback controls, fixed to the bottom of the window. */
@@ -117,25 +200,28 @@ export function TransportBar({ song }: TransportBarProps) {
           ))}
         </div>
 
-        <label className="tempo">
-          <span>Tempo</span>
+        <div className="tempo" role="group" aria-label="Tempo">
+          <span aria-hidden="true">Tempo</span>
           <input
             type="range"
             min={MIN_TEMPO}
             max={MAX_TEMPO}
             value={tempo}
             onChange={(event) => setTempo(Number(event.target.value))}
-            aria-label="Tempo in beats per minute"
+            aria-label="Tempo slider"
           />
+          <TempoField tempo={tempo} onChange={setTempo} />
           <button
             type="button"
-            className="tempo__value"
+            className="tempo__reset"
             onClick={() => setTempo(song.meta.tempo)}
-            title={`Reset to the printed tempo (${song.meta.tempo})`}
+            disabled={tempo === song.meta.tempo}
+            aria-label={`Back to the printed tempo, ${song.meta.tempo}`}
+            title={`Back to the printed tempo (${song.meta.tempo})`}
           >
-            {tempo}
+            <ResetIcon width={16} height={16} />
           </button>
-        </label>
+        </div>
 
         <div className="transport__group">
           {hasVoice && (

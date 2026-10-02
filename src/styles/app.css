@@ -1010,14 +1010,49 @@ a.button {
   accent-color: var(--primary);
 }
 
+/* The tempo as a number that can be typed. */
 .tempo__value {
-  min-width: 46px;
-  height: 32px;
+  width: 54px;
+  height: 34px;
+  padding: 0 4px;
   border: 1px solid var(--line-strong);
   border-radius: 9px;
   background: var(--surface);
   font-weight: 650;
   font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: text;
+}
+
+.tempo__value:hover {
+  border-color: var(--primary);
+}
+
+.tempo__value:focus {
+  outline: 0;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 16%);
+}
+
+.tempo__reset {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: -4px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+}
+
+.tempo__reset:hover:not(:disabled) {
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+}
+
+.tempo__reset:disabled {
+  opacity: 0.35;
 }
 
 .loop-range {

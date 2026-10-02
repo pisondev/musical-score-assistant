@@ -43,6 +43,7 @@ The web app itself never generates music; it displays, plays, and explains.
 - MIDI and MP3 download of the performance on the sheet.
 - A compact interface: drop-down menus for the options, and a guide that opens on request.
 - A home page that lists the library, with search, favourites, and "continue practising".
+- A tempo that can be typed as well as dragged.
 - Validation of range, hand span, low close intervals, slash-chord bass, and melody clashes.
 
 ## Next

@@ -64,6 +64,15 @@ export function VoiceIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function ResetIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon strokeWidth="2.2" {...props}>
+      <path d="M4 12a8 8 0 1 0 2.5-5.8" />
+      <path d="M4 4.5V9h4.5" />
+    </Icon>
+  );
+}
+
 export function LoopIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon {...props}>
