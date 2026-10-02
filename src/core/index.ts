@@ -13,6 +13,7 @@ export {
 } from './bundle';
 export { formatChordSymbol, normalizeChordSymbol, parseChord, type Chord } from './chord';
 export { DynamicsTimeline, velocityToGain, type Hairpin } from './dynamics';
+export { formStretches, stretchAt, type FormStretch } from './form-stretches';
 export { findGaps, type Gap } from './gaps';
 export { noteContext, notesAt, noteTarget, type NoteTarget } from './measure-notes';
 export { readNotes, sortNotes, type MeasureNote, type NoteContext } from './notes-file';

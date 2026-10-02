@@ -59,6 +59,7 @@ The web app itself never generates music; it displays, plays, and explains.
 - A layout for phones and tablets: the controls in one row at the top, menus as bottom sheets,
   and a compact playback bar.
 - The settings of the score behind one Options button in the top bar.
+- A progress bar that names the part of the piece in view and leads to the other parts.
 - A menu on every measure for looping that spot.
 - Notes on measures, saved in the folder of the song for the next revision.
 - A written reading of each song (text, tune, mood) that its arrangements follow.

@@ -38,34 +38,35 @@ One model drives both the page and the sound. The score and the audio are derive
 Pure TypeScript with no browser or React dependencies, so it runs unchanged in the unit tests and
 in the command-line checker.
 
-| File               | Responsibility                                                               |
-| ------------------ | ---------------------------------------------------------------------------- |
-| `types.ts`         | Domain types: `Song`, `Measure`, `Slot`, `Arrangement`, `NoteEvent`, `Issue` |
-| `right-hand.ts`    | Builds the right-hand parts of an arrangement and puts one in place          |
-| `time.ts`          | Tick arithmetic (480 ticks per quarter note)                                 |
-| `notes.ts`         | Note names, pitch classes, and spelling a pitch as a scale degree            |
-| `chord.ts`         | Chord-symbol parsing, extensions, chord degrees, and transposing symbols     |
-| `notation.ts`      | Tokenizer and layout for one line of numbered notation                       |
-| `song.ts`          | `song.txt` parser: header, measures, lyrics, dynamics, pickup detection      |
-| `hymnals.ts`       | The hymnals the library knows by name, and how a song is cited ("PKJ 184")   |
-| `left-hand.ts`     | Resolves chord-relative left-hand notation to pitches                        |
-| `arrangement.ts`   | Builds the baseline and the stored arrangements                              |
-| `intro.ts`         | Locates the last phrase of a song                                            |
-| `passage.ts`       | Builds written passages: introductions, the bridge, the key lift, endings    |
-| `dynamics.ts`      | Dynamic levels and hairpins on one timeline; loudness at any tick            |
-| `gaps.ts`          | Finds the places where the melody waits and the left hand must fill          |
-| `keyboard.ts`      | Range of the target instrument, a 61-key keyboard                            |
-| `staff.ts`         | Staff notation for a row of slots: note values, ties, beams, accidentals     |
-| `mei.ts`           | Serializes a performance as MEI for the staff-notation engraver              |
-| `midi.ts`          | Writes a performance as a Standard MIDI File                                 |
-| `transpose.ts`     | Moves a song and an arrangement to another key                               |
-| `performance.ts`   | Assembles what is played: intro, song, repeat, ending, key, right-hand part  |
-| `summary.ts`       | Counts what a song offers, for the cards on the home page                    |
-| `validate.ts`      | Playability and harmony checks                                               |
-| `playback.ts`      | Converts a performance to timed note events                                  |
-| `bundle.ts`        | Reads `arrangements.json` and assembles everything for one song              |
-| `notes-file.ts`    | The player's notes as stored in `notes.json`: reading and sorting them       |
-| `measure-notes.ts` | Where a note belongs in a performance, and what was on the sheet             |
+| File                | Responsibility                                                               |
+| ------------------- | ---------------------------------------------------------------------------- |
+| `types.ts`          | Domain types: `Song`, `Measure`, `Slot`, `Arrangement`, `NoteEvent`, `Issue` |
+| `right-hand.ts`     | Builds the right-hand parts of an arrangement and puts one in place          |
+| `time.ts`           | Tick arithmetic (480 ticks per quarter note)                                 |
+| `notes.ts`          | Note names, pitch classes, and spelling a pitch as a scale degree            |
+| `chord.ts`          | Chord-symbol parsing, extensions, chord degrees, and transposing symbols     |
+| `notation.ts`       | Tokenizer and layout for one line of numbered notation                       |
+| `song.ts`           | `song.txt` parser: header, measures, lyrics, dynamics, pickup detection      |
+| `hymnals.ts`        | The hymnals the library knows by name, and how a song is cited ("PKJ 184")   |
+| `left-hand.ts`      | Resolves chord-relative left-hand notation to pitches                        |
+| `arrangement.ts`    | Builds the baseline and the stored arrangements                              |
+| `intro.ts`          | Locates the last phrase of a song                                            |
+| `passage.ts`        | Builds written passages: introductions, the bridge, the key lift, endings    |
+| `dynamics.ts`       | Dynamic levels and hairpins on one timeline; loudness at any tick            |
+| `gaps.ts`           | Finds the places where the melody waits and the left hand must fill          |
+| `keyboard.ts`       | Range of the target instrument, a 61-key keyboard                            |
+| `staff.ts`          | Staff notation for a row of slots: note values, ties, beams, accidentals     |
+| `mei.ts`            | Serializes a performance as MEI for the staff-notation engraver              |
+| `midi.ts`           | Writes a performance as a Standard MIDI File                                 |
+| `transpose.ts`      | Moves a song and an arrangement to another key                               |
+| `performance.ts`    | Assembles what is played: intro, song, repeat, ending, key, right-hand part  |
+| `summary.ts`        | Counts what a song offers, for the cards on the home page                    |
+| `validate.ts`       | Playability and harmony checks                                               |
+| `playback.ts`       | Converts a performance to timed note events                                  |
+| `bundle.ts`         | Reads `arrangements.json` and assembles everything for one song              |
+| `form-stretches.ts` | Divides a performance into its named parts: intro, verse, refrain, ending    |
+| `notes-file.ts`     | The player's notes as stored in `notes.json`: reading and sorting them       |
+| `measure-notes.ts`  | Where a note belongs in a performance, and what was on the sheet             |
 
 Key ideas:
 
@@ -176,27 +177,29 @@ for every song, starting from the left hand remembered for it.
 
 ### `src/ui`: the interface
 
-| Component         | Responsibility                                                            |
-| ----------------- | ------------------------------------------------------------------------- |
-| `App`             | The shell: top bar, and the home page or one song, chosen by the address  |
-| `Home`            | Totals, the song to continue, search, sorting, and the songs by hymnal    |
-| `library-view.ts` | Which songs the home page lists, in what order, and under which hymnal    |
-| `SongPage`        | One song: builds the performance, feeds the engine, handles exports       |
-| `Toolbar`         | The controls of a song in the top bar: the Options list, notation, export |
-| `Popover`         | Panel behind a button: a drop-down, or a bottom sheet on a phone          |
-| `Sheet`           | The numbered score: introduction and song sections, systems, measures     |
-| `StaffSheet`      | The same score in staff notation, engraved by Verovio as SVG              |
-| `useVerovio`      | Loads the engraver on demand                                              |
-| `sheet-layout.ts` | Measure widths and system breaks                                          |
-| `usePlayhead`     | Follows the audio clock and highlights the slots being played             |
-| `MeasureMenu`     | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
-| `useMeasureMenu`  | Opens that menu on a right click or a long press, on either notation      |
-| `NoteDialog`      | The notes on one measure: read, write, change, delete                     |
-| `useMeasureNotes` | Loads and saves the notes of a song: in its folder, or in the browser     |
-| `Guide`           | New patterns, practice tips, and per-measure explanations                 |
-| `TransportBar`    | Play, stop, hand mode, tempo, metronome, loop                             |
-| `SongHeader`      | Title, key, time signature, tempo; credits and legend on request          |
-| `IssueList`       | Errors and warnings for the song and the selected arrangement             |
+| Component          | Responsibility                                                            |
+| ------------------ | ------------------------------------------------------------------------- |
+| `App`              | The shell: top bar, and the home page or one song, chosen by the address  |
+| `Home`             | Totals, the song to continue, search, sorting, and the songs by hymnal    |
+| `library-view.ts`  | Which songs the home page lists, in what order, and under which hymnal    |
+| `SongPage`         | One song: builds the performance, feeds the engine, handles exports       |
+| `Toolbar`          | The controls of a song in the top bar: the Options list, notation, export |
+| `Popover`          | Panel behind a button: a drop-down, or a bottom sheet on a phone          |
+| `Sheet`            | The numbered score: introduction and song sections, systems, measures     |
+| `StaffSheet`       | The same score in staff notation, engraved by Verovio as SVG              |
+| `useVerovio`       | Loads the engraver on demand                                              |
+| `sheet-layout.ts`  | Measure widths and system breaks                                          |
+| `usePlayhead`      | Follows the audio clock and highlights the slots being played             |
+| `MeasureMenu`      | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
+| `useMeasureMenu`   | Opens that menu on a right click or a long press, on either notation      |
+| `NoteDialog`       | The notes on one measure: read, write, change, delete                     |
+| `useMeasureNotes`  | Loads and saves the notes of a song: in its folder, or in the browser     |
+| `FormProgress`     | The progress bar under the controls: the part of the piece one is in      |
+| `view-position.ts` | Which measure the reader is at, from the scroll position; scrolling there |
+| `Guide`            | New patterns, practice tips, and per-measure explanations                 |
+| `TransportBar`     | Play, stop, hand mode, tempo, metronome, loop                             |
+| `SongHeader`       | Title, key, time signature, tempo; credits and legend on request          |
+| `IssueList`        | Errors and warnings for the song and the selected arrangement             |
 
 Navigation uses the address: `#song=<id>` names a song, and an address without one shows the
 home page. Song cards are ordinary links, so the Back button, bookmarks, and opening a song in a
@@ -215,6 +218,18 @@ into it through a portal. When the controls do not fit beside the name of the ap
 menu of songs, they wrap to a second row; the shell publishes the height of the bar as
 `--topbar-height`, which keeps the guide below it. On a phone the bar sticks with a negative
 offset, so its first row scrolls away and the row of controls stays at the top.
+
+The progress bar is rendered into a second element of the top bar in the same way, so it
+sticks with the bar and counts towards `--topbar-height`. `formStretches` divides the
+performance into its named parts: the sections of the sheet, with the song divided further
+where `song.txt` names a section. While the music plays, the bar shows the measure under the
+playhead. Otherwise it shows the place of the reader, which `view-position.ts` derives from
+the page: a line that moves from just under the top bar to just above the playback bar as the
+page scrolls from its start to its end, so that the first measure is reached at the top of the
+page and the last one at the bottom, whatever the height of the window. The measure that line
+crosses is the place. It is read from the elements with the id of a measure, which both
+notations draw, so the bar needs to know nothing about either. A click on a part asks for the
+scroll position that puts the line on its first measure.
 
 Layout notes:
 

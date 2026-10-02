@@ -144,6 +144,73 @@ code {
   min-width: 0;
 }
 
+/*
+ * Where one is in the piece: a thin line under the controls. It is part of the bar, so it
+ * stays in view with it and counts towards its height.
+ */
+.form-progress {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 24px 5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.form-progress__label {
+  flex: 0 0 auto;
+  width: 132px;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--primary-strong);
+}
+
+.form-progress__track {
+  flex: 1;
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* A stretch is as wide as its share of the measures; the padding makes it easy to hit. */
+.form-progress__stretch {
+  flex: 1 1 0;
+  min-width: 5px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.form-progress__rail {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--line-strong);
+}
+
+.form-progress__stretch:hover .form-progress__rail,
+.form-progress__stretch:focus-visible .form-progress__rail {
+  background: #9db4d8;
+}
+
+.form-progress__stretch.is-current .form-progress__rail {
+  background: #b3c8ee;
+}
+
+.form-progress__fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--sky), var(--primary));
+  transition: width 0.18s linear;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -1387,6 +1454,12 @@ a.button {
     position: static;
   }
 
+  /* With a song open, the line that says where one is stays; the rest scrolls away. */
+  .topbar:has(.form-progress) {
+    position: sticky;
+    top: calc(27px - var(--topbar-height, 60px));
+  }
+
   .transport__inner {
     display: flex;
     flex-wrap: wrap;
@@ -1451,6 +1524,15 @@ a.button {
     flex: 1 1 100%;
     margin-left: 0;
     padding-bottom: 8px;
+  }
+
+  .form-progress {
+    padding: 0 14px 4px;
+    gap: 10px;
+  }
+
+  .form-progress__label {
+    width: 116px;
   }
 
   .toolbar {

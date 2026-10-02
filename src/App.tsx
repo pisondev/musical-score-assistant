@@ -18,8 +18,9 @@ function routeSongId(): string | null {
 export function App() {
   const [songId, setSongId] = useState(routeSongId);
   const entry = library.find((candidate) => candidate.id === songId);
-  // The place in the top bar where a song page puts its controls.
+  // The places in the top bar where a song page puts its controls and its progress bar.
   const [tools, setTools] = useState<HTMLElement | null>(null);
+  const [progress, setProgress] = useState<HTMLElement | null>(null);
 
   // Links and the browser's Back button change the address; follow it.
   useEffect(() => {
@@ -122,9 +123,14 @@ export function App() {
           </div>
           {entry && <div ref={setTools} className="topbar__tools" />}
         </div>
+        {entry && <div ref={setProgress} className="topbar__progress" />}
       </header>
 
-      {entry ? <SongPage key={entry.id} entry={entry} tools={tools} /> : <Home />}
+      {entry ? (
+        <SongPage key={entry.id} entry={entry} tools={tools} progress={progress} />
+      ) : (
+        <Home />
+      )}
     </>
   );
 }

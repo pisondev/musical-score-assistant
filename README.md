@@ -75,6 +75,10 @@ back so each idea can be heard before it is practised.
 - **Controls that stay out of the way.** Everything that decides what is on the sheet sits
   behind one **Options** button in the top bar: a short list of settings with their current
   values, each of which opens to show its choices.
+- **Always know where you are.** A thin progress bar under the controls names the part of the
+  piece that is in view or being played (_Intro_, _Song (verse)_, _Song (refrain)_,
+  _Interlude_, _Ending_) and fills up to the right as the piece goes on. A click on a part of
+  the bar leads there.
 - **Made for the phone on the music stand.** In a narrow window the controls stay in reach in
   one row at the top, menus open as sheets from the bottom edge, and the playback bar shrinks
   to two short rows, so most of the screen is left for the score.
@@ -115,6 +119,13 @@ search box looks at titles, hymnals, numbers ("pkj 184"), credits, and styles. O
 browser. Every song has an address of its own (`#song=amazing-grace`), so it can be bookmarked.
 
 On a song page, the top bar decides what is shown; the bar at the bottom controls playback.
+Under the controls runs the progress bar. It is divided into the parts of the piece, each as
+wide as its share of the measures: the introduction, the sections of the song as its file
+names them (verse, refrain), the interlude and the repeat when **Repeat** is on, and the
+ending. The name on the left is the part you are in. While the music plays, the bar follows
+the playhead; otherwise it follows the page as it scrolls, and it is full when the end of the
+piece is reached. A click on a part scrolls there and moves the playhead to its first measure.
+
 **Options** opens the settings of the score as a list. Each line shows the choice in effect,
 and a click on a line opens its choices; the list stays open, so several settings can be
 changed in one go.

@@ -31,6 +31,7 @@ import { useSettings } from '../store/settings';
 import { cx } from './classnames';
 import { Guide } from './Guide';
 import { LoopIcon, PencilIcon, PlayIcon, PlusIcon } from './icons';
+import { FormProgress } from './FormProgress';
 import { IssueList } from './IssueList';
 import { MeasureMenu, type MeasureMenuItem } from './MeasureMenu';
 import { NoteDialog } from './NoteDialog';
@@ -88,6 +89,8 @@ interface SongPageProps {
   entry: SongEntry;
   /** The place in the top bar for the controls of the song; null until the bar is drawn. */
   tools: HTMLElement | null;
+  /** The place under those controls for the progress bar. */
+  progress: HTMLElement | null;
 }
 
 /**
@@ -95,7 +98,7 @@ interface SongPageProps {
  * The page is mounted afresh for every song, so its choices start from what
  * was remembered for that song.
  */
-export function SongPage({ entry, tools }: SongPageProps) {
+export function SongPage({ entry, tools, progress }: SongPageProps) {
   const { bundle } = entry;
   const songId = entry.id;
   const [arrangementId, setArrangementId] = useState(
@@ -385,6 +388,7 @@ export function SongPage({ entry, tools }: SongPageProps) {
             />,
             tools,
           )}
+        {progress && createPortal(<FormProgress performance={performance} />, progress)}
         <IssueList
           names={names}
           issues={[...performance.song.issues, ...bundle.issues, ...performance.arrangement.issues]}

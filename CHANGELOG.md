@@ -128,6 +128,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A menu for every measure, opened with a right click, or with a long press on a phone, on
   the numbered sheet and on the staff alike: play from here, loop this measure, extend the
   loop to here, and switch the loop off.
+- A progress bar under the controls of a song. It names the part of the piece that is in view
+  (_Intro_, _Song (verse)_, _Song (refrain)_, _Interlude_, _Repeat (verse)_, _Ending_) and
+  fills from left to right; at the end of the piece it is full. While the music plays it
+  follows the playhead. The bar is divided into the parts of the piece, and a click on a part
+  leads there. It stays in view with the controls, also on a phone held sideways, where the
+  rest of the top bar scrolls away.
 - Notes on measures. **Write a note…** in the menu of a measure opens a dialog for free text:
   a correction, something to change, something that works. A note is stored with the left
   hand, the right-hand mode, the introduction, the ending, and the key that were on the sheet.
