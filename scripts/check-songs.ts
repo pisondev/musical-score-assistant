@@ -15,6 +15,7 @@ import {
   findGaps,
   formatNoteName,
   midiToText,
+  readNotes,
   RIGHT_HAND_PARTS,
   songReference,
   toneToText,
@@ -31,6 +32,8 @@ import type {
 
 const SONG_FILE = 'song.txt';
 const ARRANGEMENT_FILE = 'arrangements.json';
+const ANALYSIS_FILE = 'analysis.md';
+const NOTES_FILE = 'notes.json';
 const SONGS_ROOT = 'songs';
 const RIGHT_HAND_LABEL: Record<RightHandPartKind, string> = {
   harmony: 'chords under the melody',
@@ -124,6 +127,26 @@ function describeGaps(song: Song): string {
   return gaps.length > 0 ? gaps.join('; ') : 'none';
 }
 
+/** Whether the reading of the song, which precedes its arrangements, is written. */
+function describeReading(folder: string): string {
+  const file = join(folder, ANALYSIS_FILE);
+  const written = existsSync(file) && readFileSync(file, 'utf8').trim() !== '';
+  return written
+    ? ANALYSIS_FILE
+    : `not written yet; read the text and the tune and write ${ANALYSIS_FILE} before arranging`;
+}
+
+/** How many notes the player has left on the measures of the song. */
+function countPlayerNotes(folder: string): number {
+  const file = join(folder, NOTES_FILE);
+  if (!existsSync(file)) return 0;
+  try {
+    return readNotes(JSON.parse(readFileSync(file, 'utf8'))).length;
+  } catch {
+    return 0;
+  }
+}
+
 function summarize(issues: Issue[]): string {
   const count = (severity: Issue['severity']) =>
     issues.filter((issue) => issue.severity === severity).length;
@@ -171,6 +194,13 @@ function checkFolder(folder: string, dump: boolean): boolean {
   );
   reportable(song.issues).forEach((issue) => console.log(describeIssue(issue, song)));
   console.log(`  gaps to fill: ${describeGaps(song)}`);
+  console.log(`  reading: ${describeReading(folder)}`);
+  const playerNotes = countPlayerNotes(folder);
+  if (playerNotes > 0) {
+    console.log(
+      `  player's notes: ${playerNotes} in ${NOTES_FILE}; read them before revising the song`,
+    );
+  }
   [...fileIssues, ...issues].forEach((issue) => console.log(describeIssue(issue, song)));
 
   for (const arrangement of arrangements) {

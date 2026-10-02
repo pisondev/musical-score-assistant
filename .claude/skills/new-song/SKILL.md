@@ -1,6 +1,6 @@
 ---
 name: new-song
-description: Add a song to the app from a photo or scan of a numbered-notation score. Transcribes the melody and chords into song.txt, writes left-hand arrangements by level and style, the right-hand parts that go with them (fills and an accompaniment for singers), and what is played around the song (introductions, a bridge, a key lift for a repeat in a higher key, and endings) into arrangements.json, and checks everything. Use when the user provides a score image and asks for a song, a transcription, or left-hand or right-hand suggestions.
+description: Add a song to the app from a photo or scan of a numbered-notation score. Transcribes the melody and chords into song.txt, reads the text and the tune and writes that reading down (analysis.md), then writes left-hand arrangements by level and style, the right-hand parts that go with them (fills and an accompaniment for singers), and what is played around the song (introductions, a bridge, a key lift for a repeat in a higher key, and endings) into arrangements.json, and checks everything. Use when the user provides a score image and asks for a song, a transcription, or left-hand or right-hand suggestions.
 ---
 
 # Add a song from a printed score
@@ -40,11 +40,42 @@ Read `docs/song-format.md` before writing any file. It is the authority on synta
 Ask the user to listen with **Right** selected and confirm the melody before spending effort on
 arrangements, unless they asked for everything in one go.
 
-After the melody is confirmed, add dynamics to `song.txt` (`{mp}`, `{<}`, `{f}` and so on):
-soft at the start, growing to the most intense line of the text, soft again at the end. Printed
-hymnals rarely give dynamics, so note in a comment that they are an interpretation.
+## 3. Read the song before arranging it
 
-## 3. Write `arrangements.json`
+Nothing is arranged before the song has been read as a text set to music. This step comes
+first every time: before the first arrangement of a new song, and before a revision of an old
+one. An arrangement serves what the song says; a figure that suits its style and ignores the
+song is a wrong note of its own kind.
+
+Read every verse on the page, not only the one under the notes, and the whole tune. Then write
+`analysis.md` in the song folder, half a page to a page, under these headings:
+
+| Heading                             | What to work out                                                                                                                                                                                                                                                                |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Text**                            | What the song says and to whom: praise, prayer, confession, invitation, lament, thanks. Where it turns, which line carries the weight, how the last verse differs from the first. The season or the place in the service it belongs to.                                         |
+| **Tune**                            | The range, the highest note and the word it falls on, steps or leaps, the rhythm that marks it, the phrases and which of them return, where the long notes and the rests are.                                                                                                   |
+| **Harmony**                         | How fast the printed chords move, where a minor or a borrowed chord darkens a word, where the cadences are.                                                                                                                                                                     |
+| **Character**                       | The mood to build, in a few words (quiet trust, awe, joy that marches), the tempo that carries it, where the climax is, and where the song should be still.                                                                                                                     |
+| **What the arrangements should do** | The plan for the dynamics. What kind of fill each gap needs in view of the words sung there: one that drives on, or one that comes to rest. What each of the five styles should take from this song and what it must leave out. The character of the introductions and endings. |
+
+Quote lines of the text in their own language and write the rest in English.
+`songs/amazing-grace/analysis.md` is an example.
+
+Everything written afterwards follows the reading:
+
+- **Dynamics.** Add them to `song.txt` (`{mp}`, `{<}`, `{f}` and so on) where the reading puts
+  them: the climax on the line that carries the weight, stillness where the text turns inward.
+  Printed hymnals rarely give dynamics, so note in a comment that they are an interpretation.
+- **Styles bend to the song.** A lament gets no fanfares and a march no dreamy arpeggios. When
+  a style does not suit the song as it stands, write its quietest or its broadest form, and
+  say so in the `summary`.
+- **Fills speak with the words.** A gap after a question or a half cadence is filled with
+  something that leads on; a gap after an arrival with something that settles.
+
+`npm run check` says for every song whether its reading is written. A song without
+`analysis.md` gets one before its arrangements are touched.
+
+## 4. Write `arrangements.json`
 
 Write these five arrangements unless asked otherwise, in this order. Keep the ids so the menu
 is consistent across songs; the `level` decides the column and the `style` is the tag the
@@ -241,7 +272,7 @@ Guidelines:
   and when to use it. Add two or three `tips` for practising.
 - Write all text in plain English. Describe pitches by letter name or scale degree.
 
-## 4. Verify
+## 5. Verify
 
 1. Run `npm run check -- <folder> --dump`.
 2. Read the dump measure by measure and confirm the pitches are the ones intended; the degrees
@@ -252,12 +283,14 @@ Guidelines:
 4. Resolve every error and every warning. A warning may stay only if it is deliberate, and then
    say so in the hand-over.
 
-## 5. Hand over
+## 6. Hand over
 
 Tell the user:
 
 - where the song is and how to open it (`npm run dev`, then pick the song);
 - which notes were uncertain in the transcription;
+- how the song was read, in three or four sentences: what it says, the mood, where the climax
+  is, so that a misreading can be corrected before anything is practised;
 - what each arrangement does in one line, and any chord that was replaced;
 - how each gap is filled in each arrangement, in a line or two;
 - what the right hand does in **Melody + fills** and in **Accompaniment**, and that **Voice**
@@ -269,7 +302,8 @@ Tell the user:
 - that a right click on a measure (a long press on a phone) takes a note on it, and that those
   notes are read when the song is revised.
 
-When the song is revised later, read `notes.json` in its folder first; each note names the
-measure and the arrangement it is about.
+When the song is revised later, read `analysis.md` and `notes.json` in its folder first. Each
+note names the measure and the arrangement it is about; when a note changes how the song is
+understood, correct the reading as well.
 
 Do not commit or push unless the user asks.

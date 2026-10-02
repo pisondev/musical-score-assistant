@@ -135,6 +135,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   the development or the preview server running, notes are written to `notes.json` in the
   folder of the song (git-ignored), where they can be read when the song is revised; without
   that server they stay in the browser and move into the folder later.
+- A reading for every song: `analysis.md` in the song folder says what the text means, how
+  the tune and the harmony move, the mood to build, and what follows for the arrangements. It
+  is written before a song is arranged and read before it is revised. `npm run check` reports
+  whether it is there, and how many notes the player has left on the song. "Amazing Grace" has
+  one as an example.
 - Chords under the melody (`rightHand.harmony` in `arrangements.json`). In _Melody_ and in
   _Melody + fills_ the right hand plays chord notes under the melody on the downbeats, the long
   notes, and the starts of phrases, taken from the chords of the selected left hand; long

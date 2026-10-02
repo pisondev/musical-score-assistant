@@ -31,7 +31,8 @@ left-hand arrangements. The app never generates music: songs and arrangements ar
 `songs/`, written in the editor.
 
 - Overview and commands: `README.md`
-- File formats (`song.txt`, `arrangements.json`, left-hand notation): `docs/song-format.md`
+- File formats (`song.txt`, `analysis.md`, `arrangements.json`, `notes.json`, left-hand
+  notation): `docs/song-format.md`
 - Code structure: `docs/architecture.md`
 - Purpose, workflow, and planned work: `docs/roadmap.md`
 - Adding a song from a photo of a score: the `new-song` skill in `.claude/skills/new-song/`
@@ -46,6 +47,12 @@ Things to keep in mind:
   intermediate level on, play a fill that suits the style and leads into the next phrase. A
   static arpeggio through those places is what the tool exists to replace: the congregation
   loses the beat. Use a different fill in each gap.
+- **Read the song before arranging it.** Before any arrangement, introduction, or ending is
+  written or revised, read all verses of the text and the whole tune, and write the reading
+  down as `analysis.md` in the folder of the song: what the text says, how the tune and the
+  harmony move, the mood to build, where the climax is, and what follows for the dynamics,
+  the fills, and each style. The arrangements follow that reading. A song without
+  `analysis.md` gets one before its arrangements are touched.
 - **Quality before quantity.** A new song gets five left-hand arrangements, written in the
   order of the player's liking: `alberti-bass`, `gospel`, `jazz` (shell voicings), then
   `new-chords` and `majestic`. The first three are the favourites and get the most care.

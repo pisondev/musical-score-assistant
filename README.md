@@ -184,9 +184,11 @@ visits, in this browser only.
    after the hymnal, the number, and the title: `pkj-184-nama-yesus-termulia`.
 2. Write `song.txt`: header, melody, chords, lyrics, dynamics. `book: PKJ` and `number: 184` in
    the header put the song under its hymnal.
-3. Optionally write `arrangements.json` with left-hand arrangements, the right-hand parts
+3. Read the song before arranging it, and write the reading down as `analysis.md`: what the
+   text says, the mood to build, where the climax is, and what follows for the arrangements.
+4. Optionally write `arrangements.json` with left-hand arrangements, the right-hand parts
    that go with them, introductions, a bridge, a key lift, and endings.
-4. Run `npm run check` and fix what it reports.
+5. Run `npm run check` and fix what it reports.
 
 Arrangements are written for a 61-key keyboard (C2 to C7), so the left hand never goes below C2.
 
@@ -214,7 +216,7 @@ included, so publish a build only if it contains songs you are allowed to share.
 ## Project structure
 
 ```
-songs/              song folders (song.txt, arrangements.json, and notes.json for your notes)
+songs/              song folders (song.txt, analysis.md, arrangements.json, and notes.json for your notes)
 src/core/           music engine: parsing, chords, arrangements, validation (no browser code)
 src/audio/          playback engine built on Tone.js
 src/store/          player state, display settings, and what was opened

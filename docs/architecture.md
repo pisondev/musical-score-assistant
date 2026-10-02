@@ -256,7 +256,9 @@ running, editing a song file reloads the page.
 
 Runs the same engine from the command line and prints the issues for every song, arrangement,
 right-hand part, and written passage (introduction, bridge, key lift, ending). It is the
-quickest way to verify a transcription or an arrangement before opening the app.
+quickest way to verify a transcription or an arrangement before opening the app. It also
+says whether the reading of a song (`analysis.md`) is written and whether the player has left
+notes on it, the two things to read before a song is arranged or revised.
 
 ### `scripts/notes-plugin.ts`
 

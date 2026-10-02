@@ -6,10 +6,12 @@ Every song lives in its own folder under `songs/`:
 songs/
   amazing-grace/
     song.txt             melody, printed chords, lyrics, and dynamics
+    analysis.md          the reading of the song that its arrangements follow
     arrangements.json    left hands, right-hand parts, introductions, key lift, endings (optional)
   private/               git-ignored: copyrighted songs stay on this machine
     pkj-184-<title>/     hymnal code, number, and title in lower case
       song.txt
+      analysis.md
       arrangements.json
       source.jpg         scan or photo of the printed score (never committed)
       notes.json         the player's notes on measures, written by the app (never committed)
@@ -544,6 +546,27 @@ because numbered notation is relative to "1".
 The same files also drive the staff-notation view: the app converts the slots to note values,
 ties, beams, and accidentals on a grand staff. Nothing extra has to be written for it.
 
+## `analysis.md`
+
+The reading of the song: what its text says, how its tune and its harmony move, the mood to
+build, and what follows from that for the arrangements. It is written before the first
+arrangement and read again before every revision, so that each version serves the song and not
+only its own style. The app does not use the file.
+
+It has five short sections, about a page in all:
+
+| Section                             | Content                                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Text**                            | What the song says and to whom, where it turns, which line carries the weight              |
+| **Tune**                            | Range, the highest note and its word, the rhythm, the phrases, the long notes and rests    |
+| **Harmony**                         | How fast the chords move, where a chord darkens a word, the cadences                       |
+| **Character**                       | The mood, the tempo that carries it, the climax, the places that should be still           |
+| **What the arrangements should do** | Dynamics, what each gap needs, what each style takes from the song, introductions, endings |
+
+Lines of the text are quoted in their own language; the rest is written in English.
+[`songs/amazing-grace/analysis.md`](../songs/amazing-grace/analysis.md) is an example.
+`npm run check` says for every song whether the file is there.
+
 ## `notes.json`
 
 The player's notes on single measures. The app writes this file (through the development
@@ -602,6 +625,10 @@ npm run check                       # every song
 npm run check -- songs/amazing-grace
 npm run check -- --dump             # also list the notes of every arrangement, part, and passage
 ```
+
+For every song the check also says whether its reading (`analysis.md`) is written and how
+many notes the player has left in `notes.json`. Neither fails the check; both are to be read
+before the song is arranged or revised.
 
 Errors (wrong number of beats, unknown chord, malformed notation) fail the check. Warnings do
 not, but each one deserves a look:

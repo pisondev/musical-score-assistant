@@ -13,16 +13,19 @@ compared, and then practised.
 2. The assistant transcribes the melody and chords into `song.txt` and runs `npm run check`.
 3. The player listens to the right hand alone in the app and compares it with the printed score.
    Corrections go back to the assistant or straight into `song.txt`.
-4. The assistant writes `arrangements.json` with five left-hand versions and checks it again:
+4. The assistant reads the song: every verse of the text and the whole tune. What the song
+   says, the mood it needs, and where its climax lies are written down in `analysis.md`, and
+   the dynamics and everything arranged afterwards follow that reading.
+5. The assistant writes `arrangements.json` with five left-hand versions and checks it again:
    the player's favourites first (Alberti bass, gospel, shell voicings), then a contemporary
    and a majestic one. Few versions that are each worth practising count for more than a long
    menu.
-5. The assistant adds the right-hand parts of every arrangement: fills for the gaps, and an
+6. The assistant adds the right-hand parts of every arrangement: fills for the gaps, and an
    accompaniment for singers.
-6. The player switches between the versions in the app, listens to the left hand alone and to
+7. The player switches between the versions in the app, listens to the left hand alone and to
    both hands, and writes what works and what does not as notes on the measures concerned.
-7. The assistant reads those notes (`notes.json` in the folder of the song) the next time the
-   song is worked on, and revises the files.
+8. The assistant reads the reading and those notes (`notes.json` in the folder of the song)
+   the next time the song is worked on, and revises the files.
 
 The web app itself never generates music; it displays, plays, and explains.
 
@@ -58,6 +61,7 @@ The web app itself never generates music; it displays, plays, and explains.
 - The settings of the score behind one Options button in the top bar.
 - A menu on every measure for looping that spot.
 - Notes on measures, saved in the folder of the song for the next revision.
+- A written reading of each song (text, tune, mood) that its arrangements follow.
 - A tempo that can be typed as well as dragged.
 - Fills as a second voice: the melody keeps its long notes on the sheet and in the sound.
 - Validation of range, hand span, low close intervals, slash-chord bass, and melody clashes.
