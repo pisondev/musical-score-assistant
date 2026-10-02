@@ -12,3 +12,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Project tooling: Vite, React, TypeScript, Vitest, ESLint, and Prettier.
 - Repository rules in `CLAUDE.md`.
 - A `commit-msg` git hook that rejects commit messages carrying AI attribution.
+- Core music engine in `src/core`, independent of the browser:
+  - a parser for numbered-notation song files (header, melody, chords, lyrics, sections);
+  - chord-symbol parsing and note spelling relative to the key;
+  - left-hand notation written in chord-relative degrees, including stacked notes;
+  - the baseline left hand (root, fifth, octave on the printed chords);
+  - arrangement validation (range, hand span, low close intervals, slash-chord bass, clashes
+    with the melody);
+  - conversion of a song and an arrangement into timed note events.

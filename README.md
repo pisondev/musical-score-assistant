@@ -4,7 +4,8 @@ A personal practice tool for pianists who read numbered notation (_not angka_). 
 a two-row numbered score, offers several left-hand arrangements to choose from, and plays them
 back so each idea can be heard before it is practised.
 
-The project is in its initial setup stage. See [CHANGELOG.md](CHANGELOG.md) for progress.
+The music engine (`src/core`) is in place; the web interface is under construction. See
+[CHANGELOG.md](CHANGELOG.md) for progress.
 
 ## Requirements
 
