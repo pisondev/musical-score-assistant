@@ -569,6 +569,55 @@
   background: #7cc4e8;
 }
 
+/*
+ * Listening to one hand: the hand that is switched off stays on the sheet, drawn pale, and
+ * the playhead still moves through it, in a pale grey of its own.
+ */
+.sheet--hear-right .track--left,
+.sheet--hear-left .track--right,
+.sheet--hear-left .track--fills {
+  --quiet: #aab6c9;
+
+  color: var(--quiet);
+}
+
+.sheet--hear-right .track--left .slot--rest .glyph,
+.sheet--hear-left .track--right .slot--rest .glyph,
+.sheet--hear-left .track--fills .slot--rest .glyph {
+  color: #c3ccda;
+}
+
+.sheet--hear-right .track--left .glyph--hold::after,
+.sheet--hear-left .track--right .glyph--hold::after,
+.sheet--hear-left .track--fills .glyph--hold::after {
+  border-color: #c3ccda;
+}
+
+.sheet--hear-right .track--left .slot.is-active .slot__body,
+.sheet--hear-left .track--right .slot.is-active .slot__body,
+.sheet--hear-left .track--fills .slot.is-active .slot__body {
+  color: #7c8aa3;
+  background: #e2e7ef;
+}
+
+.sheet--hear-right .track--left .slot--rest.is-active .glyph,
+.sheet--hear-left .track--right .slot--rest.is-active .glyph,
+.sheet--hear-left .track--fills .slot--rest.is-active .glyph {
+  color: #9aa7bd;
+}
+
+.sheet--hear-right .track--left .slot--hold.is-active .glyph--hold::after,
+.sheet--hear-left .track--right .slot--hold.is-active .glyph--hold::after,
+.sheet--hear-left .track--fills .slot--hold.is-active .glyph--hold::after {
+  border-color: #9aa7bd;
+}
+
+.sheet--hear-right .system__labels .track--left span,
+.sheet--hear-left .system__labels .track--right span,
+.sheet--hear-left .system__labels .track--fills span {
+  color: #ccd5e2;
+}
+
 @media (max-width: 720px) {
   .sheet {
     --note-size: 18px;
@@ -642,6 +691,19 @@
 .staff-view g.voice.is-active {
   color: var(--voice);
   fill: var(--voice);
+}
+
+/* Listening to one hand: the notes of the other one are pale, and so is their playhead. */
+.staff-view.sheet--hear-right g.layer:has(g.left),
+.staff-view.sheet--hear-left g.layer:has(g.right) {
+  color: #b3bfd1;
+  fill: #b3bfd1;
+}
+
+.staff-view.sheet--hear-right g.left.is-active,
+.staff-view.sheet--hear-left g.right.is-active {
+  color: #7c8aa3;
+  fill: #7c8aa3;
 }
 
 /* Paper: smaller symbols so four measures fit across an A4 page. */

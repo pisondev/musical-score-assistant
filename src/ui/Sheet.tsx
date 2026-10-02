@@ -618,6 +618,7 @@ export function Sheet({
   const currentMeasure = usePlayer((state) => state.currentMeasure);
   const status = usePlayer((state) => state.status);
   const loop = usePlayer((state) => state.loop);
+  const handMode = usePlayer((state) => state.handMode);
   const seekToMeasure = usePlayer((state) => state.seekToMeasure);
   const spans = useMemo(() => buildSlotSpans(song, arrangement), [song, arrangement]);
   usePlayhead(song, spans);
@@ -705,7 +706,16 @@ export function Sheet({
     });
 
   return (
-    <div ref={container} className={cx('sheet', printing && 'sheet--print')} aria-label="Score">
+    <div
+      ref={container}
+      className={cx(
+        'sheet',
+        printing && 'sheet--print',
+        // The hand that is switched off in the playback bar is drawn pale; paper shows both.
+        !printing && handMode !== 'both' && `sheet--hear-${handMode}`,
+      )}
+      aria-label="Score"
+    >
       {width > 0 &&
         sections.map(({ section, systems }) => (
           <section

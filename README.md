@@ -64,7 +64,9 @@ back so each idea can be heard before it is practised.
   choice of written endings, from a plain _Amen_ to a gospel walk-up, closes the piece.
 - **Playback that follows the page.** Play both hands, the right hand alone to check the melody,
   or the left hand alone to hear a suggestion, with or without the voice guide. The note being
-  played is highlighted on the score.
+  played is highlighted on the score. A hand that is switched off stays on the sheet, drawn
+  pale, with a pale playhead of its own, so the eye can still follow what the other hand
+  would play.
 - **Practice controls.** A tempo that can be dragged or typed, a metronome with a count-in,
   looping a range of measures, and switching arrangements, keys, or hands while the music keeps
   playing. A right click on a measure (a long press on a phone) locks the playback to that

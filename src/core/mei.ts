@@ -109,7 +109,7 @@ function layerContent(
     events.reduce((sum, event) => sum + event.duration, 0) >= measureLength;
   if (!quiet && (events.length === 0 || wholeRest)) {
     const id = events[0] ? ` xml:id="${staffElementId(events[0].id)}"` : '';
-    return `<mRest${id}/>`;
+    return `<mRest${id} type="${track}"/>`;
   }
 
   let content = '';

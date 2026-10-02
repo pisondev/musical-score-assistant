@@ -99,6 +99,7 @@ export function StaffSheet({
   usePlayhead(song, spans);
 
   const currentMeasure = usePlayer((state) => state.currentMeasure);
+  const handMode = usePlayer((state) => state.handMode);
   const status = usePlayer((state) => state.status);
   const seekToMeasure = usePlayer((state) => state.seekToMeasure);
   const active = status === 'playing' || status === 'paused';
@@ -140,7 +141,12 @@ export function StaffSheet({
   return (
     <div
       ref={container}
-      className={cx('sheet', 'staff-view', printing && 'sheet--print')}
+      className={cx(
+        'sheet',
+        'staff-view',
+        printing && 'sheet--print',
+        !printing && handMode !== 'both' && `sheet--hear-${handMode}`,
+      )}
       aria-label="Score in staff notation"
     >
       {failed && (

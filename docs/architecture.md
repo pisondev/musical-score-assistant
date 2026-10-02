@@ -242,6 +242,10 @@ Layout notes:
   starts on a new system.
 - The playhead toggles a CSS class directly on the slot elements instead of re-rendering React
   components on every animation frame.
+- Listening to one hand changes nothing but a class on the sheet (`sheet--hear-right`,
+  `sheet--hear-left`). The style sheet draws the rows of the other hand pale, and their
+  playhead as well; in staff notation it finds those notes by the class that `mei.ts` gives
+  every symbol of a track.
 - MIDI download: `midi.ts` writes the same note events the audio engine plays, so the file
   matches what is heard: one conductor track with tempo, meter, and key, one track per hand,
   and one for the voice when it plays. The ticks are the engine's own (480 per quarter note),

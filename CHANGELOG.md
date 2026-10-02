@@ -183,6 +183,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- With **Right** or **Left** selected in the playback bar, the hand that is switched off is
+  drawn in pale grey on the numbered sheet and on the staff, and its playhead is pale grey
+  too. The hand that sounds keeps its black notes and its coloured playhead. Printed pages
+  show both hands in black.
+
 - New songs get five left-hand arrangements instead of seven, written in the order of the
   player's liking: Alberti bass, gospel, jazz with shell voicings, then contemporary and
   majestic. The two easy versions (`one-step-further` and `walking-bass`) are no longer
