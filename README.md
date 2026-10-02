@@ -18,6 +18,9 @@ back so each idea can be heard before it is practised.
   the number of left hands, right-hand parts, and introductions written for it. The song that
   was practised last can be continued with one click; songs can be searched, sorted, and marked
   as favourites.
+- **Songs grouped by hymnal.** A song names the hymnal it comes from (Kidung Keesaan, Pelengkap
+  Kidung Jemaat, Kidung Jemaat, Kidung Pasamuwan Jawi) and is cited the way a service sheet
+  cites it: "PKJ 184". The home page and the song menu list the songs hymnal by hymnal.
 - **Numbered score for both hands.** The melody is on the upper row and the left hand on the
   lower row, aligned beat for beat, with chords above, lyrics below the melody, and dynamics
   between the hands. Notes that are struck together are written one above the other.
@@ -78,10 +81,12 @@ git at the versioned hooks in `.githooks/`.
 ## Using the app
 
 The app opens on the home page. **Continue** reopens the song that was practised last with the
-left hand that was selected; a click on a card opens that song. The star marks a favourite, and
-the search box looks at titles, numbers, credits, and styles. On a song page, **All songs** or
-the name of the app in the top bar leads back, as does the Back button of the browser. Every
-song has an address of its own (`#song=amazing-grace`), so it can be bookmarked.
+left hand that was selected; a click on a card opens that song. The songs are listed hymnal by
+hymnal; the row of buttons above them (**All hymnals**, **KK**, **PKJ**, **KJ**, **KPJ**) narrows
+the list to one hymnal and shows how many songs each has. The star marks a favourite, and the
+search box looks at titles, hymnals, numbers ("pkj 184"), credits, and styles. On a song page,
+**All songs** or the name of the app in the top bar leads back, as does the Back button of the
+browser. Every song has an address of its own (`#song=amazing-grace`), so it can be bookmarked.
 
 On a song page, the toolbar above the sheet decides what is shown; the bar at the bottom
 controls playback.
@@ -119,8 +124,10 @@ visits, in this browser only.
 
 ## Adding a song
 
-1. Create a folder under `songs/` (or under `songs/private/` for copyrighted material).
-2. Write `song.txt`: header, melody, chords, lyrics, dynamics.
+1. Create a folder under `songs/` (or under `songs/private/` for copyrighted material), named
+   after the hymnal, the number, and the title: `pkj-184-nama-yesus-termulia`.
+2. Write `song.txt`: header, melody, chords, lyrics, dynamics. `book: PKJ` and `number: 184` in
+   the header put the song under its hymnal.
 3. Optionally write `arrangements.json` with left-hand arrangements, the right-hand parts
    that go with them, and introductions.
 4. Run `npm run check` and fix what it reports.

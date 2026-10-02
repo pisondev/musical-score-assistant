@@ -8,13 +8,15 @@ songs/
     song.txt             melody, printed chords, lyrics, and dynamics
     arrangements.json    left-hand arrangements, right-hand parts, and introductions (optional)
   private/               git-ignored: copyrighted songs stay on this machine
-    <song>/
+    pkj-184-<title>/     hymnal code, number, and title in lower case
       song.txt
       arrangements.json
       source.jpg         scan or photo of the printed score (never committed)
 ```
 
-The app and `npm run check` pick up every folder that contains a `song.txt`.
+The app and `npm run check` pick up every folder that contains a `song.txt`. The name of the
+folder is free; `<hymnal code>-<number>-<title>` keeps a growing library in order. Which hymnal
+a song belongs to is decided by its header, not by the folder.
 
 ## `song.txt`
 
@@ -40,6 +42,7 @@ One `name: value` pair per line, before the first line of music.
 | Field      | Meaning                                                                            | Default   |
 | ---------- | ---------------------------------------------------------------------------------- | --------- |
 | `title`    | Song title                                                                         | Untitled  |
+| `book`     | Code of the hymnal the song is taken from: `KK`, `PKJ`, `KJ`, `KPJ` (see below)    | none      |
 | `number`   | Number in the hymnal or songbook                                                   | none      |
 | `composer` | Composer of the melody                                                             | none      |
 | `lyricist` | Author or translator of the text                                                   | none      |
@@ -49,6 +52,24 @@ One `name: value` pair per line, before the first line of music.
 | `time`     | Time signature such as `4/4`, `3/4`, `6/8`                                         | `4/4`     |
 | `tempo`    | Beats per minute, counted in beats of the time signature                           | `80`      |
 | `octave`   | Octave of "1" for the melody (4 means C4 to B4); chosen automatically when omitted | automatic |
+
+### Hymnals
+
+`book` and `number` together are how a song is cited: `book: PKJ` and `number: 184` give
+"PKJ 184" on the song's card, in the song menu, and above the sheet. The home page lists the
+songs hymnal by hymnal and can narrow the list to one of them; the search finds a song by its
+code, its number, or the name of its hymnal.
+
+| Code  | Hymnal                  |
+| ----- | ----------------------- |
+| `KK`  | Kidung Keesaan          |
+| `PKJ` | Pelengkap Kidung Jemaat |
+| `KJ`  | Kidung Jemaat           |
+| `KPJ` | Kidung Pasamuwan Jawi   |
+
+The code is not case-sensitive. Any other code is accepted and gets a section of its own under
+that code; to give it a full name, add it to the list in `src/core/hymnals.ts`. Songs without a
+`book` are listed under "Other songs".
 
 ### Body
 

@@ -1,10 +1,17 @@
 import { useMemo, useState } from 'react';
-import { formatNoteName } from '../core';
+import { formatNoteName, hymnalName, songReference } from '../core';
 import { library, type SongEntry } from '../library';
 import { useHistory } from '../store/history';
 import { cx } from './classnames';
 import { AlertIcon, ArrowRightIcon, LockIcon, PlusIcon, SearchIcon, StarIcon } from './icons';
-import { lastOpened, selectSongs, type SongFilter, type SongSort } from './library-view';
+import {
+  groupByHymnal,
+  lastOpened,
+  NO_BOOK,
+  selectSongs,
+  type SongFilter,
+  type SongSort,
+} from './library-view';
 import { songHref } from './navigation';
 import { timeAgo } from './time-ago';
 
@@ -35,12 +42,17 @@ function SongCard({ entry, favourite, openedAt, now, onToggleFavourite }: SongCa
   const { meta } = entry.bundle.song;
   const { summary } = entry;
   const toReview = summary.errors + summary.warnings;
+  const reference = songReference(meta);
   const credit = [meta.composer, meta.source].filter(Boolean).join(' · ');
 
   return (
     <li className={cx('card', 'song-card', summary.errors > 0 && 'song-card--error')}>
       <div className="song-card__top">
-        {meta.number && <span className="number-badge">{meta.number}</span>}
+        {reference && (
+          <span className="number-badge" title={hymnalName(meta.book) ?? undefined}>
+            {reference}
+          </span>
+        )}
         {entry.isPrivate && (
           <span className="badge badge--private" title="Stored in songs/private; never committed">
             <LockIcon width={12} height={12} />
@@ -59,11 +71,11 @@ function SongCard({ entry, favourite, openedAt, now, onToggleFavourite }: SongCa
         </button>
       </div>
 
-      <h2 className="song-card__title">
+      <h3 className="song-card__title">
         <a href={songHref(entry.id)} className="song-card__link">
           {meta.title}
         </a>
-      </h2>
+      </h3>
       <p className="song-card__facts">
         <span>
           1 = {formatNoteName(meta.key)}
@@ -108,20 +120,27 @@ function SongCard({ entry, favourite, openedAt, now, onToggleFavourite }: SongCa
   );
 }
 
-/** The home page: what was practised last, and every song in the library. */
+/** The home page: what was practised last, and every song in the library, hymnal by hymnal. */
 export function Home() {
   const opened = useHistory((state) => state.opened);
   const favourites = useHistory((state) => state.favourites);
   const toggleFavourite = useHistory((state) => state.toggleFavourite);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<SongFilter>('all');
+  const [book, setBook] = useState<string | null>(null);
   const [sort, setSort] = useState<SongSort>('recent');
   // One reading of the clock per visit keeps "opened 3 hours ago" stable while typing.
   const [now] = useState(() => Date.now());
 
+  // The chips count every song of a hymnal; the sections show what the search leaves of it.
+  const hymnals = useMemo(() => groupByHymnal(library), []);
   const songs = useMemo(
-    () => selectSongs(library, { query, filter, sort, favourites, opened }),
-    [query, filter, sort, favourites, opened],
+    () => selectSongs(library, { query, filter, book, sort, favourites, opened }),
+    [query, filter, book, sort, favourites, opened],
+  );
+  const sections = useMemo(
+    () => groupByHymnal(songs).filter((group) => group.songs.length > 0),
+    [songs],
   );
   const resume = useMemo(() => lastOpened(library, opened), [opened]);
   const resumeArrangement = resume?.bundle.arrangements.find(
@@ -140,6 +159,15 @@ export function Home() {
   }, []);
 
   const empty = library.length === 0;
+  const selected = hymnals.find((group) => group.code === book);
+
+  let nothing: string | null = null;
+  if (!empty && songs.length === 0) {
+    if (query.trim() !== '') nothing = 'No song matches the search.';
+    else if (filter === 'favourites') {
+      nothing = 'No favourites here yet. Mark a song with the star to keep it in this list.';
+    } else if (selected) nothing = `No songs from ${selected.name} yet.`;
+  }
 
   return (
     <main className="page home">
@@ -170,6 +198,9 @@ export function Home() {
             <p className="resume__label">Continue practising</p>
             <h2>{resume.bundle.song.meta.title}</h2>
             <p className="resume__detail">
+              {songReference(resume.bundle.song.meta) && (
+                <span>{songReference(resume.bundle.song.meta)}</span>
+              )}
               {resumeArrangement && <span>Left hand: {resumeArrangement.name}</span>}
               <span>Opened {timeAgo(opened[resume.id].openedAt, now)}</span>
             </p>
@@ -220,25 +251,62 @@ export function Home() {
         </div>
       )}
 
-      {!empty && songs.length === 0 && (
-        <p className="library-empty">
-          {filter === 'favourites' && query.trim() === ''
-            ? 'No favourites yet. Mark a song with the star to keep it here.'
-            : 'No song matches the search.'}
-        </p>
+      {!empty && (
+        <div className="chips" role="radiogroup" aria-label="Hymnal">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={book === null}
+            className={cx('chip', book === null && 'is-selected')}
+            onClick={() => setBook(null)}
+          >
+            All hymnals <span>{library.length}</span>
+          </button>
+          {hymnals.map((group) => (
+            <button
+              key={group.code}
+              type="button"
+              role="radio"
+              aria-checked={book === group.code}
+              className={cx(
+                'chip',
+                book === group.code && 'is-selected',
+                group.songs.length === 0 && 'chip--empty',
+              )}
+              onClick={() => setBook(group.code)}
+              title={group.name}
+            >
+              {group.code === NO_BOOK ? 'Other' : group.code} <span>{group.songs.length}</span>
+            </button>
+          ))}
+        </div>
       )}
 
+      {nothing && <p className="library-empty">{nothing}</p>}
+
+      {sections.map((group) => (
+        <section key={group.code} className="hymnal" aria-label={group.name}>
+          <h2 className="hymnal__title">
+            {group.name}
+            {group.code !== NO_BOOK && group.name !== group.code && <span>{group.code}</span>}
+            <small>{plural(group.songs.length, 'song')}</small>
+          </h2>
+          <ul className="song-grid">
+            {group.songs.map((entry) => (
+              <SongCard
+                key={entry.id}
+                entry={entry}
+                favourite={favourites.includes(entry.id)}
+                openedAt={opened[entry.id]?.openedAt}
+                now={now}
+                onToggleFavourite={toggleFavourite}
+              />
+            ))}
+          </ul>
+        </section>
+      ))}
+
       <ul className="song-grid">
-        {songs.map((entry) => (
-          <SongCard
-            key={entry.id}
-            entry={entry}
-            favourite={favourites.includes(entry.id)}
-            openedAt={opened[entry.id]?.openedAt}
-            now={now}
-            onToggleFavourite={toggleFavourite}
-          />
-        ))}
         <li className="song-card song-card--add">
           <span className="song-card__plus">
             <PlusIcon width={18} height={18} />
@@ -246,8 +314,8 @@ export function Home() {
           <h2 className="song-card__title">Add a song</h2>
           <p>
             Give a photo of the score to the assistant in your editor. It writes the melody, the
-            left hands, and the right-hand parts into <code>songs/</code>, and the song appears
-            here. The format is described in <code>docs/song-format.md</code>.
+            left hands, and the right-hand parts into <code>songs/</code>, and the song appears here
+            under its hymnal. The format is described in <code>docs/song-format.md</code>.
           </p>
         </li>
       </ul>

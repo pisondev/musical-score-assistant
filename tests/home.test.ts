@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { createSongBundle } from '../src/core/bundle';
+import { hymnalName, songReference } from '../src/core/hymnals';
+import { parseSong } from '../src/core/song';
 import { summarizeSong } from '../src/core/summary';
 import type { SongEntry } from '../src/library';
-import { lastOpened, selectSongs, type LibraryView } from '../src/ui/library-view';
+import {
+  groupByHymnal,
+  lastOpened,
+  NO_BOOK,
+  selectSongs,
+  type LibraryView,
+} from '../src/ui/library-view';
 import { timeAgo } from '../src/ui/time-ago';
 
 const MUSIC = `
@@ -86,11 +94,18 @@ describe('summarizeSong', () => {
 describe('selectSongs', () => {
   const entries = [
     entry('grace', 'title: Amazing Grace\ncomposer: Traditional'),
-    entry('private/night', 'title: Silent Night\nnumber: 99'),
-    entry('joy', 'title: Joy to the World\nnumber: 120', ARRANGEMENTS),
-    entry('holy', 'title: Holy, Holy, Holy\nnumber: 7'),
+    entry('private/night', 'title: Silent Night\nbook: KJ\nnumber: 99'),
+    entry('joy', 'title: Joy to the World\nbook: pkj\nnumber: 120', ARRANGEMENTS),
+    entry('holy', 'title: Holy, Holy, Holy\nbook: KJ\nnumber: 7'),
   ];
-  const view: LibraryView = { query: '', filter: 'all', sort: 'title', favourites: [], opened: {} };
+  const view: LibraryView = {
+    query: '',
+    filter: 'all',
+    book: null,
+    sort: 'title',
+    favourites: [],
+    opened: {},
+  };
   const ids = (change: Partial<LibraryView>) =>
     selectSongs(entries, { ...view, ...change }).map((song) => song.id);
 
@@ -124,6 +139,39 @@ describe('selectSongs', () => {
     expect(ids({ filter: 'favourites' })).toEqual([]);
   });
 
+  it('searches the hymnal by code and by name', () => {
+    expect(ids({ query: 'kj 99' })).toEqual(['private/night']);
+    expect(ids({ query: 'pelengkap' })).toEqual(['joy']);
+    expect(ids({ query: 'kidung jemaat' })).toEqual(['holy', 'joy', 'private/night']);
+  });
+
+  it('narrows the list to one hymnal', () => {
+    expect(ids({ book: 'KJ' })).toEqual(['holy', 'private/night']);
+    expect(ids({ book: 'PKJ' })).toEqual(['joy']);
+    expect(ids({ book: 'KK' })).toEqual([]);
+    expect(ids({ book: NO_BOOK })).toEqual(['grace']);
+    expect(ids({ book: 'KJ', sort: 'number' })).toEqual(['holy', 'private/night']);
+  });
+
+  it('groups the songs by hymnal, known hymnals first', () => {
+    const groups = groupByHymnal([...entries, entry('psalm', 'title: Psalm\nbook: NKB')]);
+    expect(groups.map((group) => [group.code, group.name, group.songs.length])).toEqual([
+      ['KK', 'Kidung Keesaan', 0],
+      ['PKJ', 'Pelengkap Kidung Jemaat', 1],
+      ['KJ', 'Kidung Jemaat', 2],
+      ['KPJ', 'Kidung Pasamuwan Jawi', 0],
+      ['NKB', 'NKB', 1],
+      [NO_BOOK, 'Other songs', 1],
+    ]);
+    // Without songs that name no hymnal, there is no section for them.
+    expect(groupByHymnal(entries.slice(1)).map((group) => group.code)).toEqual([
+      'KK',
+      'PKJ',
+      'KJ',
+      'KPJ',
+    ]);
+  });
+
   it('finds the song that was opened last', () => {
     expect(lastOpened(entries, {})).toBeNull();
     const opened = {
@@ -133,6 +181,27 @@ describe('selectSongs', () => {
       gone: { openedAt: 900, arrangementId: 'baseline' },
     };
     expect(lastOpened(entries, opened)?.id).toBe('holy');
+  });
+});
+
+describe('hymnals', () => {
+  it('are read from the header of a song', () => {
+    const { meta } = parseSong(
+      'title: Song\nbook: pkj\nnumber: 184\nkey: A\ntime: 4/4\n| 1 2 3 4 ||',
+    );
+    expect(meta.book).toBe('PKJ');
+    expect(meta.number).toBe('184');
+    expect(parseSong('title: Song\nkey: C\ntime: 4/4\n| 1 2 3 4 ||').meta.book).toBeUndefined();
+  });
+
+  it('give a song its reference and the hymnal its name', () => {
+    expect(songReference({ book: 'PKJ', number: '184' })).toBe('PKJ 184');
+    expect(songReference({ number: '12' })).toBe('12');
+    expect(songReference({ book: 'KK' })).toBe('KK');
+    expect(songReference({})).toBe('');
+    expect(hymnalName('KPJ')).toBe('Kidung Pasamuwan Jawi');
+    expect(hymnalName('XYZ')).toBeNull();
+    expect(hymnalName(undefined)).toBeNull();
   });
 });
 

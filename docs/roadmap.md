@@ -43,6 +43,8 @@ The web app itself never generates music; it displays, plays, and explains.
 - MIDI and MP3 download of the performance on the sheet.
 - A compact interface: drop-down menus for the options, and a guide that opens on request.
 - A home page that lists the library, with search, favourites, and "continue practising".
+- Songs grouped by hymnal (Kidung Keesaan, Pelengkap Kidung Jemaat, Kidung Jemaat, Kidung
+  Pasamuwan Jawi) and cited by code and number.
 - A layout for phones and tablets: a scrolling row of options, menus as bottom sheets, and a
   compact playback bar.
 - A tempo that can be typed as well as dragged.

@@ -1612,6 +1612,96 @@ a.button {
   border-radius: 12px;
 }
 
+/* One chip per hymnal, to narrow the list to it. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.chip span {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--muted);
+  background: var(--bg);
+}
+
+.chip:hover {
+  border-color: var(--primary);
+  color: var(--primary-strong);
+}
+
+.chip.is-selected {
+  border-color: var(--primary);
+  color: #fff;
+  background: var(--primary);
+}
+
+.chip.is-selected span {
+  color: var(--primary-strong);
+  background: #fff;
+}
+
+.chip--empty:not(.is-selected) {
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.hymnal {
+  display: grid;
+  gap: 12px;
+}
+
+.hymnal__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.hymnal__title span {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+}
+
+.hymnal__title small {
+  font-size: 12.5px;
+  font-weight: 550;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
 .library-empty {
   padding: 18px 2px 4px;
   color: var(--ink-soft);

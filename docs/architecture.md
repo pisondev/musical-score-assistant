@@ -45,6 +45,7 @@ in the command-line checker.
 | `chord.ts`       | Chord-symbol parsing, extensions, chord degrees, and transposing symbols     |
 | `notation.ts`    | Tokenizer and layout for one line of numbered notation                       |
 | `song.ts`        | `song.txt` parser: header, measures, lyrics, dynamics, pickup detection      |
+| `hymnals.ts`     | The hymnals the library knows by name, and how a song is cited ("PKJ 184")   |
 | `left-hand.ts`   | Resolves chord-relative left-hand notation to pitches                        |
 | `arrangement.ts` | Builds the baseline and the stored arrangements                              |
 | `intro.ts`       | Builds the written introduction and locates the last phrase                  |
@@ -138,8 +139,8 @@ for every song, starting from the left hand remembered for it.
 | Component         | Responsibility                                                           |
 | ----------------- | ------------------------------------------------------------------------ |
 | `App`             | The shell: top bar, and the home page or one song, chosen by the address |
-| `Home`            | Totals, the song to continue, search, sorting, and a card per song       |
-| `library-view.ts` | Which songs the home page lists, and in what order                       |
+| `Home`            | Totals, the song to continue, search, sorting, and the songs by hymnal   |
+| `library-view.ts` | Which songs the home page lists, in what order, and under which hymnal   |
 | `SongPage`        | One song: builds the performance, feeds the engine, handles exports      |
 | `Toolbar`         | Menus for both hands and the intro, transposition, visible rows, export  |
 | `Popover`         | Panel behind a toolbar button: a drop-down, or a bottom sheet on a phone |

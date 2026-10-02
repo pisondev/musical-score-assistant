@@ -9,8 +9,12 @@ Read `docs/song-format.md` before writing any file. It is the authority on synta
 
 ## 1. Set up the folder
 
-- Use `songs/private/<number>-<title-in-kebab-case>/` unless the user states that the song is in
-  the public domain. The repository is public and `songs/private/` is git-ignored.
+- Use `songs/private/<book>-<number>-<title-in-kebab-case>/` (for example
+  `pkj-184-nama-yesus-termulia`) unless the user states that the song is in the public domain.
+  The repository is public and `songs/private/` is git-ignored.
+- `<book>` is the code of the hymnal in lower case: `kk` (Kidung Keesaan), `pkj` (Pelengkap
+  Kidung Jemaat), `kj` (Kidung Jemaat), `kpj` (Kidung Pasamuwan Jawi). Take it from the page or
+  from the name of the file; ask when neither says which hymnal it is.
 - Save the image there as `source.jpg` (or `source-1.jpg`, `source-2.jpg` for several pages).
 
 ## 2. Transcribe the melody into `song.txt`
@@ -23,7 +27,8 @@ Read `docs/song-format.md` before writing any file. It is the authority on synta
    - a dot on the baseline holds the previous note; under a beam it holds for half a beat, so
      `3 . 5` with the dot and the 5 under one beam is `3 (. 5)`;
    - a comma-like tick between notes is a breath mark and is not transcribed.
-2. Copy the header from the score: `title`, `number`, `key` (from "do = f"), `time`, `tempo`.
+2. Copy the header from the score: `title`, `book` (the hymnal code in capitals: `PKJ`),
+   `number`, `key` (from "do = f"), `time`, `tempo`.
 3. Place each chord before the note it is printed above. Chords printed over the second note of a
    beamed pair belong to that note: `(5 [C/E]4)`.
 4. Add the first verse as `L:` lines, one syllable per note, `_` where a note continues a

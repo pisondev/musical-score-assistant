@@ -1,4 +1,4 @@
-import { formatNoteName, midiToText, type Song } from '../core';
+import { formatNoteName, hymnalName, midiToText, songReference, type Song } from '../core';
 import { LockIcon } from './icons';
 
 interface SongHeaderProps {
@@ -10,7 +10,10 @@ interface SongHeaderProps {
 /** Title and the facts a player needs before starting; credits are tucked away. */
 export function SongHeader({ song, isPrivate }: SongHeaderProps) {
   const { meta } = song;
+  const reference = songReference(meta);
+  const hymnal = hymnalName(meta.book);
   const credits = [
+    hymnal && `${hymnal}${meta.number ? ` ${meta.number}` : ''}`,
     meta.composer && `Music: ${meta.composer}`,
     meta.lyricist && `Words: ${meta.lyricist}`,
     meta.source,
@@ -23,7 +26,11 @@ export function SongHeader({ song, isPrivate }: SongHeaderProps) {
   return (
     <section className="song-header">
       <div className="song-header__title">
-        {meta.number && <span className="song-header__number">{meta.number}</span>}
+        {reference && (
+          <span className="song-header__number" title={hymnal ?? undefined}>
+            {reference}
+          </span>
+        )}
         <h1>{meta.title}</h1>
         {isPrivate && (
           <span className="badge badge--private" title="Stored in songs/private; never committed">

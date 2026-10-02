@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type MouseEvent } from 'react';
 import { library } from './library';
 import { Home } from './ui/Home';
 import { GridIcon, NoteIcon } from './ui/icons';
+import { groupByHymnal, NO_BOOK, selectSongs } from './ui/library-view';
 import { songHref, songIdFromLocation } from './ui/navigation';
 import { SongPage } from './ui/SongPage';
 
@@ -46,8 +47,16 @@ export function App() {
     window.scrollTo({ top: 0 });
   }, []);
 
-  const publicSongs = library.filter((candidate) => !candidate.isPrivate);
-  const privateSongs = library.filter((candidate) => candidate.isPrivate);
+  // The song menu lists every hymnal that has songs, each in the order of its numbers.
+  const byNumber = selectSongs(library, {
+    query: '',
+    filter: 'all',
+    book: null,
+    sort: 'number',
+    favourites: [],
+    opened: {},
+  });
+  const hymnals = groupByHymnal(byNumber).filter((group) => group.songs.length > 0);
 
   return (
     <>
@@ -73,20 +82,21 @@ export function App() {
                     window.location.hash = songHref(event.target.value);
                   }}
                 >
-                  {publicSongs.map((candidate) => (
-                    <option key={candidate.id} value={candidate.id}>
-                      {candidate.bundle.song.meta.title}
-                    </option>
-                  ))}
-                  {privateSongs.length > 0 && (
-                    <optgroup label="Private (this computer only)">
-                      {privateSongs.map((candidate) => (
-                        <option key={candidate.id} value={candidate.id}>
-                          {candidate.bundle.song.meta.title}
-                        </option>
-                      ))}
+                  {hymnals.map((group) => (
+                    <optgroup
+                      key={group.code}
+                      label={group.code === NO_BOOK ? group.name : `${group.code} · ${group.name}`}
+                    >
+                      {group.songs.map((candidate) => {
+                        const { number, title } = candidate.bundle.song.meta;
+                        return (
+                          <option key={candidate.id} value={candidate.id}>
+                            {number ? `${number} · ${title}` : title}
+                          </option>
+                        );
+                      })}
                     </optgroup>
-                  )}
+                  ))}
                 </select>
               </label>
             </nav>

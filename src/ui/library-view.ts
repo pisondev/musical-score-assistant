@@ -1,22 +1,46 @@
+import { HYMNALS, hymnalName, songReference } from '../core/hymnals';
 import type { SongEntry } from '../library';
 import type { OpenedSong } from '../store/history';
 
 export type SongSort = 'recent' | 'title' | 'number';
 export type SongFilter = 'all' | 'favourites';
 
+/** The "hymnal" of the songs that name none. */
+export const NO_BOOK = '';
+
 export interface LibraryView {
   query: string;
   filter: SongFilter;
+  /** A hymnal code, `NO_BOOK` for songs without one, or null for every song. */
+  book: string | null;
   sort: SongSort;
   favourites: readonly string[];
   opened: Readonly<Record<string, OpenedSong>>;
 }
 
+/** Songs of one hymnal, as a section of the home page. */
+export interface HymnalGroup {
+  /** The hymnal code, or `NO_BOOK`. */
+  code: string;
+  /** The full name of the hymnal; the code itself when the library does not know it. */
+  name: string;
+  songs: SongEntry[];
+}
+
+const bookOf = (entry: SongEntry) => entry.bundle.song.meta.book ?? NO_BOOK;
+
 function matches(entry: SongEntry, query: string): boolean {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (words.length === 0) return true;
   const { meta } = entry.bundle.song;
-  const text = [meta.title, meta.number, meta.composer, meta.lyricist, ...entry.summary.styles]
+  const text = [
+    meta.title,
+    songReference(meta),
+    hymnalName(meta.book),
+    meta.composer,
+    meta.lyricist,
+    ...entry.summary.styles,
+  ]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
@@ -30,8 +54,8 @@ function numberOf(entry: SongEntry): number {
 }
 
 /**
- * The songs to list on the home page: those that match the search and the
- * filter, in the chosen order. Ties fall back to the title.
+ * The songs to list on the home page: those that match the search, the
+ * hymnal, and the filter, in the chosen order. Ties fall back to the title.
  */
 export function selectSongs(entries: readonly SongEntry[], view: LibraryView): SongEntry[] {
   const byTitle = (a: SongEntry, b: SongEntry) =>
@@ -40,6 +64,7 @@ export function selectSongs(entries: readonly SongEntry[], view: LibraryView): S
 
   return entries
     .filter((entry) => view.filter === 'all' || view.favourites.includes(entry.id))
+    .filter((entry) => view.book === null || bookOf(entry) === view.book)
     .filter((entry) => matches(entry, view.query))
     .sort((a, b) => {
       if (view.sort === 'recent') return openedAt(b) - openedAt(a) || byTitle(a, b);
@@ -49,6 +74,26 @@ export function selectSongs(entries: readonly SongEntry[], view: LibraryView): S
       }
       return byTitle(a, b);
     });
+}
+
+/**
+ * The hymnals to offer, each with the songs it holds: the known hymnals first,
+ * whether they have songs or not, then any other code that occurs, then the
+ * songs without a hymnal. The songs keep the order they are given in.
+ */
+export function groupByHymnal(entries: readonly SongEntry[]): HymnalGroup[] {
+  const known = HYMNALS.map((hymnal) => hymnal.code);
+  const others = [...new Set(entries.map(bookOf))]
+    .filter((code) => code !== NO_BOOK && !known.includes(code))
+    .sort();
+  const codes = [...known, ...others];
+  if (entries.some((entry) => bookOf(entry) === NO_BOOK)) codes.push(NO_BOOK);
+
+  return codes.map((code) => ({
+    code,
+    name: code === NO_BOOK ? 'Other songs' : (hymnalName(code) ?? code),
+    songs: entries.filter((entry) => bookOf(entry) === code),
+  }));
 }
 
 /** The song that was opened most recently, if it still exists. */

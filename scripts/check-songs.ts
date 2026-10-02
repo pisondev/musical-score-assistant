@@ -16,6 +16,7 @@ import {
   formatNoteName,
   midiToText,
   RIGHT_HAND_MODES,
+  songReference,
   toneToText,
 } from '../src/core';
 import type {
@@ -154,7 +155,10 @@ function checkFolder(folder: string, dump: boolean): boolean {
   const { meta } = song;
   const reportable = (list: Issue[]) => list.filter((issue) => issue.severity !== 'info');
 
-  console.log(`\n${meta.title}  [${relative(process.cwd(), folder).replaceAll('\\', '/')}]`);
+  const reference = songReference(meta);
+  console.log(
+    `\n${reference ? `${reference}  ` : ''}${meta.title}  [${relative(process.cwd(), folder).replaceAll('\\', '/')}]`,
+  );
   console.log(
     `  melody: ${song.measures.length} measures, 1 = ${formatNoteName(meta.key)}, ` +
       `${meta.time.beats}/${meta.time.unit}, tempo ${meta.tempo}, ` +

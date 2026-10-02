@@ -26,6 +26,7 @@ export {
   composeRightHand,
   RIGHT_HAND_MODES,
 } from './right-hand';
+export { HYMNALS, hymnalName, normalizeBook, songReference, type Hymnal } from './hymnals';
 export { parseSong } from './song';
 export { summarizeSong, type SongSummary } from './summary';
 export { beatTicks, measureTicks, PPQ, quarterNotesPerMinute } from './time';

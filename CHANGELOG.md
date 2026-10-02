@@ -110,7 +110,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The tempo can be typed: click the number, type a value, and press Enter. Escape cancels, the
   arrow keys step by one, and with Shift by ten.
 
+- Hymnals. A song names the hymnal it is taken from with `book:` in its header (`KK` Kidung
+  Keesaan, `PKJ` Pelengkap Kidung Jemaat, `KJ` Kidung Jemaat, `KPJ` Kidung Pasamuwan Jawi) and
+  is cited as "PKJ 184" on its card, in the song menu, and above the sheet. The home page lists
+  the songs in a section per hymnal, a row of buttons narrows the list to one hymnal and shows
+  how many songs each has, and the search finds a song by the code or the name of its hymnal.
+  Other codes get a section of their own; songs without a hymnal are listed under "Other songs".
+
 ### Changed
+
+- The song menu in the top bar is grouped by hymnal and sorted by number.
+- `npm run check` prints the hymnal and number in front of each title.
 
 - In _Melody + fills_ the melody row now stays exactly as printed, and the notes a fill adds
   are shown as a second voice: a row marked `+` below the melody on the numbered sheet, and a

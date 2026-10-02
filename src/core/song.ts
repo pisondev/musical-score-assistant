@@ -1,4 +1,5 @@
 import { parseChord } from './chord';
+import { normalizeBook } from './hymnals';
 import { KEYBOARD_LOWEST } from './keyboard';
 import { parseNotationLine, type RawMeasure } from './notation';
 import { lowestAtOrAbove, MAJOR_SCALE, parseNoteName, pitchClass } from './notes';
@@ -131,6 +132,7 @@ function readHeader(header: Header, issues: Issue[]): { meta: SongMeta; octave: 
 
   const meta: SongMeta = {
     title: get('title') ?? 'Untitled',
+    book: get('book') ? normalizeBook(get('book')!) : undefined,
     number: get('number'),
     composer: get('composer'),
     lyricist: get('lyricist'),
@@ -145,6 +147,7 @@ function readHeader(header: Header, issues: Issue[]): { meta: SongMeta; octave: 
 
 const HEADER_NAMES = new Set([
   'title',
+  'book',
   'number',
   'composer',
   'lyricist',

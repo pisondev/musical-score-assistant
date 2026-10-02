@@ -133,6 +133,9 @@ export interface Measure {
 
 export interface SongMeta {
   title: string;
+  /** Code of the hymnal the song is taken from, such as "KK" or "PKJ". */
+  book?: string;
+  /** Number of the song in that hymnal. */
   number?: string;
   composer?: string;
   lyricist?: string;
