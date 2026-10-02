@@ -23,3 +23,26 @@ These rules apply to every change in this repository.
   `refactor:`), written in the imperative mood.
 - Hooks are enabled with `git config core.hooksPath .githooks`; `npm install` does this
   automatically.
+
+## Project guide
+
+A static web app that displays and plays numbered-notation piano scores with a choice of
+left-hand arrangements. The app never generates music: songs and arrangements are files under
+`songs/`, written in the editor.
+
+- Overview and commands: `README.md`
+- File formats (`song.txt`, `arrangements.json`, left-hand notation): `docs/song-format.md`
+- Code structure: `docs/architecture.md`
+- Purpose, workflow, and planned work: `docs/roadmap.md`
+- Adding a song from a photo of a score: the `new-song` skill in `.claude/skills/new-song/`
+
+Things to keep in mind:
+
+- `src/core` must stay free of browser and React code; the checker and the tests run it in Node.
+- `songs/private/` is git-ignored. Copyrighted songs and scans of scores go there and are never
+  committed, because the repository is public.
+- After writing or changing any song file, run `npm run check -- <folder> --dump` and resolve every
+  error and warning before handing the song over.
+- The player this tool serves reads numbered notation, plays as a hobby, and has so far used one
+  pattern everywhere: root, fifth, octave (`1 5 1'` in three-four, `1 5 1' 5` in four-four).
+  Suggestions should be playable after a short practice session and explain what is new.
