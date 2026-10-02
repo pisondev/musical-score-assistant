@@ -58,6 +58,11 @@ Things to keep in mind:
 - **Write for a 61-key keyboard** (C2 to C7), not a full piano: no left-hand note below C2.
 - **Every song names its hymnal.** The header carries `book:` (`KK`, `PKJ`, `KJ`, `KPJ`) and
   `number:`, and the folder is named `<book>-<number>-<title>` in lower case.
+- **Read the player's notes before revising a song.** The player writes notes on measures in
+  the app; they are stored in `notes.json` in the folder of the song (git-ignored, format in
+  `docs/song-format.md`). Each note names the measure and the arrangement it was written
+  about. Act on them, say which notes were handled and how, and leave the file itself to the
+  player: do not delete or rewrite notes unless asked.
 - After writing or changing any song file, run `npm run check -- <folder> --dump` and resolve every
   error and warning before handing the song over.
 - The player this tool serves reads numbered notation, plays as a hobby, and has so far used one

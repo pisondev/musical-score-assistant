@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, type MouseEvent } from 'react';
-import type { Performance, PerformanceSection, SlotSpan } from '../core';
+import { useEffect, useLayoutEffect, useMemo, useRef, type MouseEvent } from 'react';
+import { measureNames, type Performance, type PerformanceSection, type SlotSpan } from '../core';
 import { measureElementId, toMei } from '../core/mei';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
+import { PencilIcon } from './icons';
 import { keepInView } from './keep-in-view';
 import { SectionHeading } from './SectionHeading';
 import { useElementWidth } from './useElementWidth';
@@ -26,6 +27,10 @@ interface StaffSheetProps {
   showDynamics: boolean;
   /** Lays the score out for paper instead of the window. */
   printing: boolean;
+  /** Indexes of the measures the player has written notes on. */
+  noted: ReadonlySet<number>;
+  /** Opens the notes of the measure at an index. */
+  onOpenNotes: (index: number) => void;
 }
 
 interface RenderedSection {
@@ -37,7 +42,14 @@ interface RenderedSection {
 const NO_SPANS: SlotSpan[] = [];
 
 /** The score on a grand staff: melody in the treble clef, left hand in the bass clef. */
-export function StaffSheet({ performance, showLyrics, showDynamics, printing }: StaffSheetProps) {
+export function StaffSheet({
+  performance,
+  showLyrics,
+  showDynamics,
+  printing,
+  noted,
+  onOpenNotes,
+}: StaffSheetProps) {
   const { song, arrangement, sections: parts } = performance;
   const container = useRef<HTMLDivElement>(null);
   const measuredWidth = useElementWidth(container);
@@ -101,6 +113,24 @@ export function StaffSheet({ performance, showLyrics, showDynamics, printing }: 
     return () => element.classList.remove(CURRENT_CLASS);
   }, [currentMeasure, active, status, sections]);
 
+  // The engraving is one image per section, so the marks of measures with notes are laid
+  // over it: each is moved to the top left corner of its measure once the image is there.
+  const names = useMemo(() => measureNames(performance), [performance]);
+  useLayoutEffect(() => {
+    if (!sections) return;
+    for (const mark of container.current?.querySelectorAll<HTMLElement>('.staff-view__note') ??
+      []) {
+      const block = mark.parentElement;
+      const measure = document.getElementById(measureElementId(Number(mark.dataset.measure)));
+      mark.hidden = !block || !measure;
+      if (!block || !measure) continue;
+      const origin = block.getBoundingClientRect();
+      const box = measure.getBoundingClientRect();
+      mark.style.left = `${box.left - origin.left}px`;
+      mark.style.top = `${box.top - origin.top}px`;
+    }
+  }, [sections, noted]);
+
   const seek = (event: MouseEvent<HTMLDivElement>) => {
     const measure = (event.target as Element).closest('g.measure');
     const match = measure ? MEASURE_ID.exec(measure.id) : null;
@@ -126,12 +156,29 @@ export function StaffSheet({ performance, showLyrics, showDynamics, printing }: 
           aria-label={section.title}
         >
           {sections.length > 1 && <SectionHeading section={section} />}
-          <div
-            className="staff-view__music"
-            onClick={seek}
-            // The engraver returns a complete SVG document built from the song files.
-            dangerouslySetInnerHTML={{ __html: svg }}
-          />
+          <div className="staff-view__block">
+            <div
+              className="staff-view__music"
+              onClick={seek}
+              // The engraver returns a complete SVG document built from the song files.
+              dangerouslySetInnerHTML={{ __html: svg }}
+            />
+            {[...noted]
+              .filter((index) => index >= section.start && index < section.start + section.count)
+              .map((index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className="measure__note staff-view__note"
+                  data-measure={index}
+                  title="Your notes on this measure"
+                  aria-label={`Notes on ${names[index]?.long ?? 'this measure'}`}
+                  onClick={() => onOpenNotes(index)}
+                >
+                  <PencilIcon width={11} height={11} />
+                </button>
+              ))}
+          </div>
         </section>
       ))}
     </div>

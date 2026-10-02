@@ -14,6 +14,8 @@ export {
 export { formatChordSymbol, normalizeChordSymbol, parseChord, type Chord } from './chord';
 export { DynamicsTimeline, velocityToGain, type Hairpin } from './dynamics';
 export { findGaps, type Gap } from './gaps';
+export { noteContext, notesAt, noteTarget, type NoteTarget } from './measure-notes';
+export { readNotes, sortNotes, type MeasureNote, type NoteContext } from './notes-file';
 export { KEYBOARD_HIGHEST, KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard';
 export { exportFileName, toMidiFile, type MidiOptions } from './midi';
 export { formatNoteName, midiToText, noteNameToText, toneToText } from './notes';

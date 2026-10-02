@@ -263,6 +263,11 @@ Tell the user:
 - what the bridge, the key lift, and each ending do, and that **Repeat** plays the song a
   second time a half or whole step higher;
 - that the dynamics, the written introductions, the bridge, the key lift, the endings, and the
-  right-hand parts are your own suggestions.
+  right-hand parts are your own suggestions;
+- that a right click on a measure (a long press on a phone) takes a note on it, and that those
+  notes are read when the song is revised.
+
+When the song is revised later, read `notes.json` in its folder first; each note names the
+measure and the arrangement it is about.
 
 Do not commit or push unless the user asks.

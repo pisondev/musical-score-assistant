@@ -128,6 +128,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A menu for every measure, opened with a right click, or with a long press on a phone, on
   the numbered sheet and on the staff alike: play from here, loop this measure, extend the
   loop to here, and switch the loop off.
+- Notes on measures. **Write a note…** in the menu of a measure opens a dialog for free text:
+  a correction, something to change, something that works. A note is stored with the left
+  hand, the right-hand mode, the introduction, the ending, and the key that were on the sheet.
+  Measures with notes carry a pencil mark, and the guide lists all notes of the song. With
+  the development or the preview server running, notes are written to `notes.json` in the
+  folder of the song (git-ignored), where they can be read when the song is revised; without
+  that server they stay in the browser and move into the folder later.
 - Chords under the melody (`rightHand.harmony` in `arrangements.json`). In _Melody_ and in
   _Melody + fills_ the right hand plays chord notes under the melody on the downbeats, the long
   notes, and the starts of phrases, taken from the chords of the selected left hand; long

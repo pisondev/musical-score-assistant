@@ -12,6 +12,7 @@ songs/
       song.txt
       arrangements.json
       source.jpg         scan or photo of the printed score (never committed)
+      notes.json         the player's notes on measures, written by the app (never committed)
 ```
 
 The app and `npm run check` pick up every folder that contains a `song.txt`. The name of the
@@ -542,6 +543,57 @@ because numbered notation is relative to "1".
 
 The same files also drive the staff-notation view: the app converts the slots to note values,
 ties, beams, and accidentals on a grand staff. Nothing extra has to be written for it.
+
+## `notes.json`
+
+The player's notes on single measures. The app writes this file (through the development
+server) when a note is saved from the menu of a measure, and removes it when the last note is
+deleted. It is git-ignored in every song folder. Read it before revising a song: it says what
+the player wants corrected, changed, or kept.
+
+```json
+{
+  "notes": [
+    {
+      "id": "3f1c2a9e-6b7d-4e0a-9c1f-2d5b8a7e4c10",
+      "part": "song",
+      "measure": 12,
+      "where": "Measure 12",
+      "text": "The fill here is too busy; try something simpler.",
+      "context": {
+        "leftHand": "gospel",
+        "leftHandName": "Gospel walk-ups",
+        "rightHand": "fills",
+        "chords": true,
+        "intro": "last-phrase",
+        "ending": "amen",
+        "lift": 0,
+        "key": "A"
+      },
+      "createdAt": "2026-10-03T08:15:00.000Z",
+      "updatedAt": "2026-10-03T08:15:00.000Z"
+    }
+  ]
+}
+```
+
+| Field       | Meaning                                                                                                                                                                                                                             |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `part`      | `song`, `intro`, `interlude`, or `ending`: the stretch the measure belongs to                                                                                                                                                       |
+| `measure`   | In the song, the printed measure number (`0` for the pickup). Elsewhere, the position within the passage, from 1                                                                                                                    |
+| `passage`   | Outside the song: the id of the introduction (for `intro` and `interlude`) or of the ending                                                                                                                                         |
+| `where`     | The same place in words, for reading the file without the app                                                                                                                                                                       |
+| `text`      | What the player wrote, in their own language                                                                                                                                                                                        |
+| `context`   | What was on the sheet: the arrangement (`leftHand`, `leftHandName`), the right-hand mode, whether the chords under the melody were on, the introduction, the ending, the lift of the repeat in half steps, and the key that sounded |
+| `createdAt` | When the note was written; `updatedAt` when it was last changed                                                                                                                                                                     |
+
+A note is about what its `context` names. A remark on measure 12 written with the gospel left
+hand and _Melody + fills_ is about that left hand and that right-hand part, not about measure
+12 of every arrangement, unless the text says so (a wrong melody note, for example, concerns
+`song.txt`).
+
+The file can be edited by hand. Entries that are not well formed are dropped the next time the
+app saves.
 
 ## Checking
 

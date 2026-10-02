@@ -17,7 +17,9 @@ compared, and then practised.
 5. The assistant adds the right-hand parts of every arrangement: fills for the gaps, and an
    accompaniment for singers.
 6. The player switches between the versions in the app, listens to the left hand alone and to
-   both hands, and reports what works and what does not.
+   both hands, and writes what works and what does not as notes on the measures concerned.
+7. The assistant reads those notes (`notes.json` in the folder of the song) the next time the
+   song is worked on, and revises the files.
 
 The web app itself never generates music; it displays, plays, and explains.
 
@@ -52,6 +54,7 @@ The web app itself never generates music; it displays, plays, and explains.
   and a compact playback bar.
 - The settings of the score behind one Options button in the top bar.
 - A menu on every measure for looping that spot.
+- Notes on measures, saved in the folder of the song for the next revision.
 - A tempo that can be typed as well as dragged.
 - Fills as a second voice: the melody keeps its long notes on the sheet and in the sound.
 - Validation of range, hand span, low close intervals, slash-chord bass, and melody clashes.
@@ -72,6 +75,5 @@ The web app itself never generates music; it displays, plays, and explains.
 ## Later
 
 - MusicXML export.
-- Written endings and interludes, like the introduction.
 - Different arrangements per verse.
 - Practice with a MIDI keyboard that waits for the right notes.

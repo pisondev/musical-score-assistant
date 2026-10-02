@@ -129,6 +129,15 @@ export function SlidersIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function PencilIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z" />
+      <path d="M14 7.5l3 3" />
+    </Icon>
+  );
+}
+
 export function PrinterIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon {...props}>

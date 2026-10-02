@@ -1,7 +1,9 @@
 # Architecture
 
-The app is a static site. There is no server and no database: songs are files in the repository,
-parsed in the browser.
+The app is a static site. There is no database: songs are files in the repository, parsed in
+the browser. The one thing a page cannot do is write a file, so the development server offers
+a single endpoint that saves the player's notes into the song folders (see
+[`scripts/notes-plugin.ts`](#scriptsnotes-plugints)).
 
 ```
 songs/<song>/song.txt ──────────┐
@@ -36,32 +38,34 @@ One model drives both the page and the sound. The score and the audio are derive
 Pure TypeScript with no browser or React dependencies, so it runs unchanged in the unit tests and
 in the command-line checker.
 
-| File             | Responsibility                                                               |
-| ---------------- | ---------------------------------------------------------------------------- |
-| `types.ts`       | Domain types: `Song`, `Measure`, `Slot`, `Arrangement`, `NoteEvent`, `Issue` |
-| `right-hand.ts`  | Builds the right-hand parts of an arrangement and puts one in place          |
-| `time.ts`        | Tick arithmetic (480 ticks per quarter note)                                 |
-| `notes.ts`       | Note names, pitch classes, and spelling a pitch as a scale degree            |
-| `chord.ts`       | Chord-symbol parsing, extensions, chord degrees, and transposing symbols     |
-| `notation.ts`    | Tokenizer and layout for one line of numbered notation                       |
-| `song.ts`        | `song.txt` parser: header, measures, lyrics, dynamics, pickup detection      |
-| `hymnals.ts`     | The hymnals the library knows by name, and how a song is cited ("PKJ 184")   |
-| `left-hand.ts`   | Resolves chord-relative left-hand notation to pitches                        |
-| `arrangement.ts` | Builds the baseline and the stored arrangements                              |
-| `intro.ts`       | Locates the last phrase of a song                                            |
-| `passage.ts`     | Builds written passages: introductions, the bridge, the key lift, endings    |
-| `dynamics.ts`    | Dynamic levels and hairpins on one timeline; loudness at any tick            |
-| `gaps.ts`        | Finds the places where the melody waits and the left hand must fill          |
-| `keyboard.ts`    | Range of the target instrument, a 61-key keyboard                            |
-| `staff.ts`       | Staff notation for a row of slots: note values, ties, beams, accidentals     |
-| `mei.ts`         | Serializes a performance as MEI for the staff-notation engraver              |
-| `midi.ts`        | Writes a performance as a Standard MIDI File                                 |
-| `transpose.ts`   | Moves a song and an arrangement to another key                               |
-| `performance.ts` | Assembles what is played: intro, song, repeat, ending, key, right-hand part  |
-| `summary.ts`     | Counts what a song offers, for the cards on the home page                    |
-| `validate.ts`    | Playability and harmony checks                                               |
-| `playback.ts`    | Converts a performance to timed note events                                  |
-| `bundle.ts`      | Reads `arrangements.json` and assembles everything for one song              |
+| File               | Responsibility                                                               |
+| ------------------ | ---------------------------------------------------------------------------- |
+| `types.ts`         | Domain types: `Song`, `Measure`, `Slot`, `Arrangement`, `NoteEvent`, `Issue` |
+| `right-hand.ts`    | Builds the right-hand parts of an arrangement and puts one in place          |
+| `time.ts`          | Tick arithmetic (480 ticks per quarter note)                                 |
+| `notes.ts`         | Note names, pitch classes, and spelling a pitch as a scale degree            |
+| `chord.ts`         | Chord-symbol parsing, extensions, chord degrees, and transposing symbols     |
+| `notation.ts`      | Tokenizer and layout for one line of numbered notation                       |
+| `song.ts`          | `song.txt` parser: header, measures, lyrics, dynamics, pickup detection      |
+| `hymnals.ts`       | The hymnals the library knows by name, and how a song is cited ("PKJ 184")   |
+| `left-hand.ts`     | Resolves chord-relative left-hand notation to pitches                        |
+| `arrangement.ts`   | Builds the baseline and the stored arrangements                              |
+| `intro.ts`         | Locates the last phrase of a song                                            |
+| `passage.ts`       | Builds written passages: introductions, the bridge, the key lift, endings    |
+| `dynamics.ts`      | Dynamic levels and hairpins on one timeline; loudness at any tick            |
+| `gaps.ts`          | Finds the places where the melody waits and the left hand must fill          |
+| `keyboard.ts`      | Range of the target instrument, a 61-key keyboard                            |
+| `staff.ts`         | Staff notation for a row of slots: note values, ties, beams, accidentals     |
+| `mei.ts`           | Serializes a performance as MEI for the staff-notation engraver              |
+| `midi.ts`          | Writes a performance as a Standard MIDI File                                 |
+| `transpose.ts`     | Moves a song and an arrangement to another key                               |
+| `performance.ts`   | Assembles what is played: intro, song, repeat, ending, key, right-hand part  |
+| `summary.ts`       | Counts what a song offers, for the cards on the home page                    |
+| `validate.ts`      | Playability and harmony checks                                               |
+| `playback.ts`      | Converts a performance to timed note events                                  |
+| `bundle.ts`        | Reads `arrangements.json` and assembles everything for one song              |
+| `notes-file.ts`    | The player's notes as stored in `notes.json`: reading and sorting them       |
+| `measure-notes.ts` | Where a note belongs in a performance, and what was on the sheet             |
 
 Key ideas:
 
@@ -122,6 +126,12 @@ Key ideas:
   curve of MIDI instruments (`velocityToGain`). The audio engine applies that curve before it
   triggers a note, and the MIDI writer stores the velocity as it is, so the app, the MP3, and a
   MIDI file played by another instrument keep the same distance between soft and loud.
+- **A note belongs to a place, not to a position on the sheet.** `noteTarget` turns the index
+  of a measure in the performance into what the note is about: a printed measure number in the
+  song, or a position within a named introduction or ending. The same note therefore shows in
+  the first time through and in the repeat, survives a change of introduction, and stays
+  readable outside the app ("Measure 12"). What was on the sheet is stored beside it as
+  context, not as part of the place.
 - **Issues, not exceptions.** Parsing never throws on bad input. Problems are collected as issues
   with a severity, a measure, and a source position, and the rest of the song still renders.
 
@@ -181,6 +191,8 @@ for every song, starting from the left hand remembered for it.
 | `usePlayhead`     | Follows the audio clock and highlights the slots being played             |
 | `MeasureMenu`     | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
 | `useMeasureMenu`  | Opens that menu on a right click or a long press, on either notation      |
+| `NoteDialog`      | The notes on one measure: read, write, change, delete                     |
+| `useMeasureNotes` | Loads and saves the notes of a song: in its folder, or in the browser     |
 | `Guide`           | New patterns, practice tips, and per-measure explanations                 |
 | `TransportBar`    | Play, stop, hand mode, tempo, metronome, loop                             |
 | `SongHeader`      | Title, key, time signature, tempo; credits and legend on request          |
@@ -246,6 +258,27 @@ Runs the same engine from the command line and prints the issues for every song,
 right-hand part, and written passage (introduction, bridge, key lift, ending). It is the
 quickest way to verify a transcription or an arrangement before opening the app.
 
+### `scripts/notes-plugin.ts`
+
+A Vite plugin for the development and the preview server. It answers `GET` and `PUT` on
+`/api/notes?song=<id>` by reading and writing `notes.json` next to the `song.txt` of that song,
+which is how notes written in the browser end up as files in the repository folder.
+
+- The id must be the path of a folder that holds a `song.txt`, made of plain names; anything
+  else is answered with 404, so the endpoint cannot write outside the song folders.
+- Whatever arrives is passed through `readNotes`, which keeps well-formed notes only. The file
+  is written in the order of the piece and removed when the last note is deleted.
+- The build has no such endpoint. `useMeasureNotes` notices (the answer is not JSON), keeps the
+  notes in `localStorage`, and hands them to the endpoint the next time it is there.
+
+The notes are not part of the bundle: the app asks for them when a song is opened, so writing
+one never reloads the page.
+
+The plugin is loaded by `vite.config.ts`, so everything it imports becomes part of the
+configuration. That is why the file format lives in `notes-file.ts`, a module that depends on
+nothing but the types, apart from the rest of the engine, and why that chain of imports names
+its files with their extension.
+
 ## Testing
 
 `npm test` runs the Vitest suite in `tests/`:
@@ -260,6 +293,8 @@ quickest way to verify a transcription or an arrangement before opening the app.
 - the MIDI writer, read back byte by byte;
 - sheet layout;
 - the home page: song summaries, search, sorting, favourites, and relative dates;
+- notes on measures: the place a note refers to, reading a file that was edited by hand, and
+  writing, reading back, and removing the file in a temporary folder;
 - every committed song must load without errors or warnings.
 
 The audio engine and the React components are thin layers over the tested core and are verified

@@ -12,10 +12,15 @@ import {
   INTRO_OFF,
   exportFileName,
   measureNames,
+  noteContext,
+  notesAt,
+  noteTarget,
   noteNameToText,
   toMidiFile,
   type EndingChoice,
   type IntroChoice,
+  type MeasureNote,
+  type NoteTarget,
   type Performance,
   type Track,
 } from '../core';
@@ -25,9 +30,10 @@ import { usePlayer, type ScoreReset } from '../store/player';
 import { useSettings } from '../store/settings';
 import { cx } from './classnames';
 import { Guide } from './Guide';
-import { LoopIcon, PlayIcon, PlusIcon } from './icons';
+import { LoopIcon, PencilIcon, PlayIcon, PlusIcon } from './icons';
 import { IssueList } from './IssueList';
 import { MeasureMenu, type MeasureMenuItem } from './MeasureMenu';
+import { NoteDialog } from './NoteDialog';
 import { RIGHT_HAND_NAME } from './right-hand-name';
 import { Sheet } from './Sheet';
 import { SongHeader } from './SongHeader';
@@ -35,6 +41,7 @@ import { StaffSheet } from './StaffSheet';
 import { MAX_TRANSPOSE, Toolbar } from './Toolbar';
 import { TransportBar } from './TransportBar';
 import { useMeasureMenu } from './useMeasureMenu';
+import { useMeasureNotes } from './useMeasureNotes';
 
 const LEVEL_LABEL = { easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' } as const;
 
@@ -249,6 +256,47 @@ export function SongPage({ entry, tools }: SongPageProps) {
   const transposeTo = (value: number) =>
     setSemitones(Math.min(MAX_TRANSPOSE, Math.max(-MAX_TRANSPOSE, value)));
 
+  // The player's notes on measures. A note belongs to a place (measure 12, the second measure
+  // of an introduction), which the sheet may show more than once or not at all.
+  const playerNotes = useMeasureNotes(songId);
+  const [noteTargetOpen, setNoteTargetOpen] = useState<NoteTarget | null>(null);
+  const targets = useMemo(
+    () =>
+      performance.song.measures.map((_, index) =>
+        noteTarget(performance, index, { intro, ending }),
+      ),
+    [performance, intro, ending],
+  );
+  const noted = useMemo(() => {
+    const indexes = new Set<number>();
+    targets.forEach((target, index) => {
+      if (notesAt(playerNotes.notes, target).length > 0) indexes.add(index);
+    });
+    return indexes;
+  }, [targets, playerNotes.notes]);
+  const openNotes = useCallback((index: number) => setNoteTargetOpen(targets[index]), [targets]);
+  const openNote = useCallback((note: MeasureNote) => {
+    const { part, measure, passage, where } = note;
+    setNoteTargetOpen({ part, measure, passage, where });
+  }, []);
+  const saveNote = (text: string, id?: string) => {
+    if (!noteTargetOpen) return;
+    const now = new Date().toISOString();
+    const existing = playerNotes.notes.find((note) => note.id === id);
+    void playerNotes.save(
+      existing
+        ? { ...existing, text, updatedAt: now }
+        : {
+            id: globalThis.crypto?.randomUUID?.() ?? `note-${Date.now()}`,
+            ...noteTargetOpen,
+            text,
+            context: noteContext(performance, { intro, ending, lift }),
+            createdAt: now,
+            updatedAt: now,
+          },
+    );
+  };
+
   // A right click or a long press on a measure opens its menu.
   const measureMenu = useMeasureMenu();
   const loop = usePlayer((state) => state.loop);
@@ -301,8 +349,16 @@ export function SongPage({ entry, tools }: SongPageProps) {
         onSelect: () => player.setLoop({ enabled: false }),
       });
     }
+    const written = notesAt(playerNotes.notes, targets[index]).length;
+    items.push({
+      id: 'note',
+      label: written > 0 ? `Notes (${written})…` : 'Write a note…',
+      hint: 'A correction, something you like, something to change. It is saved with the song.',
+      icon: <PencilIcon width={16} height={16} />,
+      onSelect: () => openNotes(index),
+    });
     return items;
-  }, [menuTarget, names, loop]);
+  }, [menuTarget, names, loop, playerNotes.notes, targets, openNotes]);
 
   return (
     <>
@@ -347,6 +403,8 @@ export function SongPage({ entry, tools }: SongPageProps) {
                 showLyrics={showLyrics}
                 showDynamics={showDynamics}
                 printing={printing}
+                noted={noted}
+                onOpenNotes={openNotes}
               />
             ) : (
               <Sheet
@@ -355,12 +413,18 @@ export function SongPage({ entry, tools }: SongPageProps) {
                 showLyrics={showLyrics}
                 showDynamics={showDynamics}
                 printing={printing}
+                noted={noted}
+                onOpenNotes={openNotes}
               />
             )}
           </section>
           {guideOpen && (
             <section className="card card--guide">
-              <Guide performance={performance} />
+              <Guide
+                performance={performance}
+                playerNotes={playerNotes.notes}
+                onOpenNote={openNote}
+              />
             </section>
           )}
         </div>
@@ -372,6 +436,17 @@ export function SongPage({ entry, tools }: SongPageProps) {
           y={menuTarget.y}
           items={menuItems}
           onClose={measureMenu.close}
+        />
+      )}
+      {noteTargetOpen && (
+        <NoteDialog
+          target={noteTargetOpen}
+          notes={notesAt(playerNotes.notes, noteTargetOpen)}
+          home={playerNotes.home}
+          songId={songId}
+          onSave={saveNote}
+          onDelete={(id) => void playerNotes.remove(id)}
+          onClose={() => setNoteTargetOpen(null)}
         />
       )}
       <TransportBar song={performance.song} names={names} />

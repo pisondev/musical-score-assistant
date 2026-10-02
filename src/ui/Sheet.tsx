@@ -17,6 +17,7 @@ import {
 } from '../core';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
+import { PencilIcon } from './icons';
 import { keepInView } from './keep-in-view';
 import { SectionHeading } from './SectionHeading';
 import {
@@ -60,6 +61,10 @@ interface SheetProps {
   showDynamics: boolean;
   /** Lays the score out for paper instead of the window. */
   printing: boolean;
+  /** Indexes of the measures the player has written notes on. */
+  noted: ReadonlySet<number>;
+  /** Opens the notes of a measure. */
+  onOpenNotes: (index: number) => void;
 }
 
 /** A piece of a hairpin that falls inside one measure. */
@@ -325,7 +330,10 @@ interface MeasureViewProps {
   showFills: boolean;
   showLyrics: boolean;
   showDynamics: boolean;
+  /** True when the player has written a note on this measure. */
+  hasNotes: boolean;
   onSelect: (index: number) => void;
+  onOpenNotes: (index: number) => void;
 }
 
 const MeasureView = memo(function MeasureView({
@@ -343,7 +351,9 @@ const MeasureView = memo(function MeasureView({
   showFills,
   showLyrics,
   showDynamics,
+  hasNotes,
   onSelect,
+  onOpenNotes,
 }: MeasureViewProps) {
   const explanation = [part.note, part.rightNote].filter(Boolean).join(' ');
   return (
@@ -373,6 +383,20 @@ const MeasureView = memo(function MeasureView({
         <span className="measure__number">{label}</span>
         {measure.section && <span className="measure__section">{measure.section}</span>}
         {explanation && <span className="measure__flag" title={explanation} />}
+        {hasNotes && (
+          <button
+            type="button"
+            className="measure__note"
+            title="Your notes on this measure"
+            aria-label={`Notes on ${name}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenNotes(measure.index);
+            }}
+          >
+            <PencilIcon width={11} height={11} />
+          </button>
+        )}
       </div>
       <div className="track track--chords">
         <ChordRow chords={part.chords} length={measure.length} />
@@ -494,7 +518,15 @@ const NO_HAIRPINS: HairpinPiece[] = [];
  * below. Fills add a second right-hand row under the melody where they play,
  * and an accompaniment gets the sung melody as a small row on top.
  */
-export function Sheet({ bundle, performance, showLyrics, showDynamics, printing }: SheetProps) {
+export function Sheet({
+  bundle,
+  performance,
+  showLyrics,
+  showDynamics,
+  printing,
+  noted,
+  onOpenNotes,
+}: SheetProps) {
   const { song, arrangement, sections: parts } = performance;
   const container = useRef<HTMLDivElement>(null);
   const measuredWidth = useElementWidth(container);
@@ -661,7 +693,9 @@ export function Sheet({ bundle, performance, showLyrics, showDynamics, printing 
                 showFills={showFills}
                 showLyrics={lyrics}
                 showDynamics={dynamics}
+                hasNotes={noted.has(index)}
                 onSelect={seekToMeasure}
+                onOpenNotes={onOpenNotes}
               />
             );
           })}

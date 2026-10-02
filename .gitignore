@@ -19,4 +19,5 @@ Thumbs.db
 # copyrighted songs, scanned score pages, and local notes.
 songs/private/
 songs/**/source.*
+songs/**/notes.json
 .local/

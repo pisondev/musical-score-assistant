@@ -16,6 +16,8 @@ back so each idea can be heard before it is practised.
 
 ![The interlude that lifts the key before the song is repeated a half step higher](docs/images/repeat.png)
 
+![The notes on one measure: a note that was written earlier, and the field for a new one](docs/images/notes.png)
+
 ## What it does
 
 - **A home page for the library.** Every song has a card with its key, meter, tempo, styles, and
@@ -67,6 +69,9 @@ back so each idea can be heard before it is practised.
   looping a range of measures, and switching arrangements, keys, or hands while the music keeps
   playing. A right click on a measure (a long press on a phone) locks the playback to that
   measure and repeats it.
+- **Notes on measures.** The same menu takes a note on a measure: a correction, something to
+  change, something that works. Notes are saved in the folder of the song together with the
+  arrangement that was on the sheet, so they are at hand when the song is revised.
 - **Controls that stay out of the way.** Everything that decides what is on the sheet sits
   behind one **Options** button in the top bar: a short list of settings with their current
   values, each of which opens to show its choices.
@@ -127,7 +132,7 @@ changed in one go.
 | Beside it         | What it does                                                                                                  |
 | ----------------- | ------------------------------------------------------------------------------------------------------------- |
 | **1 2 3 / Staff** | Switches between numbered notation and staff notation                                                         |
-| **Guide**         | Opens the panel that explains the arrangement: patterns, tips, measure notes                                  |
+| **Guide**         | Opens the panel that explains the arrangement: patterns, tips, what changed per measure, and your own notes   |
 | **Print / PDF**   | Opens the print dialog; choose "Save as PDF" as the destination for a file                                    |
 | **Download**      | Saves what is on the sheet as MIDI (`.mid`) or MP3, at the current tempo, with what is switched on in the bar |
 
@@ -153,6 +158,19 @@ on that spot:
 | **Loop this measure**       | Locks the playback to this one measure and repeats it                   |
 | **Extend the loop to here** | Widens a loop that is on, so it runs from its first measure to this one |
 | **Switch the loop off**     | Plays straight through again                                            |
+| **Write a note…**           | Opens the notes on this measure: write one, change one, delete one      |
+
+**Notes stay with the song.** A note is free text: a wrong pitch, a fill that is too busy, a
+chord worth keeping. It is stored with what was on the sheet when it was written (left hand,
+right-hand mode, introduction, ending, key). A measure with a note carries a small pencil next
+to its number, which opens the notes again, and the guide lists all notes of the song under
+**Your notes**. A note on a measure of the song also shows in the repeat; a note on an
+introduction or an ending belongs to that introduction or ending.
+
+With the app running from `npm run dev` (or `npm run preview`), notes are written to
+`songs/<song>/notes.json`, a git-ignored file that can be read in the editor whenever the song
+is worked on again. Opened from any other web server, the app keeps the notes in the browser
+and moves them into the folder the next time it runs from the development server.
 
 A dot next to a measure number means the guide explains that measure. Chords on a light-blue
 background differ from the printed score. The **Voice** button appears while the right hand
@@ -196,12 +214,12 @@ included, so publish a build only if it contains songs you are allowed to share.
 ## Project structure
 
 ```
-songs/              song folders (song.txt, arrangements.json)
+songs/              song folders (song.txt, arrangements.json, and notes.json for your notes)
 src/core/           music engine: parsing, chords, arrangements, validation (no browser code)
 src/audio/          playback engine built on Tone.js
 src/store/          player state, display settings, and what was opened
 src/ui/             React components: home page, song page, score, and controls
-scripts/            command-line tools
+scripts/            command-line tools, and the server plugin that saves notes
 tests/              unit tests
 docs/               format reference, architecture, roadmap
 public/samples/     piano samples

@@ -1,10 +1,20 @@
-import { measureNames, type MeasurePart, type Performance } from '../core';
+import {
+  measureNames,
+  type MeasureNote as PlayerNote,
+  type MeasurePart,
+  type Performance,
+} from '../core';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
+import { noteByline } from './note-byline';
 import { RIGHT_HAND_NAME } from './right-hand-name';
 
 interface GuideProps {
   performance: Performance;
+  /** Every note the player has written on this song. */
+  playerNotes: PlayerNote[];
+  /** Opens the notes of the place a note refers to. */
+  onOpenNote: (note: PlayerNote) => void;
 }
 
 const LEVEL_LABEL = { easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' } as const;
@@ -25,7 +35,7 @@ const PART_LETTER: Record<MeasurePart, string> = {
 };
 
 /** Explains the selected arrangement: what is new, how to practise it, and why each measure changed. */
-export function Guide({ performance }: GuideProps) {
+export function Guide({ performance, playerNotes, onOpenNote }: GuideProps) {
   const { song, arrangement, introMeasures, rightHand } = performance;
   const rightPart = rightHand === 'melody' ? undefined : arrangement.rightHand[rightHand];
   const chordsPart = performance.chords ? arrangement.rightHand.harmony : undefined;
@@ -142,6 +152,34 @@ export function Guide({ performance }: GuideProps) {
               </li>
             ))}
           </ol>
+        </section>
+      )}
+
+      {playerNotes.length > 0 && (
+        <section>
+          <h3>Your notes</h3>
+          <ol className="measure-notes">
+            {playerNotes.map((note) => (
+              <li key={note.id}>
+                <button type="button" onClick={() => onOpenNote(note)}>
+                  <span className="measure-notes__number">
+                    {note.part === 'song'
+                      ? note.measure || '–'
+                      : PART_LETTER[note.part] + note.measure}
+                  </span>
+                  <span className="measure-notes__text">
+                    <span>{note.text}</span>
+                    <span>
+                      <em>{noteByline(note)}</em>
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+          <p className="guide__footnote">
+            Right-click a measure, or press and hold it on a phone, to write a note on it.
+          </p>
         </section>
       )}
 

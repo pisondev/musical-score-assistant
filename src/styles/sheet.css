@@ -125,6 +125,25 @@
   background: var(--sky);
 }
 
+/* Marks a measure the player has written a note on; a click opens the notes. */
+.measure__note {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  margin: -3px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.measure__note:hover {
+  color: #fff;
+  background: #d97706;
+}
+
 .measure__staff {
   border-right: 1.5px solid var(--bar);
   border-radius: 0;
@@ -566,6 +585,16 @@
   color: var(--ink);
 }
 
+/* The marks of measures with notes lie over the engraving. */
+.staff-view__block {
+  position: relative;
+}
+
+.staff-view__note {
+  position: absolute;
+  margin: -15px 0 0 1px;
+}
+
 .staff-view__status {
   padding: 28px 22px;
   color: var(--muted);
@@ -739,7 +768,8 @@
     border-color: #000;
   }
 
-  .measure__flag {
+  .measure__flag,
+  .measure__note {
     display: none;
   }
 
