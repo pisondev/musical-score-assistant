@@ -215,15 +215,13 @@
 }
 
 .track--voice .tone__dots i {
-  width: 2.5px;
-  height: 2.5px;
+  border-width: 1.25px;
 }
 
 .track--voice .glyph--hold::after {
-  width: 3px;
-  height: 3px;
   margin-left: -1.5px;
-  background: currentColor;
+  border-width: 1.5px;
+  border-color: currentColor;
   opacity: 0.6;
 }
 
@@ -360,12 +358,16 @@
   padding-top: 1px;
 }
 
+/*
+ * Dots, strokes, and beams are drawn with borders, never with a background colour: browsers
+ * leave backgrounds out when they print, and the score would lose every one of these marks.
+ */
 .tone__dots i {
   display: block;
-  width: 3px;
-  height: 3px;
+  width: 0;
+  height: 0;
+  border: 1.5px solid currentColor;
   border-radius: 50%;
-  background: currentColor;
 }
 
 .tone__digit,
@@ -387,10 +389,9 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 1.6px;
+  width: 0;
   height: 125%;
-  border-radius: 1px;
-  background: currentColor;
+  border-left: 1.6px solid currentColor;
   transform: translate(-50%, -50%) rotate(34deg);
 }
 
@@ -414,11 +415,11 @@
   position: absolute;
   left: 50%;
   bottom: 3px;
-  width: 4px;
-  height: 4px;
+  width: 0;
+  height: 0;
   margin-left: -2px;
+  border: 2px solid #7f93b3;
   border-radius: 50%;
-  background: #7f93b3;
 }
 
 /* Beams sit above the tallest stack of their beat. */
@@ -427,9 +428,8 @@
   left: 0;
   bottom: calc(var(--beam-cells, 1) * var(--cell-height) + 2px);
   width: var(--digit-width);
-  height: 1.6px;
-  border-radius: 1px;
-  background: currentColor;
+  height: 0;
+  border-top: 1.6px solid currentColor;
 }
 
 .beam--join {
@@ -486,7 +486,7 @@
 }
 
 .slot--hold.is-active .glyph--hold::after {
-  background: #fff;
+  border-color: #fff;
 }
 
 .track--right .slot--hold.is-active .slot__body,
@@ -592,8 +592,13 @@
 }
 
 .sheet--print .tone__dots i {
-  width: 2.5px;
-  height: 2.5px;
+  border-width: 1.25px;
+}
+
+/* On paper a hold is the size of a full stop, as in the printed hymnals. */
+.sheet--print .glyph--hold::after {
+  margin-left: -1.5px;
+  border-width: 1.5px;
 }
 
 .sheet--print .dynamic {
@@ -640,12 +645,14 @@
     color: #000;
   }
 
-  .track--voice {
-    color: #444;
-  }
-
+  .track--right,
+  .track--left,
   .track--fills {
     color: #000;
+  }
+
+  .track--voice {
+    color: #444;
   }
 
   .chord--changed {
@@ -667,7 +674,17 @@
   }
 
   .glyph--hold::after {
-    background: #000;
+    border-color: #000;
+  }
+
+  .track--voice .glyph--hold::after {
+    border-color: currentColor;
+  }
+
+  .measure--final .measure__staff,
+  .measure--repeat-end .measure__staff,
+  .measure--repeat-start .measure__staff {
+    border-color: #000;
   }
 
   .measure__flag {

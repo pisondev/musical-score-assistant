@@ -1934,11 +1934,15 @@ a.button {
     font-size: 20px;
   }
 
-  .song-header__number,
-  .badge--private {
+  .song-header__number {
     padding: 0;
     color: #000;
     background: none;
+  }
+
+  /* Where the file is stored is of no use on paper. */
+  .badge--private {
+    display: none;
   }
 
   .song-header__facts {

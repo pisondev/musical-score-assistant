@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseSong } from '../src/core/song';
 import type { Slot } from '../src/core/types';
-import { layOutSystems, measureWeight } from '../src/ui/sheet-layout';
+import { labelRowWidth, layOutSystems, measureWeight } from '../src/ui/sheet-layout';
 
 const BEAT = 480;
 
@@ -36,6 +36,47 @@ describe('measureWeight', () => {
       beams: 1,
     }));
     expect(weightOf(1, [busyLeft])).toBe(6);
+  });
+});
+
+describe('labelRowWidth', () => {
+  const MEASURE = 4 * BEAT;
+
+  it('asks for nothing when no label has a neighbour', () => {
+    expect(labelRowWidth(MEASURE, [], 2)).toBe(0);
+    expect(labelRowWidth(MEASURE, [{ start: 0, width: 80 }], 2)).toBe(0);
+  });
+
+  it('scales the room a label needs by how soon the next one follows', () => {
+    // A label of 20 pixels with a beat to itself needs a quarter of the measure to be 22 pixels.
+    const beats = [0, 1, 2, 3].map((beat) => ({ start: beat * BEAT, width: 20 }));
+    expect(labelRowWidth(MEASURE, beats, 2)).toBe(88);
+    // The same label followed half a beat later needs twice the width.
+    const eighths = [
+      { start: 0, width: 20 },
+      { start: BEAT / 2, width: 20 },
+    ];
+    expect(labelRowWidth(MEASURE, eighths, 2)).toBe(176);
+  });
+
+  it('is decided by the tightest pair, in whatever order the labels are given', () => {
+    const labels = [
+      { start: 3 * BEAT, width: 10 },
+      { start: 0, width: 10 },
+      { start: 3.5 * BEAT, width: 30 },
+      { start: 2.5 * BEAT, width: 28 },
+    ];
+    // 28 + 2 pixels in half a beat; the last label has no neighbour to run into.
+    expect(labelRowWidth(MEASURE, labels, 2)).toBe(240);
+  });
+
+  it('ignores labels that share a position', () => {
+    const labels = [
+      { start: 0, width: 40 },
+      { start: 0, width: 40 },
+      { start: 2 * BEAT, width: 10 },
+    ];
+    expect(labelRowWidth(MEASURE, labels, 0)).toBe(80);
   });
 });
 

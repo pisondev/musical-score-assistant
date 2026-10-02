@@ -36,6 +36,32 @@ export function measureWeight(length: number, beat: number, rows: Slot[][]): num
   return weight;
 }
 
+/** A piece of text on the sheet, such as a syllable or a chord symbol. */
+export interface Label {
+  /** Where the label begins, in ticks from the start of the measure. */
+  start: number;
+  /** Width of the text, in pixels. */
+  width: number;
+}
+
+/**
+ * Width, in pixels, that a row of labels needs so that none runs into the
+ * next. A label sits where its note or chord begins, and positions follow
+ * time, so two labels can only be pulled apart by widening the whole measure:
+ * a long syllable on an eighth note asks for more room than the notes do.
+ * The last label may run past the barline, where the margins leave room.
+ */
+export function labelRowWidth(length: number, labels: Label[], gap: number): number {
+  const row = [...labels].sort((first, second) => first.start - second.start);
+  let width = 0;
+  for (let index = 0; index + 1 < row.length; index += 1) {
+    const distance = row[index + 1].start - row[index].start;
+    if (distance <= 0) continue;
+    width = Math.max(width, ((row[index].width + gap) * length) / distance);
+  }
+  return width;
+}
+
 /**
  * Breaks a run of measures into systems. `indexes` lists the measures in
  * order and `weights` is addressed by those indexes. A system takes measures

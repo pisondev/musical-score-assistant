@@ -17,7 +17,13 @@ import {
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
 import { keepInView } from './keep-in-view';
-import { layOutSystems, measureWeight, type SystemLayout } from './sheet-layout';
+import {
+  labelRowWidth,
+  layOutSystems,
+  measureWeight,
+  type Label,
+  type SystemLayout,
+} from './sheet-layout';
 import { useElementWidth } from './useElementWidth';
 import { slotElementId, usePlayhead } from './usePlayhead';
 
@@ -29,6 +35,21 @@ const LABEL_WIDTH = 22;
 /** Layout width used for paper: A4 portrait inside its margins. */
 const PRINT_WIDTH = 700;
 const PRINT_UNIT_WIDTH = 28;
+/** Left and right margin of a track inside its measure, together (`.track` in sheet.css). */
+const TRACK_MARGIN = 22;
+/**
+ * Sizes of the text on the sheet, for estimating how much room labels need:
+ * the font sizes of sheet.css (`--lyric-size`, `--chord-size`) on the screen
+ * and on paper, and the width of an average character as a share of them.
+ */
+const TEXT = {
+  screen: { lyric: 11, chord: 12.5, changedChord: 10 },
+  print: { lyric: 9, chord: 10.5, changedChord: 2 },
+  lyricCharacter: 0.58,
+  chordCharacter: 0.66,
+  lyricGap: 2,
+  chordGap: 5,
+};
 
 interface SheetProps {
   bundle: SongBundle;
@@ -98,6 +119,16 @@ function rowsOf(arrangement: Arrangement, index: number): Slot[][] {
     if (!written) continue;
     rows.push(written.slots);
     if (written.left) rows.push(written.left.slots);
+  }
+  return rows;
+}
+
+/** Every row of chord symbols that an arrangement may put above one song measure. */
+function chordRowsOf(arrangement: Arrangement, index: number): ChordMark[][] {
+  const rows = [arrangement.measures[index].chords];
+  for (const part of Object.values(arrangement.rightHand)) {
+    const left = part.measures[index]?.left;
+    if (left) rows.push(left.chords);
   }
   return rows;
 }
@@ -459,22 +490,55 @@ export function Sheet({
   const unitWidth = printing ? PRINT_UNIT_WIDTH : MIN_UNIT_WIDTH;
 
   // Song measures leave room for every arrangement and every right-hand part,
-  // so the layout stays put when the player switches between them.
+  // so the layout stays put when the player switches between them. A measure
+  // is as wide as its notes need, or wider when its syllables or chord
+  // symbols would otherwise run into each other.
   const weights = useMemo(() => {
     const beat = beatTicks(song.meta.time);
+    const size = printing ? TEXT.print : TEXT.screen;
+    const lyricLabels = (slots: Slot[]): Label[] =>
+      slots.flatMap((slot) =>
+        slot.lyric
+          ? [{ start: slot.start, width: slot.lyric.length * size.lyric * TEXT.lyricCharacter }]
+          : [],
+      );
+    const chordLabels = (chords: ChordMark[]): Label[] =>
+      chords.map((chord) => ({
+        start: chord.start,
+        width:
+          formatChordSymbol(chord.symbol).length * size.chord * TEXT.chordCharacter +
+          (chord.changed ? size.changedChord : 0),
+      }));
+
     return song.measures.map((measure, index) => {
-      const rows =
-        index < introMeasures
-          ? [measure.slots, arrangement.measures[index].slots]
-          : [
-              bundle.song.measures[index - introMeasures].slots,
-              ...bundle.arrangements.flatMap((candidate) =>
-                rowsOf(candidate, index - introMeasures),
-              ),
-            ];
-      return measureWeight(measure.length, beat, rows);
+      const own = arrangement.measures[index];
+      const inSong = index >= introMeasures;
+      const rows = inSong
+        ? [
+            bundle.song.measures[index - introMeasures].slots,
+            ...bundle.arrangements.flatMap((candidate) => rowsOf(candidate, index - introMeasures)),
+          ]
+        : [measure.slots, own.slots];
+      const chordRows = inSong
+        ? [
+            own.chords,
+            ...bundle.arrangements.flatMap((candidate) =>
+              chordRowsOf(candidate, index - introMeasures),
+            ),
+          ]
+        : [own.chords];
+      const text = Math.max(
+        labelRowWidth(measure.length, lyricLabels(measure.voice ?? measure.slots), TEXT.lyricGap),
+        ...chordRows.map((chords) =>
+          labelRowWidth(measure.length, chordLabels(chords), TEXT.chordGap),
+        ),
+      );
+      return Math.max(
+        measureWeight(measure.length, beat, rows),
+        text > 0 ? (text + TRACK_MARGIN) / unitWidth : 0,
+      );
     });
-  }, [song, arrangement, bundle, introMeasures]);
+  }, [song, arrangement, bundle, introMeasures, printing, unitWidth]);
 
   const sections = useMemo(() => {
     const capacity = Math.max(1, (width - LABEL_WIDTH) / unitWidth);

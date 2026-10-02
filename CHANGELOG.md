@@ -117,8 +117,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   how many songs each has, and the search finds a song by the code or the name of its hymnal.
   Other codes get a section of their own; songs without a hymnal are listed under "Other songs".
 
+### Fixed
+
+- Printed scores and PDFs lost every octave dot, beam, accidental stroke, and hold unless
+  "Background graphics" was switched on in the print dialog, because those marks were filled
+  boxes and browsers leave backgrounds out on paper. They are drawn with borders now and print
+  with the default settings.
+- Syllables and chord symbols no longer run into each other where notes follow closely
+  ("Yang di", "F♯m/A A♯°7"): a measure is widened when its text needs more room than its notes.
+
 ### Changed
 
+- On paper the notes and the final barline are black, a hold is the size of a full stop, and
+  the "Local only" badge is left out.
 - The song menu in the top bar is grouped by hymnal and sorted by number.
 - `npm run check` prints the hymnal and number in front of each title.
 

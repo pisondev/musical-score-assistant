@@ -55,7 +55,8 @@ back so each idea can be heard before it is practised.
   scrolls sideways and stays in reach, menus open as sheets from the bottom edge, and the
   playback bar shrinks to two short rows, so most of the screen is left for the score.
 - **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
-  key, and introduction.
+  key, and introduction. It prints in black with the browser's default settings; "Background
+  graphics" does not have to be switched on.
 - **MIDI and MP3 download.** The same performance as a file: introduction, both hands as
   chosen, key, and dynamics as on the sheet, at the tempo of the slider. MIDI holds the notes,
   one track per hand and one for the voice guide; MP3 is a recording with the sounds of the app.

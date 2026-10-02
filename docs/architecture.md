@@ -188,7 +188,13 @@ Layout notes:
   accompaniment becomes a staff of its own above the grand staff and carries the lyrics.
 - Printing: on `beforeprint` the sheet switches to a fixed paper width with smaller symbols, so
   four measures fit across an A4 page; `afterprint` restores the screen layout. Print styles hide
-  the controls. Saving as PDF is the browser's print-to-PDF.
+  the controls. Saving as PDF is the browser's print-to-PDF. Browsers leave background colours
+  out when they print, so every mark of the notation (octave dots, beams, accidental strokes,
+  holds) is drawn with a border, never with a background.
+- Measure widths: positions follow time, so a measure is as wide as its busiest beat needs
+  (`measureWeight`), or wider when its syllables or chord symbols would otherwise run into each
+  other (`labelRowWidth`). The widths of the text are estimated from the font sizes of
+  `sheet.css`; the two have to be kept in step.
 
 ### `src/library.ts`
 
