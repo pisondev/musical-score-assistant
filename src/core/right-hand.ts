@@ -12,6 +12,7 @@ import type {
   RightHandMeasureSpec,
   RightHandMode,
   RightHandPart,
+  RightHandPartKind,
   RightHandPartSpec,
   Slot,
   Song,
@@ -22,16 +23,24 @@ import type {
  * Right-hand parts.
  *
  * Besides the printed melody, the right hand can play the melody with fills
- * where it waits, or an accompaniment for singers. Both are written per
- * left-hand arrangement, because they have to agree with its chords and share
- * the gaps of the melody with its fills.
+ * where it waits, or an accompaniment for singers. Where it plays the melody,
+ * chords can be put under the melody notes at the strong points. All of it is
+ * written per left-hand arrangement, because it has to agree with its chords
+ * and share the gaps of the melody with its fills.
  */
 
 /** The written right-hand modes, in the order they are offered. */
 export const RIGHT_HAND_MODES: readonly WrittenRightHandMode[] = ['fills', 'accompaniment'];
 
+/** Every part an arrangement can write for the right hand, in the order they are checked. */
+export const RIGHT_HAND_PARTS: readonly RightHandPartKind[] = ['harmony', 'fills', 'accompaniment'];
+
 /** Keeps the slot ids of a right-hand part apart from those of the melody it replaces. */
-const SLOT_PREFIX: Record<WrittenRightHandMode, string> = { fills: 'f', accompaniment: 'a' };
+const SLOT_PREFIX: Record<RightHandPartKind, string> = {
+  harmony: 'h',
+  fills: 'f',
+  accompaniment: 'a',
+};
 
 function restMeasure(measure: Measure, prefix: string): RightHandMeasure {
   return {
@@ -85,7 +94,7 @@ function addedVoice(measure: Measure, slots: Slot[]): Slot[] {
 export function buildRightHandPart(
   song: Song,
   arrangement: Arrangement,
-  mode: WrittenRightHandMode,
+  mode: RightHandPartKind,
   spec: RightHandPartSpec,
 ): RightHandPart {
   const issues: Issue[] = [];
@@ -199,11 +208,47 @@ export function buildRightHandPart(
 }
 
 /**
+ * Puts the written chords under the melody notes of a measure. The melody
+ * keeps its rhythm, its ids, and its lyrics; a note becomes a stack only where
+ * the part writes one with that same note on top.
+ */
+function harmonize(measure: Measure, written: Slot[]): Slot[] {
+  const chords = new Map<number, Slot>();
+  for (const slot of written) {
+    if (slot.kind === 'note' && slot.pitches.length > 1) chords.set(slot.start, slot);
+  }
+  return measure.slots.map((slot) => {
+    const chord = chords.get(slot.start);
+    const top = slot.pitches[slot.pitches.length - 1];
+    const chordTop = chord?.pitches[chord.pitches.length - 1];
+    if (!chord || slot.kind !== 'note' || !top || chordTop?.midi !== top.midi) return slot;
+    return { ...slot, pitches: chord.pitches, rolled: chord.rolled };
+  });
+}
+
+/** Leaves out of a fill what the right hand already holds in the chord under the melody. */
+function withoutDoubles(fills: Slot[] | undefined, melody: Slot[]): Slot[] | undefined {
+  if (!fills) return fills;
+  const held = new Map<number, Set<number>>();
+  for (const slot of melody) {
+    if (slot.pitches.length > 1) held.set(slot.start, new Set(slot.pitches.map((p) => p.midi)));
+  }
+  if (held.size === 0) return fills;
+  return fills.map((slot) => {
+    const doubled = held.get(slot.start);
+    if (!doubled || slot.kind !== 'note') return slot;
+    const pitches = slot.pitches.filter((pitch) => !doubled.has(pitch.midi));
+    return pitches.length > 0 ? { ...slot, pitches } : { ...slot, kind: 'rest', pitches: [] };
+  });
+}
+
+/**
  * Puts a right-hand part into a song. The result is an ordinary song and
- * arrangement. Fills leave the melody as printed and add their notes as the
- * second voice `fills`; an accompaniment takes the place of the melody, which
- * every measure keeps as its `voice`. The left hand is the arrangement with
- * the measures the part replaces.
+ * arrangement. The chords become stacks under the melody notes; fills leave
+ * the melody as it is and add their notes as the second voice `fills`; an
+ * accompaniment takes the place of the melody, which every measure keeps as
+ * its `voice`. The left hand is the arrangement with the measures the part
+ * replaces.
  */
 export function composeRightHand(
   song: Song,
@@ -213,8 +258,9 @@ export function composeRightHand(
   const measures: Measure[] = song.measures.map((measure, index) => {
     const written = part.measures[index];
     if (!written) return measure;
+    if (part.mode === 'harmony') return { ...measure, slots: harmonize(measure, written.slots) };
     return part.mode === 'fills'
-      ? { ...measure, fills: written.fills }
+      ? { ...measure, fills: withoutDoubles(written.fills, measure.slots) }
       : { ...measure, slots: written.slots, voice: measure.slots };
   });
 
@@ -241,15 +287,31 @@ export function availableRightHand(arrangement: Arrangement, mode: RightHandMode
   return mode !== 'melody' && arrangement.rightHand[mode] ? mode : 'melody';
 }
 
+/** Whether the chords under the melody apply: they are written, asked for, and the melody is played. */
+export function chordsApply(
+  arrangement: Arrangement,
+  mode: RightHandMode,
+  chords: boolean,
+): boolean {
+  return chords && mode !== 'accompaniment' && arrangement.rightHand.harmony !== undefined;
+}
+
 /**
  * Applies a right-hand mode to a song and an arrangement. The melody, and any
- * mode the arrangement has no part for, leaves both as they are.
+ * mode the arrangement has no part for, leaves both as they are. With
+ * `chords`, the modes that play the melody get the written chords under it.
  */
 export function applyRightHand(
   song: Song,
   arrangement: Arrangement,
   mode: RightHandMode,
+  chords = false,
 ): { song: Song; arrangement: Arrangement } {
+  let result = { song, arrangement };
+  const harmony = arrangement.rightHand.harmony;
+  if (harmony && chordsApply(arrangement, mode, chords)) {
+    result = composeRightHand(result.song, result.arrangement, harmony);
+  }
   const part = mode === 'melody' ? undefined : arrangement.rightHand[mode];
-  return part ? composeRightHand(song, arrangement, part) : { song, arrangement };
+  return part ? composeRightHand(result.song, result.arrangement, part) : result;
 }

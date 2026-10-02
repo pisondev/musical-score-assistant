@@ -469,6 +469,36 @@
   color: var(--muted);
 }
 
+/*
+ * The right hand reads along its top note, the melody. Its symbols therefore hang from one
+ * line at the top of the row, and a chord under a melody note grows downward; the left hand
+ * stands on its bass line at the bottom of its row instead.
+ */
+.track--right .slot,
+.track--fills .slot,
+.track--voice .slot {
+  top: var(--beam-zone);
+  bottom: auto;
+}
+
+.track--right .beam,
+.track--fills .beam,
+.track--voice .beam {
+  bottom: calc(100% + 2px);
+}
+
+.track--right .beam--second,
+.track--fills .beam--second,
+.track--voice .beam--second {
+  bottom: calc(100% + 6px);
+}
+
+.track--right .tuplet,
+.track--fills .tuplet,
+.track--voice .tuplet {
+  bottom: calc(100% + 5px);
+}
+
 .slot--uncertain .slot__body {
   box-shadow: 0 0 0 1.5px #f59e0b;
   background: var(--warning-soft);

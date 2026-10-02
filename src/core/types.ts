@@ -191,6 +191,14 @@ export type RightHandMode = 'melody' | 'fills' | 'accompaniment';
 /** The right-hand modes that are written out measure by measure. */
 export type WrittenRightHandMode = Exclude<RightHandMode, 'melody'>;
 
+/**
+ * A right-hand part an arrangement can write: one of the written modes, or
+ * the chords that are put under the melody at its strong points ("harmony").
+ * The chords are not a mode of their own: they thicken the melody in the
+ * modes that play it.
+ */
+export type RightHandPartKind = WrittenRightHandMode | 'harmony';
+
 export interface RightHandMeasure {
   /** The right hand of the measure as it is written in the part, on one line. */
   slots: Slot[];
@@ -203,14 +211,14 @@ export interface RightHandMeasure {
 
 /** A right-hand part that belongs to one left-hand arrangement. */
 export interface RightHandPart {
-  mode: WrittenRightHandMode;
+  mode: RightHandPartKind;
   summary: string;
   /** One entry per song measure; null where the measure keeps the printed melody. */
   measures: (RightHandMeasure | null)[];
   issues: Issue[];
 }
 
-export type RightHandParts = Partial<Record<WrittenRightHandMode, RightHandPart>>;
+export type RightHandParts = Partial<Record<RightHandPartKind, RightHandPart>>;
 
 export interface Arrangement {
   id: string;
@@ -246,7 +254,7 @@ export interface RightHandPartSpec {
   measures: RightHandMeasureSpec[];
 }
 
-export type RightHandSpec = Partial<Record<WrittenRightHandMode, RightHandPartSpec>>;
+export type RightHandSpec = Partial<Record<RightHandPartKind, RightHandPartSpec>>;
 
 /** Arrangement as stored in arrangements.json. */
 export interface ArrangementSpec {

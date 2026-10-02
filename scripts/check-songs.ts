@@ -15,7 +15,7 @@ import {
   findGaps,
   formatNoteName,
   midiToText,
-  RIGHT_HAND_MODES,
+  RIGHT_HAND_PARTS,
   songReference,
   toneToText,
 } from '../src/core';
@@ -26,13 +26,14 @@ import type {
   Slot,
   Song,
   Passage,
-  WrittenRightHandMode,
+  RightHandPartKind,
 } from '../src/core';
 
 const SONG_FILE = 'song.txt';
 const ARRANGEMENT_FILE = 'arrangements.json';
 const SONGS_ROOT = 'songs';
-const RIGHT_HAND_LABEL: Record<WrittenRightHandMode, string> = {
+const RIGHT_HAND_LABEL: Record<RightHandPartKind, string> = {
+  harmony: 'chords under the melody',
   fills: 'melody + fills',
   accompaniment: 'accompaniment',
 };
@@ -178,7 +179,7 @@ function checkFolder(folder: string, dump: boolean): boolean {
     reportable(arrangement.issues).forEach((issue) => console.log(describeIssue(issue, song)));
     if (dump) dumpArrangement(song, arrangement);
 
-    for (const mode of RIGHT_HAND_MODES) {
+    for (const mode of RIGHT_HAND_PARTS) {
       const part = arrangement.rightHand[mode];
       if (!part) continue;
       console.log(`    right hand, ${RIGHT_HAND_LABEL[mode]}: ${summarize(part.issues)}`);

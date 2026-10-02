@@ -2,7 +2,7 @@ import { chordAt, chordTimeline } from './arrangement';
 import type { SongBundle } from './bundle';
 import { INTRO_ID_PREFIX } from './intro';
 import { formatNoteName } from './notes';
-import { applyRightHand, availableRightHand } from './right-hand';
+import { applyRightHand, availableRightHand, chordsApply, composeRightHand } from './right-hand';
 import { beatTicks, measureTicks } from './time';
 import { keyShift, transposeMeasures } from './transpose';
 import { ENDING_OFF, INTRO_LAST_PHRASE } from './types';
@@ -45,6 +45,8 @@ export interface PerformanceForm {
   ending?: EndingChoice;
   /** Half steps by which the key rises for a repeat of the song; 0 or missing for no repeat. */
   lift?: number;
+  /** Puts the written chords under the melody notes, in the modes that play the melody. */
+  chords?: boolean;
 }
 
 /**
@@ -62,6 +64,8 @@ export interface Performance {
   introMeasures: number;
   /** What the right hand plays; "melody" when the arrangement has no part for the request. */
   rightHand: RightHandMode;
+  /** Whether the melody carries the written chords under it. */
+  chords: boolean;
 }
 
 /** How one measure of a performance is referred to. */
@@ -103,9 +107,13 @@ function copySlots(slots: Slot[]): Slot[] {
   return slots.map((slot) => ({ ...slot, id: `${INTRO_ID_PREFIX}${slot.id}`, lyric: undefined }));
 }
 
-/** Copies the closing phrase of the song, with the chosen left hand, as an introduction. */
-function lastPhraseIntro(bundle: SongBundle, arrangement: Arrangement): Chunk {
-  const { song } = bundle;
+/**
+ * Copies the closing phrase of the song, with the chosen left hand, as an
+ * introduction. `tune` is the song as the right hand plays its melody: plain,
+ * or with the chords under it.
+ */
+function lastPhraseIntro(bundle: SongBundle, arrangement: Arrangement, tune: Song): Chunk {
+  const song = tune;
   const start = bundle.intro.lastPhraseStart;
   const harmony = chordTimeline(
     song.measures.map((measure, index) => ({
@@ -159,12 +167,13 @@ function leadIn(
   bundle: SongBundle,
   arrangement: Arrangement,
   intro: IntroChoice,
+  tune: Song,
 ): { name: string; chunks: Chunk[] } {
   const written = bundle.intro.written.find((candidate) => candidate.id === intro);
   if (written) return { name: written.name, chunks: [passageChunk(written)] };
   if (intro !== INTRO_LAST_PHRASE) return { name: '', chunks: [] };
 
-  const chunks = [lastPhraseIntro(bundle, arrangement)];
+  const chunks = [lastPhraseIntro(bundle, arrangement, tune)];
   if (bundle.intro.bridge) chunks.push(passageChunk(bundle.intro.bridge));
   return { name: 'Last phrase', chunks };
 }
@@ -279,7 +288,14 @@ export function buildPerformance(
   form: PerformanceForm = {},
 ): Performance {
   const mode = availableRightHand(arrangement, rightHand);
-  const { song, arrangement: played } = applyRightHand(bundle.song, arrangement, mode);
+  const chords = chordsApply(arrangement, mode, form.chords ?? false);
+  const { song, arrangement: played } = applyRightHand(bundle.song, arrangement, mode, chords);
+  // The last phrase is instrumental: it carries the tune, with its chords when they are on.
+  const harmony = arrangement.rightHand.harmony;
+  const tune =
+    harmony && (form.chords ?? false)
+      ? composeRightHand(bundle.song, arrangement, harmony).song
+      : bundle.song;
   const beat = beatTicks(song.meta.time);
   const full = measureTicks(song.meta.time);
   const lift = Math.max(0, Math.round(form.lift ?? 0));
@@ -294,7 +310,7 @@ export function buildPerformance(
   };
   const keyName = (pass: 1 | 2) => `1 = ${formatNoteName(keyOf(pass))}`;
 
-  const opening = leadIn(bundle, arrangement, intro);
+  const opening = leadIn(bundle, arrangement, intro, tune);
   const songChunk: Chunk = {
     measures: song.measures,
     parts: played.measures,
@@ -417,6 +433,7 @@ export function buildPerformance(
     sections,
     introMeasures: sections[0]?.kind === 'intro' ? sections[0].count : 0,
     rightHand: mode,
+    chords,
   };
 }
 

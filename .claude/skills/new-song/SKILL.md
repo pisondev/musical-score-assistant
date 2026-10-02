@@ -133,11 +133,28 @@ tell when to come in.
 
 ### Right-hand parts
 
-Once the left hands are written and clean, give every arrangement two right-hand parts under
-`rightHand`, and the baseline the same two under the top-level `baseline.rightHand`. The
+Once the left hands are written and clean, give every arrangement three right-hand parts under
+`rightHand` (`harmony`, `fills`, `accompaniment`), and the baseline the same three under the
+top-level `baseline.rightHand`. The
 player chooses the mode freely, but the notes are written per arrangement on purpose: they use
 its chords, speak its style, and share the gaps with its left hand. The right hand is written
 relative to the key, like the melody.
+
+**Chords under the melody** (`harmony`): the player does not want a right hand that sounds
+like one finger. This part thickens the melody in the modes that play it.
+
+- List the measures that get a chord, each written as the melody of that measure with some
+  notes turned into stacks, melody on top: `<3, 5, 1> . (3 1)`.
+- Chord the strong points: a downbeat, a note of two beats or more, the first note after a
+  rest, a chord change under a note of a beat or more, and the last note. Leave runs and short
+  notes single. In a majestic arrangement chord every note of a beat or more.
+- Take two notes from the chord of that arrangement at that moment (the third and the seventh
+  in jazz, three notes in majestic). Keep them a third or more below the melody, within an
+  octave of it, and above the left hand for as long as the chord sounds.
+- Skip a melody note that rubs against the chord.
+- Roll the long chords with `~`: from two beats in ballad, contemporary, classical, and jazz;
+  from three beats in the plainer styles; never in majestic.
+- Add nothing between melody notes; that is what the fills are for.
 
 **Melody + fills** (`fills`): the printed melody stays; the right hand adds notes where it
 waits.
@@ -227,8 +244,9 @@ Guidelines:
 1. Run `npm run check -- <folder> --dump`.
 2. Read the dump measure by measure and confirm the pitches are the ones intended; the degrees
    are relative to the chord root, so slash-chord basses are easy to get wrong.
-3. Each arrangement is followed by the lines `right hand, melody + fills` and
-   `right hand, accompaniment`. Both must be there for every arrangement, "My style" included.
+3. Each arrangement is followed by the lines `right hand, chords under the melody`,
+   `right hand, melody + fills`, and `right hand, accompaniment`. All three must be there for
+   every arrangement, "My style" included.
 4. Resolve every error and every warning. A warning may stay only if it is deliberate, and then
    say so in the hand-over.
 

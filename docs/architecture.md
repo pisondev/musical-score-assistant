@@ -91,15 +91,19 @@ Key ideas:
   written in the key of the song and simply transposed with the repeat. A measure that was
   cut short for the pickup is completed with holds wherever something other than the pickup
   follows, so no passage has to know what comes before it.
-- **A right-hand part extends measures, not the model.** Each arrangement carries the fills
-  and the accompaniment written for it, and `applyRightHand` puts one into the song's measures
+- **A right-hand part extends measures, not the model.** Each arrangement carries the chords,
+  the fills, and the accompaniment written for it, and `applyRightHand` puts them into the
+  song's measures. The chords under the melody come first, in the modes that play the melody:
+  a melody slot becomes a stack with the same id, rhythm, and lyric, so nothing downstream
+  has to know. Then the mode itself is applied
   (and replaces the left hand of a measure, where the part says so), so everything downstream
   still sees a plain song and arrangement. Fills leave the melody slots untouched and add
   `Measure.fills`, a second voice with the notes that are new; it is derived from the part by
   removing the melody notes, so a long melody note keeps its printed length while the fill
   plays. An accompaniment takes the place of the melody, which moves to `Measure.voice`: a
-  line that the sheet shows, the playhead follows, and the engine plays as its own track. The introduction is built from the unchanged song, so it keeps
-  the tune in every mode.
+  line that the sheet shows, the playhead follows, and the engine plays as its own track. The
+  last-phrase introduction is built from the tune itself (with its chords, when they are on),
+  so it keeps the tune in every mode.
 - **Pedal, without a pedal.** `buildNoteEvents` lets left-hand notes ring until the harmony
   changes, and the last notes of a right-hand fill until the right hand plays again (or until
   a chord arrives that they do not belong to). The sheet shows the written lengths; only the

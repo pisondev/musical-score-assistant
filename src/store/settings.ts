@@ -20,6 +20,8 @@ interface SettingsState {
   lift: number;
   /** What the right hand plays; falls back to the melody where nothing else is written. */
   rightHand: RightHandMode;
+  /** Whether the melody gets the written chords under it at its strong points. */
+  chords: boolean;
   notation: Notation;
   showLyrics: boolean;
   showDynamics: boolean;
@@ -30,6 +32,7 @@ interface SettingsState {
   setEnding: (ending: EndingChoice) => void;
   setLift: (lift: number) => void;
   setRightHand: (rightHand: RightHandMode) => void;
+  toggleChords: () => void;
   setNotation: (notation: Notation) => void;
   toggleLyrics: () => void;
   toggleDynamics: () => void;
@@ -44,6 +47,7 @@ export const useSettings = create<SettingsState>()(
       ending: ENDING_OFF,
       lift: 0,
       rightHand: 'melody',
+      chords: true,
       notation: 'numbers',
       showLyrics: true,
       showDynamics: true,
@@ -53,6 +57,7 @@ export const useSettings = create<SettingsState>()(
       setEnding: (ending) => set({ ending }),
       setLift: (lift) => set({ lift }),
       setRightHand: (rightHand) => set({ rightHand }),
+      toggleChords: () => set((state) => ({ chords: !state.chords })),
       setNotation: (notation) => set({ notation }),
       toggleLyrics: () => set((state) => ({ showLyrics: !state.showLyrics })),
       toggleDynamics: () => set((state) => ({ showDynamics: !state.showDynamics })),

@@ -28,6 +28,7 @@ const PART_LETTER: Record<MeasurePart, string> = {
 export function Guide({ performance }: GuideProps) {
   const { song, arrangement, introMeasures, rightHand } = performance;
   const rightPart = rightHand === 'melody' ? undefined : arrangement.rightHand[rightHand];
+  const chordsPart = performance.chords ? arrangement.rightHand.harmony : undefined;
   const currentMeasure = usePlayer((state) => state.currentMeasure);
   const status = usePlayer((state) => state.status);
   const seekToMeasure = usePlayer((state) => state.seekToMeasure);
@@ -71,6 +72,18 @@ export function Guide({ performance }: GuideProps) {
             {rightHand === 'fills'
               ? 'The printed melody stays as it is and its long notes keep sounding. The notes that are added where it waits are on the row marked +, right below it.'
               : 'The singers carry the melody, shown on the small row above the right hand. Switch Voice on to hear it with the accompaniment.'}
+          </p>
+        </section>
+      )}
+
+      {chordsPart && (
+        <section>
+          <h3>Right hand: chords under the melody</h3>
+          <p className="guide__text">{chordsPart.summary}</p>
+          <p className="guide__footnote">
+            The top note of every stack is the melody. A wavy line in front of a stack means the
+            chord is rolled: its notes follow each other quickly from the bottom. Switch the chords
+            off in the Right hand menu to see the plain melody.
           </p>
         </section>
       )}

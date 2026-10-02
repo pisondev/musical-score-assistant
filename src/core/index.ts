@@ -30,9 +30,11 @@ export { buildNoteEvents, buildSlotSpans, buildWrittenNotes, measureIndexAt } fr
 export {
   applyRightHand,
   availableRightHand,
+  chordsApply,
   buildRightHandPart,
   composeRightHand,
   RIGHT_HAND_MODES,
+  RIGHT_HAND_PARTS,
 } from './right-hand';
 export { HYMNALS, hymnalName, normalizeBook, songReference, type Hymnal } from './hymnals';
 export { parseSong } from './song';

@@ -32,10 +32,14 @@ back so each idea can be heard before it is practised.
   majestic, jazz. A guide explains the new patterns and every changed measure.
 - **Three roles for the right hand.** _Melody_ plays the printed tune. _Melody + fills_ keeps
   every printed note, long notes held as written, and adds fills on a row of their own where
-  the tune waits. _Accompaniment_ leaves the tune to
-  the singers and plays chords, rhythm, and fills instead; the sung melody stays on the sheet
-  as a small row and can be played as a soft guide. Fills and accompaniment are written for
-  each left hand, so they agree with its chords and share the gaps with its fills.
+  the tune waits. _Accompaniment_ leaves the tune to the singers and plays chords, rhythm, and
+  fills instead; the sung melody stays on the sheet as a small row and can be played as a soft
+  guide.
+- **A full right hand.** Where the right hand plays the melody, it gets chord notes under it
+  on the downbeats, the long notes, and the starts of phrases, so it does not sound like one
+  finger. The chords can be switched off to see the plain tune. Chords, fills, and
+  accompaniment are written for each left hand, so they agree with its harmony and share the
+  gaps with its fills.
 - **An introduction.** An optional intro plays before the song: the last phrase of the song, or
   one of several newly written ones in different styles. It has its own block at the top of the
   sheet.
@@ -105,7 +109,7 @@ controls playback.
 | Control           | What it does                                                                                                  |
 | ----------------- | ------------------------------------------------------------------------------------------------------------- |
 | **Left hand**     | Opens the arrangements, grouped by level, each tagged with its style                                          |
-| **Right hand**    | Melody, _Melody + fills_, or _Accompaniment_, written to go with the selected left hand                       |
+| **Right hand**    | Melody, _Melody + fills_, or _Accompaniment_, and whether the melody gets chords under it                     |
 | **Intro**         | Off, _Last phrase_ (followed by a bridge into the song), or a written intro                                   |
 | **Ending**        | Off, or one of the written endings; it follows the last measure of the song                                   |
 | **Repeat**        | Off, or the song a second time a half or whole step higher, after an interlude that lifts the key             |

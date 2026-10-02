@@ -347,6 +347,17 @@ arrangement**, under its `rightHand` entry. That pairing is deliberate:
   hand of that arrangement may have to step back, and the other way round;
 - the right hand should speak the style of the left hand it goes with.
 
+Next to the two modes, an arrangement writes one more right-hand part, which is not a mode of
+its own:
+
+| Part                        | Key       | What it adds                                                                     |
+| --------------------------- | --------- | -------------------------------------------------------------------------------- |
+| **Chords under the melody** | `harmony` | Chord notes under the melody notes at its strong points, so it never sounds thin |
+
+The chords apply to _Melody_ and to _Melody + fills_ and are switched on or off in the same
+menu (on by default). With the chords off, the right hand plays the melody of `song.txt` note
+for note, which is the way to check a transcription.
+
 The baseline has no entry under `arrangements`, so its parts go under the top-level
 `baseline.rightHand`. A mode that an arrangement does not write is greyed out in the menu and
 the app plays the melody instead.
@@ -358,6 +369,36 @@ the app plays the melody instead.
 | `measures[].right`   | Right-hand notation for that measure, **relative to the key like the melody**, without barlines; `< >` stacks notes   |
 | `measures[].left`    | Optional. Left-hand notation (chord degrees) that replaces the arrangement's own in this measure while the mode is on |
 | `measures[].note`    | Short explanation shown in the guide                                                                                  |
+
+**Chords under the melody** list only the measures they change. Each listed measure is the
+melody of that measure, written out in full, with some of its notes turned into stacks: the
+melody note on top and chord notes under it.
+
+```json
+"harmony": {
+  "summary": "One sentence that describes the chords.",
+  "measures": [
+    { "measure": 1, "right": "<3, 5, 1> . (3 1)" },
+    { "measure": 7, "right": "~<7, 2 5> . ." }
+  ]
+}
+```
+
+- Put a chord where the melody has weight: on a downbeat, on a note of two beats or more, on
+  the first note after a rest, and where the chord changes under a note of a beat or more.
+  Leave runs and short notes single, so the line stays clear.
+- Take the notes from the chord of that arrangement at that moment: two under the melody (the
+  third and the seventh in a jazz arrangement; three, on every note of a beat or more, in a
+  majestic one). Keep them at least a third below the melody, within an octave of it, and
+  above everything the left hand plays while the chord sounds.
+- Leave a melody note alone when it rubs against the chord (a passing note, a suspension).
+- Roll the long chords (`~<…>`); see [Rolled chords](#rolled-chords).
+- The part may only add notes under melody notes. A note between them belongs in the fills.
+
+The app puts the stacks into the melody row: the rhythm, the lyrics, and the top note are those
+of `song.txt`. In playback the notes under the melody are slightly softer than the melody.
+Where a fill of the same arrangement stacks the same note under a melody note, it is played
+once.
 
 **Fills** list only the measures they change; every other measure keeps the printed melody.
 Each listed measure is written out in full: the melody notes at their printed positions, and
@@ -527,7 +568,8 @@ not, but each one deserves a look:
 
 Right-hand parts are checked together with the left hand they belong to:
 
-- a fill that drops, moves, or covers a melody note;
+- a fill or a chord that drops, moves, or covers a melody note;
+- a chords part that adds a note where the melody has none;
 - a gap in which a _Melody + fills_ part adds nothing, or in which neither hand marks a beat;
 - an accompaniment measure that is not written;
 - the hands crossing: a right-hand note at or below a left-hand note that sounds with it;

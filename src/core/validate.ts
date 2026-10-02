@@ -265,6 +265,8 @@ export function validateRightHand(
     if (written.left) checkSlashBass(measure, leftPart, issues);
 
     const sung = song.measures[index].slots.filter((slot) => slot.kind === 'note');
+    // Fills and the chords under the melody are written around the melody, which stays.
+    const keepsMelody = part.mode !== 'accompaniment';
 
     for (const slot of written.slots) {
       if (slot.kind !== 'note' || slot.pitches.length === 0) continue;
@@ -286,10 +288,9 @@ export function validateRightHand(
       const sounding = right.find((event) => event.slotId === slot.id)?.duration ?? slot.duration;
       if (slot.pitches.length === 1 && sounding < beat) continue;
 
-      const melodyHere =
-        part.mode === 'fills'
-          ? sung.find((candidate) => candidate.start === slot.start)
-          : undefined;
+      const melodyHere = keepsMelody
+        ? sung.find((candidate) => candidate.start === slot.start)
+        : undefined;
       const melodyPitch = melodyHere?.pitches[melodyHere.pitches.length - 1]?.midi;
       const active = chordAt(harmony, tick);
       const tones = active?.chord ? chordPitchClasses(active.chord) : [];
@@ -320,15 +321,26 @@ export function validateRightHand(
       }
     }
 
-    if (part.mode === 'fills') {
+    if (part.mode === 'harmony') {
+      // Chords belong under melody notes; a note anywhere else would be a fill.
+      for (const slot of written.slots) {
+        if (slot.kind !== 'note' || sung.some((candidate) => candidate.start === slot.start))
+          continue;
+        warn(
+          `A note on beat ${slot.start / beat + 1} stands where the melody has none; the chords part only adds notes under melody notes.`,
+        );
+      }
+    }
+    if (keepsMelody) {
       for (const slot of sung) {
         const top = slot.pitches[slot.pitches.length - 1]?.midi;
         const kept = written.slots.find(
           (candidate) => candidate.kind === 'note' && candidate.start === slot.start,
         );
         if (!kept || kept.pitches[kept.pitches.length - 1]?.midi !== top) {
+          const mayAdd = part.mode === 'harmony' ? 'the chords part' : 'a fill';
           warn(
-            `The melody note on beat ${slot.start / beat + 1} is missing or changed; a fill may add notes but must keep the melody on top.`,
+            `The melody note on beat ${slot.start / beat + 1} is missing or changed; ${mayAdd} may add notes but must keep the melody on top.`,
           );
         }
       }

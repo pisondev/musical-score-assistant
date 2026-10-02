@@ -125,6 +125,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `npm run check` lists the bridge, the key lift, and the endings of every song, and says which
   of them are not written yet.
 
+- Chords under the melody (`rightHand.harmony` in `arrangements.json`). In _Melody_ and in
+  _Melody + fills_ the right hand plays chord notes under the melody on the downbeats, the long
+  notes, and the starts of phrases, taken from the chords of the selected left hand; long
+  chords are rolled. A switch in the right-hand menu turns them off, which leaves the plain
+  tune. Written for every arrangement of "Amazing Grace".
 - Rolled chords. A stack written as `~<1 3 5>` is struck one note after the other, from the
   bottom, about thirty milliseconds apart, in the playback, the MP3, and the MIDI file. The
   numbered sheet draws a wavy line in front of it and staff notation the arpeggio line. The

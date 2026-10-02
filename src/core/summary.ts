@@ -12,7 +12,7 @@ export interface SongSummary {
   levels: Record<Level, number>;
   /** Styles of the stored arrangements in menu order, each named once. */
   styles: string[];
-  /** Right-hand parts (fills and accompaniments) written across all arrangements. */
+  /** Right-hand parts (chords, fills, and accompaniments) written across all arrangements. */
   rightHandParts: number;
   /** Introductions on offer: the last phrase and every written one. */
   intros: number;

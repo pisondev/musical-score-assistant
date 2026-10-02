@@ -57,6 +57,8 @@ interface ToolbarProps {
   onSelectArrangement: (id: string) => void;
   /** What the right hand plays, after falling back when a part is not written. */
   rightHand: RightHandMode;
+  /** Whether the chords under the melody are on the sheet. */
+  chords: boolean;
   /** The introduction in effect, after falling back when one is unavailable. */
   intro: IntroChoice;
   /** The ending in effect, after falling back when one is unavailable. */
@@ -138,10 +140,23 @@ function LeftHandMenu({
 function RightHandMenu({
   arrangement,
   rightHand,
-}: Pick<ToolbarProps, 'arrangement' | 'rightHand'>) {
+  chords,
+}: Pick<ToolbarProps, 'arrangement' | 'rightHand' | 'chords'>) {
   const setRightHand = useSettings((state) => state.setRightHand);
+  const wantsChords = useSettings((state) => state.chords);
+  const toggleChords = useSettings((state) => state.toggleChords);
+  const chordsWritten = arrangement.rightHand.harmony !== undefined;
+  const chordsPossible = chordsWritten && rightHand !== 'accompaniment';
   return (
-    <Popover label="Right hand" value={RIGHT_HAND_NAME[rightHand]}>
+    <Popover
+      label="Right hand"
+      value={
+        <>
+          {RIGHT_HAND_NAME[rightHand]}
+          {chords && <span className="popover__detail">with chords</span>}
+        </>
+      }
+    >
       {(close) => (
         <div className="menu" role="radiogroup" aria-label="Right hand">
           {RIGHT_HAND_OPTIONS.map(({ mode, description }) => {
@@ -166,9 +181,31 @@ function RightHandMenu({
               </button>
             );
           })}
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={wantsChords && chordsPossible}
+            className="check check--described"
+            disabled={!chordsPossible}
+            onClick={toggleChords}
+          >
+            <span className={cx('check__box', wantsChords && chordsPossible && 'is-checked')}>
+              {wantsChords && chordsPossible && <CheckIcon width={12} height={12} />}
+            </span>
+            <span>
+              Chords under the melody
+              <span className="option__summary">
+                {!chordsWritten
+                  ? 'Not written for this left hand yet.'
+                  : rightHand === 'accompaniment'
+                    ? 'An accompaniment has its own chords.'
+                    : 'On the downbeats, the long notes, and the starts of phrases the right hand plays a full chord with the melody on top, so it never sounds thin.'}
+              </span>
+            </span>
+          </button>
           <p className="menu__note">
-            Fills and accompaniment are written for each left hand, so they follow its chords and
-            share the gaps with its fills. Now paired with: {arrangement.name}.
+            Chords, fills, and accompaniment are written for each left hand, so they follow its
+            chords and share the gaps with its fills. Now paired with: {arrangement.name}.
           </p>
         </div>
       )}
@@ -509,7 +546,11 @@ export function Toolbar(props: ToolbarProps) {
         arrangement={props.arrangement}
         onSelectArrangement={props.onSelectArrangement}
       />
-      <RightHandMenu arrangement={props.arrangement} rightHand={props.rightHand} />
+      <RightHandMenu
+        arrangement={props.arrangement}
+        rightHand={props.rightHand}
+        chords={props.chords}
+      />
       <IntroMenu bundle={props.bundle} intro={props.intro} />
       <EndingMenu bundle={props.bundle} ending={props.ending} />
       <RepeatMenu

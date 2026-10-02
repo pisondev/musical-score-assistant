@@ -97,6 +97,7 @@ export function SongPage({ entry }: SongPageProps) {
   const endingSetting = useSettings((state) => state.ending);
   const lift = useSettings((state) => state.lift);
   const rightHand = useSettings((state) => state.rightHand);
+  const chords = useSettings((state) => state.chords);
   const notation = useSettings((state) => state.notation);
   const showLyrics = useSettings((state) => state.showLyrics);
   const showDynamics = useSettings((state) => state.showDynamics);
@@ -121,8 +122,9 @@ export function SongPage({ entry }: SongPageProps) {
     : ENDING_OFF;
 
   const performance = useMemo(
-    () => buildPerformance(bundle, arrangement, intro, semitones, rightHand, { ending, lift }),
-    [bundle, arrangement, intro, semitones, rightHand, ending, lift],
+    () =>
+      buildPerformance(bundle, arrangement, intro, semitones, rightHand, { ending, lift, chords }),
+    [bundle, arrangement, intro, semitones, rightHand, ending, lift, chords],
   );
   const names = useMemo(() => measureNames(performance), [performance]);
 
@@ -251,6 +253,7 @@ export function SongPage({ entry }: SongPageProps) {
           arrangement={arrangement}
           onSelectArrangement={setArrangementId}
           rightHand={performance.rightHand}
+          chords={performance.chords}
           intro={intro}
           ending={ending}
           lift={lift}
@@ -272,6 +275,7 @@ export function SongPage({ entry }: SongPageProps) {
               Left hand: {arrangement.name} ({LEVEL_LABEL[arrangement.level]}
               {arrangement.style && `, ${arrangement.style}`}) · Right hand:{' '}
               {RIGHT_HAND_NAME[performance.rightHand]}
+              {performance.chords && ' with chords'}
             </p>
             {notation === 'staff' ? (
               <StaffSheet

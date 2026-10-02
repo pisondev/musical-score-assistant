@@ -1,7 +1,7 @@
 import { buildArrangement, buildBaseline } from './arrangement';
 import { lastPhraseStart } from './intro';
 import { buildPassage } from './passage';
-import { buildRightHandPart, RIGHT_HAND_MODES } from './right-hand';
+import { buildRightHandPart, RIGHT_HAND_PARTS } from './right-hand';
 import { parseSong } from './song';
 import type {
   Arrangement,
@@ -73,7 +73,7 @@ function readRightHandSpec(value: unknown, label: string, issues: Issue[]): Righ
   }
 
   const spec: RightHandSpec = {};
-  for (const mode of RIGHT_HAND_MODES) {
+  for (const mode of RIGHT_HAND_PARTS) {
     const entry = value[mode];
     if (entry === undefined) continue;
     if (!isRecord(entry) || !Array.isArray(entry.measures)) {
@@ -304,7 +304,7 @@ export function readEndingSpecs(data: unknown, issues: Issue[]): PassageSpec[] {
 
 /** Builds and checks the right-hand parts written for an arrangement. */
 function addRightHand(song: Song, arrangement: Arrangement, spec: RightHandSpec | undefined): void {
-  for (const mode of RIGHT_HAND_MODES) {
+  for (const mode of RIGHT_HAND_PARTS) {
     const partSpec = spec?.[mode];
     if (!partSpec) continue;
     const part = buildRightHandPart(song, arrangement, mode, partSpec);

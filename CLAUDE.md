@@ -47,9 +47,10 @@ Things to keep in mind:
   static arpeggio through those places is what the tool exists to replace: the congregation
   loses the beat. Use a different fill in each gap.
 - **Right-hand parts are written per arrangement.** Every arrangement, the baseline included,
-  gets a _Melody + fills_ part and an _Accompaniment_ part that agree with its chords and share
-  the gaps with its left hand. The player chooses the mode freely; the notes are paired on
-  purpose. Fills never change a printed melody note.
+  gets the chords under the melody (`harmony`), a _Melody + fills_ part, and an _Accompaniment_
+  part that agree with its chords and share the gaps with its left hand. The player chooses
+  the mode freely; the notes are paired on purpose. Chords and fills never change a printed
+  melody note.
 - **Every song gets its surroundings.** Besides the introductions, write a bridge after the
   last phrase, a key lift for the repeat in a higher key, and five endings in different styles.
   A fill must connect to what follows: end it on a note of the next chord, or let it land on
