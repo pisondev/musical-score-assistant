@@ -39,9 +39,20 @@ export function usePlayhead(song: Song, spans: SlotSpan[]): void {
 
     const update = () => {
       frame = requestAnimationFrame(update);
-      const { status, setCurrentMeasure } = usePlayer.getState();
+      const { status, loop, setCurrentMeasure, setLoopRest } = usePlayer.getState();
       if (status !== 'playing' && status !== 'paused') {
         if (active.size > 0) show(new Set());
+        setLoopRest(null);
+        return;
+      }
+
+      // Between two rounds of a loop nothing sounds. The beats are counted on the measure
+      // where the loop starts again, which is where the eye has to return to.
+      const rest = engine.loopRest;
+      setLoopRest(rest);
+      if (rest) {
+        if (active.size > 0) show(new Set());
+        setCurrentMeasure(loop.from);
         return;
       }
 

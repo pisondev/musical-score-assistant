@@ -154,6 +154,14 @@ keep the first page view light.
   sustain pedal changed on every chord.
 - The metronome is a repeating transport event; the count-in is scheduled on the audio clock
   before the transport starts.
+- A loop is the loop of the transport, made longer by a rest: the range of ticks plus two or
+  three beats (`loopRestBeats`). The notes of the music that follows the loop lie inside that
+  rest; they stay on the transport, and the callback that plays a note skips those whose tick
+  falls in the rest. The event that ends the song is skipped in the same way, so a loop on the
+  last measure goes on. `loopRest` says which beat of the rest is being counted. The clock of
+  the transport can read past the end of the loop for a moment before it jumps back; the engine
+  takes such a reading as the start of the next round, so the playhead never flashes on the
+  measure after the loop.
 - `render()` plays the same note events into an offline audio context, which runs faster than
   real time and returns the audio as a buffer. `mp3.ts` raises it to a normal listening level
   and encodes it with an MP3 encoder that is loaded on demand, in slices so the page stays
@@ -164,7 +172,7 @@ keep the first page view light.
 Three small Zustand stores:
 
 - `player.ts` holds what the playback controls show (status, hand mode, tempo, metronome, loop,
-  current measure) and forwards every change to the engine. When new music is loaded it is told
+  current measure, the beat of a loop's rest) and forwards every change to the engine. When new music is loaded it is told
   how much changed: nothing structural (keep the playhead), the measures (rewind), or the song
   (rewind and restore the tempo).
 - `settings.ts` holds display preferences (introduction, right-hand mode, visible rows, guide)
@@ -192,7 +200,7 @@ for every song, starting from the left hand remembered for it.
 | `usePlayhead`      | Follows the audio clock and highlights the slots being played             |
 | `MeasureMenu`      | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
 | `useMeasureMenu`   | Opens that menu on a right click or a long press; a click selects         |
-| `MeasureCorner`    | Controls at the top right corner of a measure, laid over either notation  |
+| `MeasureOverlay`   | Something laid over one measure of either notation: corner or centre      |
 | `measure-box.ts`   | The box of a measure on the page, and the measure at a point              |
 | `Dialog`           | The frame of a dialog: centred, or a bottom sheet on a phone              |
 | `NoteDialog`       | The notes on one measure: read, write, change, delete                     |

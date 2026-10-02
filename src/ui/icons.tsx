@@ -175,6 +175,14 @@ export function MinusIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function CloseIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon strokeWidth="2.6" {...props}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </Icon>
+  );
+}
+
 export function MoreIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon fill="currentColor" stroke="none" {...props}>

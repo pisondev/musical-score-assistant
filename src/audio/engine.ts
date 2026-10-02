@@ -22,6 +22,8 @@ export interface Score {
 export interface LoopRange {
   start: number;
   end: number;
+  /** Silent ticks after `end` before the loop starts again: a breath between two rounds. */
+  rest?: number;
 }
 
 /** One sample every three semitones; the sampler pitch-shifts the notes in between. */
@@ -90,6 +92,8 @@ export class PlaybackEngine {
   private quarterTempo = 80;
   private metronome = false;
   private loop: LoopRange | null = null;
+  /** True once the playhead has been seen inside the loop; a seek or a new loop clears it. */
+  private insideLoop = false;
   private pendingTick = 0;
   /** Audio-clock time at which the transport starts after a count-in. */
   private startsAt = 0;
@@ -165,6 +169,8 @@ export class PlaybackEngine {
         time: `${event.tick}i`,
       }));
       const part = new tone.Part((time, event) => {
+        // Between two rounds of a loop the music that follows the loop stays silent.
+        if (this.inRest(event.tick)) return;
         instrument.triggerAttackRelease(
           tone.Frequency(event.midi, 'midi').toNote(),
           tone.Ticks(event.duration).toSeconds(),
@@ -177,11 +183,37 @@ export class PlaybackEngine {
     });
 
     if (this.endEvent !== null) transport.clear(this.endEvent);
+    const { totalTicks } = this.score;
     this.endEvent = transport.schedule((time) => {
+      // A loop that ends with the song rests past its end and starts again.
+      if (this.inRest(totalTicks)) return;
       tone.getDraw().schedule(() => this.handleEnd(), time);
-    }, `${this.score.totalTicks}i`);
+    }, `${totalTicks}i`);
 
     this.applyMetronome();
+  }
+
+  /** True for a tick in the silent stretch between the end of a loop and its next start. */
+  private inRest(tick: number): boolean {
+    const loop = this.loop;
+    const rest = loop?.rest ?? 0;
+    return loop !== null && rest > 0 && tick >= loop.end && tick < loop.end + rest;
+  }
+
+  /**
+   * While a loop rests before its next round: which beat of the rest it is,
+   * counted from 0, and how many beats the rest has. Null at any other time.
+   */
+  get loopRest(): { beat: number; beats: number } | null {
+    const { loop, score } = this;
+    if (!loop || !score || !this.tone) return null;
+    const tick = this.position();
+    if (!this.inRest(tick)) return null;
+    const beats = Math.max(1, Math.round((loop.rest ?? 0) / score.beatTicks));
+    return {
+      beat: Math.min(beats - 1, Math.floor((tick - loop.end) / score.beatTicks)),
+      beats,
+    };
   }
 
   private handleEnd(): void {
@@ -274,6 +306,7 @@ export class PlaybackEngine {
 
   seek(tick: number): void {
     this.pendingTick = tick;
+    this.insideLoop = false;
     if (!this.tone) return;
     this.tone.getTransport().ticks = tick;
     this.releaseAll();
@@ -281,7 +314,26 @@ export class PlaybackEngine {
 
   /** Current position in ticks. */
   get tick(): number {
-    return this.tone ? this.tone.getTransport().ticks : this.pendingTick;
+    return this.position();
+  }
+
+  /**
+   * The position of the transport. The callback that sends the transport back
+   * to the start of a loop can run a moment late, and until it has, the clock
+   * reads past the end of the loop. Such a reading, coming from inside the
+   * loop, is the beginning of the next round.
+   */
+  private position(): number {
+    if (!this.tone) return this.pendingTick;
+    const tick = this.tone.getTransport().ticks;
+    const loop = this.loop;
+    if (!loop) return tick;
+    const end = loop.end + (loop.rest ?? 0);
+    if (tick < end) {
+      this.insideLoop = tick >= loop.start;
+      return tick;
+    }
+    return this.insideLoop && tick - end < PPQ ? loop.start + (tick - end) : tick;
   }
 
   get isPlaying(): boolean {
@@ -332,7 +384,9 @@ export class PlaybackEngine {
     this.metronomeEvent = transport.scheduleRepeat(
       (time) => {
         const tick = Math.round(transport.getTicksAtTime(time));
-        const accent = score.measures.some((measure) => measure.startTick === tick);
+        // The beats of a loop's rest are counted plainly, without a first beat.
+        const accent =
+          !this.inRest(tick) && score.measures.some((measure) => measure.startTick === tick);
         click.triggerAttackRelease(
           accent ? CLICK_ACCENT : CLICK_BEAT,
           0.03,
@@ -386,6 +440,7 @@ export class PlaybackEngine {
   /** Repeats the given tick range, or plays straight through when null. */
   setLoop(range: LoopRange | null): void {
     this.loop = range;
+    this.insideLoop = false;
     this.applyLoop();
   }
 
@@ -393,7 +448,7 @@ export class PlaybackEngine {
     if (!this.tone) return;
     const transport = this.tone.getTransport();
     if (this.loop) {
-      transport.setLoopPoints(`${this.loop.start}i`, `${this.loop.end}i`);
+      transport.setLoopPoints(`${this.loop.start}i`, `${this.loop.end + (this.loop.rest ?? 0)}i`);
       transport.loop = true;
     } else {
       transport.loop = false;

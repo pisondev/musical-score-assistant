@@ -673,6 +673,11 @@
   fill: var(--muted);
 }
 
+/* The measures of a loop: their staff lines turn sky blue. */
+.staff-view g.measure.in-loop g.staff > path {
+  stroke: var(--sky);
+}
+
 /* The measure under the playhead: its staff lines turn blue. */
 .staff-view g.measure.is-current g.staff > path {
   stroke: var(--primary);

@@ -20,6 +20,7 @@ const NARROW_WIDTH = 640;
 const PRINT_WIDTH = 700;
 
 const CURRENT_CLASS = 'is-current';
+const LOOP_CLASS = 'in-loop';
 
 interface StaffSheetProps {
   performance: Performance;
@@ -100,6 +101,7 @@ export function StaffSheet({
 
   const currentMeasure = usePlayer((state) => state.currentMeasure);
   const handMode = usePlayer((state) => state.handMode);
+  const loop = usePlayer((state) => state.loop);
   const status = usePlayer((state) => state.status);
   const seekToMeasure = usePlayer((state) => state.seekToMeasure);
   const active = status === 'playing' || status === 'paused';
@@ -113,6 +115,19 @@ export function StaffSheet({
     if (status === 'playing') keepInView(element);
     return () => element.classList.remove(CURRENT_CLASS);
   }, [currentMeasure, active, status, sections]);
+
+  // Mark the measures of a loop.
+  useEffect(() => {
+    if (!loop.enabled || !sections) return;
+    const marked: Element[] = [];
+    for (let index = loop.from; index <= loop.to; index += 1) {
+      const element = document.getElementById(measureElementId(index));
+      if (!element) continue;
+      element.classList.add(LOOP_CLASS);
+      marked.push(element);
+    }
+    return () => marked.forEach((element) => element.classList.remove(LOOP_CLASS));
+  }, [loop, sections]);
 
   // The engraving is one image per section, so the marks of measures with notes are laid
   // over it: each is moved to the top left corner of its measure once the image is there.

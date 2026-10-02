@@ -42,7 +42,14 @@ export {
 export { HYMNALS, hymnalName, normalizeBook, songReference, type Hymnal } from './hymnals';
 export { parseSong } from './song';
 export { summarizeSong, type SongSummary } from './summary';
-export { beatTicks, measureTicks, PPQ, quarterNotesPerMinute, ticksToSeconds } from './time';
+export {
+  beatTicks,
+  loopRestBeats,
+  measureTicks,
+  PPQ,
+  quarterNotesPerMinute,
+  ticksToSeconds,
+} from './time';
 export { keyShift } from './transpose';
 export { validateArrangement, validateRightHand } from './validate';
 export { ENDING_OFF, INTRO_LAST_PHRASE, INTRO_OFF } from './types';

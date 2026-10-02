@@ -69,8 +69,9 @@ back so each idea can be heard before it is practised.
   would play.
 - **Practice controls.** A tempo that can be dragged or typed, a metronome with a count-in,
   looping a range of measures, and switching arrangements, keys, or hands while the music keeps
-  playing. A right click on a measure (a long press on a phone) locks the playback to that
-  measure and repeats it.
+  playing. The menu of a measure locks the playback to that measure and repeats it. Between
+  two rounds the loop rests for a few beats and counts them on the sheet, so there is time to
+  breathe and to find the start again.
 - **Notes on measures.** The same menu takes a note on a measure: a correction, something to
   change, something that works. Notes are saved in the folder of the song together with the
   arrangement that was on the sheet, so they are at hand when the song is revised.
@@ -170,13 +171,21 @@ puts a button with three dots at the top right corner of the measure, and that b
 the menu. A right click on a measure, or a long press on a phone, opens the same menu
 directly. `Esc` or a click beside the measures takes the button away again.
 
-| In the menu of a measure    | What it does                                                            |
-| --------------------------- | ----------------------------------------------------------------------- |
-| **Play from here**          | Moves the playhead to the measure and starts playing                    |
-| **Loop this measure**       | Locks the playback to this one measure and repeats it                   |
-| **Extend the loop to here** | Widens a loop that is on, so it runs from its first measure to this one |
-| **Switch the loop off**     | Plays straight through again                                            |
-| **Write a note…**           | Opens the notes on this measure: write one, change one, delete one      |
+| In the menu of a measure    | What it does                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| **Play from here**          | Moves the playhead to the measure and starts playing                                  |
+| **Loop this measure**       | Locks the playback to this one measure and repeats it, with a rest between the rounds |
+| **Extend the loop to here** | Widens a loop that is on, so it runs from its first measure to this one               |
+| **Switch the loop off**     | Plays straight through again                                                          |
+| **Write a note…**           | Opens the notes on this measure: write one, change one, delete one                    |
+
+**A loop takes a breath.** After each round of a loop, nothing plays for a short rest before
+the next round begins: two beats in a meter counted in twos or fours, three beats in a meter
+counted in threes (three-four, six-eight). The beats are counted in large grey numbers in the
+middle of the measure where the loop starts again, and the metronome, when it is on, keeps
+clicking through the rest. The measures of a loop are tinted, and the last of them carries a
+**Loop ✕** button at its top right corner: a click switches the loop off, and the music plays
+straight on. The **Loop** button in the playback bar does the same.
 
 **Notes stay with the song.** A note is free text: a wrong pitch, a fill that is too busy, a
 chord worth keeping. It is stored with what was on the sheet when it was written (left hand,

@@ -25,10 +25,10 @@ import { useSettings } from '../store/settings';
 import { cx } from './classnames';
 import { DownloadDialog } from './DownloadDialog';
 import { Guide } from './Guide';
-import { LoopIcon, MoreIcon, PencilIcon, PlayIcon, PlusIcon } from './icons';
+import { CloseIcon, LoopIcon, MoreIcon, PencilIcon, PlayIcon, PlusIcon } from './icons';
 import { FormProgress } from './FormProgress';
 import { IssueList } from './IssueList';
-import { MeasureCorner } from './MeasureCorner';
+import { MeasureOverlay } from './MeasureOverlay';
 import { MeasureMenu, type MeasureMenuItem } from './MeasureMenu';
 import { NoteDialog } from './NoteDialog';
 import { RIGHT_HAND_NAME } from './right-hand-name';
@@ -286,6 +286,14 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
     deselectMeasure.current = measureMenu.deselect;
   }, [measureMenu.deselect]);
   const loop = usePlayer((state) => state.loop);
+  const loopRest = usePlayer((state) => state.loopRest);
+  const tempo = usePlayer((state) => state.tempo);
+  // The measures that carry controls at their corner: the end of the loop, with the button
+  // that switches it off, and the measure that was clicked, with the button for its menu.
+  const loopEnd = loop.enabled && names[loop.to] ? loop.to : null;
+  const corners = [...new Set([loopEnd, selectedMeasure])].filter(
+    (index): index is number => index !== null,
+  );
   const menuTarget = measureMenu.target;
   const menuItems = useMemo((): MeasureMenuItem[] => {
     if (!menuTarget || !names[menuTarget.index]) return [];
@@ -307,7 +315,7 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
       items.push({
         id: 'loop',
         label: 'Loop this measure',
-        hint: 'Stay on this measure and repeat it until the loop is switched off.',
+        hint: 'Repeat this measure, with a short rest to breathe before each round, until the loop is switched off.',
         icon: <LoopIcon width={16} height={16} />,
         onSelect: () => {
           player.setLoop({ enabled: true, from: index, to: index });
@@ -404,26 +412,57 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
                 onOpenNotes={openNotes}
               />
             )}
-            {selectedMeasure !== null && !printing && (
-              <MeasureCorner
-                index={selectedMeasure}
-                above={notation === 'staff'}
-                layout={performance}
-              >
-                <button
-                  type="button"
-                  className="measure-more"
-                  aria-haspopup="menu"
-                  aria-label={`Options for ${names[selectedMeasure].long}`}
-                  title="Loop this measure, write a note, and more"
-                  onClick={(event) => {
-                    const box = event.currentTarget.getBoundingClientRect();
-                    measureMenu.open(selectedMeasure, box.left, box.bottom + 6);
-                  }}
+            {!printing &&
+              corners.map((index) => (
+                <MeasureOverlay
+                  key={index}
+                  index={index}
+                  place="corner"
+                  above={notation === 'staff'}
+                  layout={performance}
                 >
-                  <MoreIcon width={18} height={18} />
-                </button>
-              </MeasureCorner>
+                  {index === loopEnd && (
+                    <button
+                      type="button"
+                      className="loop-off"
+                      aria-label="Switch the loop off and play straight through again"
+                      title="Switch the loop off"
+                      onClick={() => usePlayer.getState().setLoop({ enabled: false })}
+                    >
+                      <LoopIcon width={13} height={13} />
+                      <span>Loop</span>
+                      <CloseIcon width={13} height={13} />
+                    </button>
+                  )}
+                  {index === selectedMeasure && (
+                    <button
+                      type="button"
+                      className="measure-more"
+                      aria-haspopup="menu"
+                      aria-label={`Options for ${names[index].long}`}
+                      title="Loop this measure, write a note, and more"
+                      onClick={(event) => {
+                        const box = event.currentTarget.getBoundingClientRect();
+                        measureMenu.open(index, box.left, box.bottom + 6);
+                      }}
+                    >
+                      <MoreIcon width={18} height={18} />
+                    </button>
+                  )}
+                </MeasureOverlay>
+              ))}
+            {!printing && loopRest && names[loop.from] && (
+              <MeasureOverlay index={loop.from} place="center" layout={performance}>
+                {/* A new element for every beat, so that each number fades in and out. */}
+                <span
+                  key={loopRest.beat}
+                  className="loop-count"
+                  style={{ animationDuration: `${60 / tempo}s` }}
+                  aria-hidden="true"
+                >
+                  {loopRest.beat + 1}
+                </span>
+              </MeasureOverlay>
             )}
           </section>
           {guideOpen && (

@@ -3,6 +3,7 @@ import { engine, type HandMode } from '../audio/engine';
 import {
   beatTicks,
   buildNoteEvents,
+  loopRestBeats,
   quarterNotesPerMinute,
   type Arrangement,
   type Song,
@@ -34,6 +35,11 @@ interface PlayerState {
   loop: LoopSetting;
   /** Zero-based index of the measure under the playhead. */
   currentMeasure: number;
+  /**
+   * Set while a loop rests between two rounds: the beat of the rest that is
+   * being counted, from 0, and how many beats the rest has.
+   */
+  loopRest: { beat: number; beats: number } | null;
 
   /**
    * Hands the music to the engine. `reset` says how much changed: "none" keeps
@@ -50,6 +56,7 @@ interface PlayerState {
   toggleVoiceGuide: () => void;
   setLoop: (loop: Partial<LoopSetting>) => void;
   setCurrentMeasure: (index: number) => void;
+  setLoopRest: (rest: { beat: number; beats: number } | null) => void;
 }
 
 /** The song currently loaded into the engine; needed to convert measures to ticks. */
@@ -66,7 +73,13 @@ function applyLoop(loop: LoopSetting): void {
     engine.setLoop(null);
     return;
   }
-  engine.setLoop({ start: first.startTick, end: last.startTick + last.length });
+  // Every round ends with a few empty beats, so that the player can breathe and start again.
+  const { time } = activeSong.meta;
+  engine.setLoop({
+    start: first.startTick,
+    end: last.startTick + last.length,
+    rest: loopRestBeats(time) * beatTicks(time),
+  });
 }
 
 export const usePlayer = create<PlayerState>((set, get) => ({
@@ -78,6 +91,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   voiceGuide: true,
   loop: { enabled: false, from: 0, to: 0 },
   currentMeasure: 0,
+  loopRest: null,
 
   loadScore(song, arrangement, reset) {
     activeSong = song;
@@ -96,7 +110,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     engine.stop();
     engine.seek(0);
     applyLoop(loop);
-    set({ status: 'stopped', loop, currentMeasure: 0, error: null });
+    set({ status: 'stopped', loop, currentMeasure: 0, loopRest: null, error: null });
 
     if (reset === 'song') {
       engine.setTempo(quarterNotesPerMinute(song.meta.tempo, song.meta.time));
@@ -128,7 +142,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   stop() {
     engine.stop();
     const { loop } = get();
-    set({ status: 'stopped', currentMeasure: loop.enabled ? loop.from : 0 });
+    set({ status: 'stopped', currentMeasure: loop.enabled ? loop.from : 0, loopRest: null });
   },
 
   seekToMeasure(index) {
@@ -174,9 +188,18 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   setCurrentMeasure(index) {
     if (get().currentMeasure !== index) set({ currentMeasure: index });
   },
+
+  setLoopRest(rest) {
+    const known = get().loopRest;
+    if (known?.beat !== rest?.beat || known?.beats !== rest?.beats) set({ loopRest: rest });
+  },
 }));
 
 engine.onEnded = () => {
   const { loop } = usePlayer.getState();
-  usePlayer.setState({ status: 'stopped', currentMeasure: loop.enabled ? loop.from : 0 });
+  usePlayer.setState({
+    status: 'stopped',
+    currentMeasure: loop.enabled ? loop.from : 0,
+    loopRest: null,
+  });
 };

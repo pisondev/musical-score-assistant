@@ -128,6 +128,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A menu for every measure, opened with a right click, or with a long press on a phone, on
   the numbered sheet and on the staff alike: play from here, loop this measure, extend the
   loop to here, and switch the loop off.
+- A rest between the rounds of a loop. When a loop reaches its end, nothing plays for two
+  beats (in a meter counted in twos or fours) or three beats (in three-four, six-eight, and
+  other meters counted in threes) before it starts again. The beats are counted on the sheet
+  in large, see-through grey numbers that fade in and out in the middle of the measure where
+  the loop starts again, on either notation. The metronome clicks through the rest without
+  an accent. A loop on the last measure rests past the end of the song and goes on.
+- A **Loop ✕** button at the top right corner of the last measure of a loop, which switches
+  the loop off. In staff notation the measures of a loop are now marked as well.
 - A button with three dots at the top right corner of the measure that was clicked. It opens
   the menu of that measure, the same one as a right click or a long press, so the menu can be
   found without knowing either gesture. It works on the numbered sheet and on the staff.
