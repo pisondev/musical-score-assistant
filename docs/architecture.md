@@ -56,6 +56,7 @@ in the command-line checker.
 | `midi.ts`        | Writes a performance as a Standard MIDI File                                 |
 | `transpose.ts`   | Moves a song and an arrangement to another key                               |
 | `performance.ts` | Combines song, arrangement, right-hand part, introduction, and transposition |
+| `summary.ts`     | Counts what a song offers, for the cards on the home page                    |
 | `validate.ts`    | Playability and harmony checks                                               |
 | `playback.ts`    | Converts a performance to timed note events                                  |
 | `bundle.ts`      | Reads `arrangements.json` and assembles everything for one song              |
@@ -116,7 +117,7 @@ keep the first page view light.
 
 ### `src/store`: state
 
-Two small Zustand stores:
+Three small Zustand stores:
 
 - `player.ts` holds what the playback controls show (status, hand mode, tempo, metronome, loop,
   current measure) and forwards every change to the engine. When new music is loaded it is told
@@ -124,24 +125,35 @@ Two small Zustand stores:
   (rewind and restore the tempo).
 - `settings.ts` holds display preferences (introduction, right-hand mode, visible rows, guide)
   and persists them in the browser.
+- `history.ts` holds what the home page needs: when each song was last opened and with which
+  left hand, and the favourites. It is persisted as well.
 
-The selected arrangement and the transposition live in `App` and reset when the song changes.
+The selected arrangement and the transposition live in `SongPage`. The page is mounted afresh
+for every song, starting from the left hand remembered for it.
 
 ### `src/ui`: the interface
 
-| Component         | Responsibility                                                          |
-| ----------------- | ----------------------------------------------------------------------- |
-| `Toolbar`         | Menus for both hands and the intro, transposition, visible rows, export |
-| `Popover`         | Generic drop-down panel used by the toolbar                             |
-| `Sheet`           | The numbered score: introduction and song sections, systems, measures   |
-| `StaffSheet`      | The same score in staff notation, engraved by Verovio as SVG            |
-| `useVerovio`      | Loads the engraver on demand                                            |
-| `sheet-layout.ts` | Measure widths and system breaks                                        |
-| `usePlayhead`     | Follows the audio clock and highlights the slots being played           |
-| `Guide`           | New patterns, practice tips, and per-measure explanations               |
-| `TransportBar`    | Play, stop, hand mode, tempo, metronome, loop                           |
-| `SongHeader`      | Title, key, time signature, tempo; credits and legend on request        |
-| `IssueList`       | Errors and warnings for the song and the selected arrangement           |
+| Component         | Responsibility                                                           |
+| ----------------- | ------------------------------------------------------------------------ |
+| `App`             | The shell: top bar, and the home page or one song, chosen by the address |
+| `Home`            | Totals, the song to continue, search, sorting, and a card per song       |
+| `library-view.ts` | Which songs the home page lists, and in what order                       |
+| `SongPage`        | One song: builds the performance, feeds the engine, handles exports      |
+| `Toolbar`         | Menus for both hands and the intro, transposition, visible rows, export  |
+| `Popover`         | Generic drop-down panel used by the toolbar                              |
+| `Sheet`           | The numbered score: introduction and song sections, systems, measures    |
+| `StaffSheet`      | The same score in staff notation, engraved by Verovio as SVG             |
+| `useVerovio`      | Loads the engraver on demand                                             |
+| `sheet-layout.ts` | Measure widths and system breaks                                         |
+| `usePlayhead`     | Follows the audio clock and highlights the slots being played            |
+| `Guide`           | New patterns, practice tips, and per-measure explanations                |
+| `TransportBar`    | Play, stop, hand mode, tempo, metronome, loop                            |
+| `SongHeader`      | Title, key, time signature, tempo; credits and legend on request         |
+| `IssueList`       | Errors and warnings for the song and the selected arrangement            |
+
+Navigation uses the address: `#song=<id>` names a song, and an address without one shows the
+home page. Song cards are ordinary links, so the Back button, bookmarks, and opening a song in a
+new tab work without a router. Leaving a song page stops the playback.
 
 Layout notes:
 
@@ -170,7 +182,8 @@ Layout notes:
 ### `src/library.ts`
 
 Collects every `songs/**/song.txt` and its `arrangements.json` at build time through Vite's
-`import.meta.glob`. With the development server running, editing a song file reloads the page.
+`import.meta.glob`, and summarizes each song for the home page. With the development server
+running, editing a song file reloads the page.
 
 ### `scripts/check-songs.ts`
 
@@ -191,6 +204,7 @@ before opening the app.
   engraver), gap detection, and the keyboard range;
 - the MIDI writer, read back byte by byte;
 - sheet layout;
+- the home page: song summaries, search, sorting, favourites, and relative dates;
 - every committed song must load without errors or warnings.
 
 The audio engine and the React components are thin layers over the tested core and are verified

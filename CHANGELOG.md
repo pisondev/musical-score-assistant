@@ -94,8 +94,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   two hands together must mark every beat of a gap.
 - Right-hand parts for every arrangement of "Amazing Grace", "My style" included.
 
+- A home page. The app now opens on an overview of the library instead of the first song:
+  totals, a "Continue practising" card for the song that was opened last, and a card per song
+  with its key, meter, tempo, styles, and the number of left hands, right-hand parts, and
+  introductions. Songs can be searched, sorted by date, title, or number, and marked as
+  favourites.
+- Addresses per song (`#song=<id>`) that work with the Back button and bookmarks, an "All
+  songs" link in the top bar, and the left hand last used for a song restored when it is
+  opened again.
+
 ### Changed
 
+- Leaving a song page stops the playback.
 - The engine addresses note events and playhead spans by `track` (right, left, or voice)
   instead of `hand`, and the MIDI writer takes a list of tracks.
 - Guide, Print and Download move together to a second toolbar row when the window is narrow.

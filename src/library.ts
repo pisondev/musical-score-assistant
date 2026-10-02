@@ -1,4 +1,4 @@
-import { createSongBundle, type SongBundle } from './core';
+import { createSongBundle, summarizeSong, type SongBundle, type SongSummary } from './core';
 
 /** One song folder found under songs/. */
 export interface SongEntry {
@@ -7,6 +7,8 @@ export interface SongEntry {
   /** True for songs under songs/private, which exist on this machine only. */
   isPrivate: boolean;
   bundle: SongBundle;
+  /** Counts for the overview of all songs. */
+  summary: SongSummary;
 }
 
 const songFiles = import.meta.glob<string>('/songs/**/song.txt', {
@@ -28,9 +30,7 @@ export const library: SongEntry[] = Object.entries(songFiles)
     const match = SONG_PATH.exec(path);
     if (!match) return [];
     const id = match[1];
-    const arrangements = arrangementFiles[`/songs/${id}/arrangements.json`];
-    return [
-      { id, isPrivate: id.startsWith('private/'), bundle: createSongBundle(text, arrangements) },
-    ];
+    const bundle = createSongBundle(text, arrangementFiles[`/songs/${id}/arrangements.json`]);
+    return [{ id, isPrivate: id.startsWith('private/'), bundle, summary: summarizeSong(bundle) }];
   })
   .sort((a, b) => a.bundle.song.meta.title.localeCompare(b.bundle.song.meta.title));

@@ -27,6 +27,7 @@ export {
   RIGHT_HAND_MODES,
 } from './right-hand';
 export { parseSong } from './song';
+export { summarizeSong, type SongSummary } from './summary';
 export { beatTicks, measureTicks, PPQ, quarterNotesPerMinute } from './time';
 export { keyShift } from './transpose';
 export { validateArrangement, validateRightHand } from './validate';

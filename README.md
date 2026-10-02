@@ -4,6 +4,8 @@ A personal practice tool for pianists who read numbered notation (_not angka_). 
 a two-row numbered score, offers several left-hand arrangements to choose from, and plays them
 back so each idea can be heard before it is practised.
 
+![The home page: the song that was practised last, and a card for every song](docs/images/home.png)
+
 ![The score of Amazing Grace with an improvised introduction and a gospel left hand during playback](docs/images/screenshot.png)
 
 ![The same score in staff notation](docs/images/staff-notation.png)
@@ -12,6 +14,10 @@ back so each idea can be heard before it is practised.
 
 ## What it does
 
+- **A home page for the library.** Every song has a card with its key, meter, tempo, styles, and
+  the number of left hands, right-hand parts, and introductions written for it. The song that
+  was practised last can be continued with one click; songs can be searched, sorted, and marked
+  as favourites.
 - **Numbered score for both hands.** The melody is on the upper row and the left hand on the
   lower row, aligned beat for beat, with chords above, lyrics below the melody, and dynamics
   between the hands. Notes that are struck together are written one above the other.
@@ -66,7 +72,14 @@ git at the versioned hooks in `.githooks/`.
 
 ## Using the app
 
-The toolbar above the sheet decides what is shown; the bar at the bottom controls playback.
+The app opens on the home page. **Continue** reopens the song that was practised last with the
+left hand that was selected; a click on a card opens that song. The star marks a favourite, and
+the search box looks at titles, numbers, credits, and styles. On a song page, **All songs** or
+the name of the app in the top bar leads back, as does the Back button of the browser. Every
+song has an address of its own (`#song=amazing-grace`), so it can be bookmarked.
+
+On a song page, the toolbar above the sheet decides what is shown; the bar at the bottom
+controls playback.
 
 | Control           | What it does                                                                                                  |
 | ----------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -91,8 +104,9 @@ The toolbar above the sheet decides what is shown; the bar at the bottom control
 
 A dot next to a measure number means the guide explains that measure. Chords on a light-blue
 background differ from the printed score. The **Voice** button appears while the right hand
-accompanies; the row marked V is what the singers sing. The intro, the right-hand mode, and the
-visible rows are remembered between visits.
+accompanies; the row marked V is what the singers sing. The intro, the right-hand mode, the
+visible rows, the favourites, and the left hand last used for each song are remembered between
+visits, in this browser only.
 
 ## Adding a song
 
@@ -131,8 +145,8 @@ included, so publish a build only if it contains songs you are allowed to share.
 songs/              song folders (song.txt, arrangements.json)
 src/core/           music engine: parsing, chords, arrangements, validation (no browser code)
 src/audio/          playback engine built on Tone.js
-src/store/          player state
-src/ui/             React components for the score and the controls
+src/store/          player state, display settings, and what was opened
+src/ui/             React components: home page, song page, score, and controls
 scripts/            command-line tools
 tests/              unit tests
 docs/               format reference, architecture, roadmap
