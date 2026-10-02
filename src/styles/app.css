@@ -681,6 +681,15 @@ code {
   color: var(--muted);
 }
 
+/* The size of a file, at the end of the line that names it. */
+.option__size {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
 .levels {
   display: grid;
   gap: 12px;
@@ -1783,6 +1792,61 @@ a.button {
   color: var(--muted);
 }
 
+.dialog__lead {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+/* What a dialog is about to act on: one line per setting, name and value. */
+.summary {
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.summary > div {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 12px;
+}
+
+.summary > div + div {
+  border-top: 1px solid var(--line);
+}
+
+.summary dt {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.summary dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  min-width: 0;
+  font-weight: 650;
+}
+
+.summary dd > span {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.summary dd > .summary__file {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
 .dialog__field {
   display: grid;
   gap: 6px;
@@ -1817,10 +1881,21 @@ a.button {
   gap: 12px;
 }
 
-.dialog__foot p {
+.dialog__foot p,
+.dialog__note {
   font-size: 12px;
   line-height: 1.45;
   color: var(--muted);
+}
+
+/* Buttons that stay in reach when the dialog is taller than the window and scrolls. */
+.dialog__foot--stick {
+  position: sticky;
+  bottom: 0;
+  padding-top: 10px;
+  background: var(--surface);
+  /* Covers what scrolls through the padding below the buttons. */
+  box-shadow: 0 24px 0 0 var(--surface);
 }
 
 .dialog__buttons {
@@ -1904,6 +1979,11 @@ a.button {
   /* Typing in a field smaller than 16px makes a phone zoom in. */
   .dialog__field textarea {
     font-size: 16px;
+  }
+
+  .summary > div {
+    grid-template-columns: 84px minmax(0, 1fr);
+    padding: 6px 10px;
   }
 }
 

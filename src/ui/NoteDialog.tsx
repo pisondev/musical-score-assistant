@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MeasureNote, NoteTarget } from '../core';
+import { Dialog } from './Dialog';
 import { noteByline } from './note-byline';
 import type { NotesHome } from './useMeasureNotes';
 
@@ -39,14 +40,6 @@ export function NoteDialog({
     field.current?.focus();
   }, [editing]);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
-
   const submit = () => {
     const body = text.trim();
     if (!body) return;
@@ -56,23 +49,13 @@ export function NoteDialog({
   };
 
   return (
-    <>
-      <div className="dialog__backdrop" onClick={onClose} aria-hidden="true" />
-      <div
-        className="dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Notes on ${target.where}`}
-      >
-        <header className="dialog__head">
-          <h2>
-            Notes <span>{target.where}</span>
-          </h2>
-          <button type="button" className="button button--quiet" onClick={onClose}>
-            Close
-          </button>
-        </header>
-
+    <Dialog
+      title="Notes"
+      detail={target.where}
+      label={`Notes on ${target.where}`}
+      onClose={onClose}
+    >
+      <>
         {notes.length > 0 && (
           <ul className="notes">
             {notes.map((note) => (
@@ -159,7 +142,7 @@ export function NoteDialog({
             </button>
           </div>
         </footer>
-      </div>
-    </>
+      </>
+    </Dialog>
   );
 }

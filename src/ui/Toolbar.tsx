@@ -10,11 +10,13 @@ import {
   type IntroChoice,
   type Level,
   type NoteName,
+  type Performance,
   type RightHandMode,
   type SongBundle,
 } from '../core';
 import { useSettings, type Notation } from '../store/settings';
 import { cx } from './classnames';
+import { formatBytes } from './file-size';
 import { introName } from './intro-name';
 import {
   BookIcon,
@@ -28,6 +30,7 @@ import {
 } from './icons';
 import { Popover } from './Popover';
 import { RIGHT_HAND_NAME } from './right-hand-name';
+import { EXPORT_EXTENSION, EXPORT_NAME, useExportFacts, type ExportKind } from './song-export';
 
 export const MAX_TRANSPOSE = 6;
 
@@ -85,8 +88,10 @@ interface ToolbarProps {
   /** The key after transposing. */
   soundingKey: NoteName;
   onPrint: () => void;
-  onDownloadMidi: () => void;
-  onDownloadMp3: () => void;
+  /** What is on the sheet; the download menu says how large its files would be. */
+  performance: Performance;
+  /** Asks for a file; the page confirms the settings before it is made. */
+  onAskDownload: (kind: ExportKind) => void;
   /** Progress of an MP3 that is being made, or null when none is. */
   exportStatus: string | null;
 }
@@ -525,27 +530,67 @@ function NotationSwitch() {
   );
 }
 
-function DownloadMenu({
-  onDownloadMidi,
-  onDownloadMp3,
-  exportStatus,
-}: Pick<ToolbarProps, 'onDownloadMidi' | 'onDownloadMp3' | 'exportStatus'>) {
-  const options = [
-    {
-      name: 'MIDI',
-      extension: '.mid',
-      description:
-        'The notes themselves, one track per hand and one for the voice guide. For a keyboard or a music program.',
-      action: onDownloadMidi,
-    },
-    {
-      name: 'MP3',
-      extension: '.mp3',
-      description: 'A recording with the piano sound of this app. For a phone or any audio player.',
-      action: onDownloadMp3,
-    },
-  ];
+const DOWNLOADS: { kind: ExportKind; description: string }[] = [
+  {
+    kind: 'midi',
+    description:
+      'The notes themselves, one track per hand and one for the voice guide. For a keyboard or a music program.',
+  },
+  {
+    kind: 'mp3',
+    description: 'A recording with the piano sound of this app. For a phone or any audio player.',
+  },
+];
 
+/** The two files with their sizes as they would be now; a click asks for one of them. */
+function DownloadChoices({
+  performance,
+  onAskDownload,
+  exportStatus,
+  close,
+}: Pick<ToolbarProps, 'performance' | 'onAskDownload' | 'exportStatus'> & { close: () => void }) {
+  const facts = useExportFacts(performance);
+  return (
+    <div className="menu">
+      {DOWNLOADS.map(({ kind, description }) => (
+        <button
+          key={kind}
+          type="button"
+          className="option"
+          disabled={exportStatus !== null}
+          onClick={() => {
+            close();
+            onAskDownload(kind);
+          }}
+        >
+          <span className="option__title">
+            {EXPORT_NAME[kind]}
+            <span className="tag">.{EXPORT_EXTENSION[kind]}</span>
+            <span
+              className="option__size"
+              title={kind === 'mp3' ? 'Estimated from the length' : undefined}
+            >
+              {kind === 'mp3' && 'about '}
+              {formatBytes(facts.bytes[kind])}
+            </span>
+          </span>
+          <span className="option__summary">{description}</span>
+        </button>
+      ))}
+      <p className="menu__note">
+        Both contain what is on the sheet: the intro, both hands as chosen, the key, the repeat, the
+        ending, and the dynamics, at the current tempo and with what is switched on in the bar
+        below. The settings are shown once more before the file is made.
+      </p>
+    </div>
+  );
+}
+
+function DownloadMenu({
+  performance,
+  onAskDownload,
+  exportStatus,
+}: Pick<ToolbarProps, 'performance' | 'onAskDownload' | 'exportStatus'>) {
   return (
     <Popover
       label="Download"
@@ -561,31 +606,12 @@ function DownloadMenu({
       }
     >
       {(close) => (
-        <div className="menu">
-          {options.map(({ name, extension, description, action }) => (
-            <button
-              key={name}
-              type="button"
-              className="option"
-              disabled={exportStatus !== null}
-              onClick={() => {
-                close();
-                action();
-              }}
-            >
-              <span className="option__title">
-                {name}
-                <span className="tag">{extension}</span>
-              </span>
-              <span className="option__summary">{description}</span>
-            </button>
-          ))}
-          <p className="menu__note">
-            Both contain what is on the sheet: the intro, both hands as chosen, the key, the repeat,
-            the ending, and the dynamics, at the current tempo and with what is switched on in the
-            bar below.
-          </p>
-        </div>
+        <DownloadChoices
+          performance={performance}
+          onAskDownload={onAskDownload}
+          exportStatus={exportStatus}
+          close={close}
+        />
       )}
     </Popover>
   );
@@ -650,8 +676,8 @@ export function Toolbar(props: ToolbarProps) {
         <span>Print</span>
       </button>
       <DownloadMenu
-        onDownloadMidi={props.onDownloadMidi}
-        onDownloadMp3={props.onDownloadMp3}
+        performance={props.performance}
+        onAskDownload={props.onAskDownload}
         exportStatus={props.exportStatus}
       />
     </div>

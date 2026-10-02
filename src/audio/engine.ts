@@ -1,5 +1,6 @@
 import type * as ToneModule from 'tone';
 import { PPQ, velocityToGain, type NoteEvent, type Track } from '../core';
+import { RECORDING_TAIL } from './mp3';
 
 type Tone = typeof ToneModule;
 
@@ -54,8 +55,6 @@ const TRACKS: Track[] = ['right', 'left', 'voice'];
  */
 const CHANNEL_VOLUME: Record<Track, number> = { right: 7, left: 4, voice: -14 };
 const SAMPLER_RELEASE = 1.2;
-/** Silence appended to a recording so the last notes can ring out, in seconds. */
-const RECORDING_TAIL = 2.5;
 const RECORDING_SAMPLE_RATE = 44100;
 const CLICK_ACCENT = 'C6';
 const CLICK_BEAT = 'G5';

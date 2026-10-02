@@ -90,7 +90,9 @@ back so each idea can be heard before it is practised.
 - **MIDI and MP3 download.** The same performance as a file: introduction, both hands as
   chosen, key, repeat, ending, and dynamics as on the sheet, at the tempo of the slider. MIDI
   holds the notes, one track per hand and one for the voice guide; MP3 is a recording with the
-  sounds of the app.
+  sounds of the app. The menu shows how large each file will be, and before a file is made a
+  dialog lists everything it will hold (left hand, right hand, intro, repeat, ending, key,
+  tempo, hands, length, file name, size), so nothing is downloaded with the wrong settings.
 
 The web app only displays and plays. Songs and arrangements are plain files in `songs/`, written
 outside the app (see [Adding a song](#adding-a-song)).
@@ -143,12 +145,12 @@ choices scroll, so it is always clear which setting they belong to.
 | **Key**        | Transposes by half steps; click the key to return to the original                                 |
 | **Show**       | Shows or hides lyrics and dynamics                                                                |
 
-| Beside it         | What it does                                                                                                  |
-| ----------------- | ------------------------------------------------------------------------------------------------------------- |
-| **1 2 3 / Staff** | Switches between numbered notation and staff notation                                                         |
-| **Guide**         | Opens the panel that explains the arrangement: patterns, tips, what changed per measure, and your own notes   |
-| **Print / PDF**   | Opens the print dialog; choose "Save as PDF" as the destination for a file                                    |
-| **Download**      | Saves what is on the sheet as MIDI (`.mid`) or MP3, at the current tempo, with what is switched on in the bar |
+| Beside it         | What it does                                                                                                                  |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **1 2 3 / Staff** | Switches between numbered notation and staff notation                                                                         |
+| **Guide**         | Opens the panel that explains the arrangement: patterns, tips, what changed per measure, and your own notes                   |
+| **Print / PDF**   | Opens the print dialog; choose "Save as PDF" as the destination for a file                                                    |
+| **Download**      | Shows MIDI (`.mid`) and MP3 with their sizes; a choice opens a summary of the settings, and **Download** in it saves the file |
 
 | Playback action           | Mouse                                         | Keyboard                                                                 |
 | ------------------------- | --------------------------------------------- | ------------------------------------------------------------------------ |

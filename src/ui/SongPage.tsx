@@ -1,34 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal, flushSync } from 'react-dom';
-import { engine, type HandMode } from '../audio/engine';
+import { engine } from '../audio/engine';
 import { encodeMp3 } from '../audio/mp3';
 import {
   BASELINE_ID,
-  buildNoteEvents,
   buildPerformance,
   ENDING_OFF,
   formatNoteName,
   INTRO_LAST_PHRASE,
   INTRO_OFF,
-  exportFileName,
   measureNames,
   noteContext,
   notesAt,
   noteTarget,
-  noteNameToText,
-  toMidiFile,
   type EndingChoice,
   type IntroChoice,
   type MeasureNote,
   type NoteTarget,
-  type Performance,
-  type Track,
 } from '../core';
 import type { SongEntry } from '../library';
 import { useHistory } from '../store/history';
 import { usePlayer, type ScoreReset } from '../store/player';
 import { useSettings } from '../store/settings';
 import { cx } from './classnames';
+import { DownloadDialog } from './DownloadDialog';
 import { Guide } from './Guide';
 import { LoopIcon, PencilIcon, PlayIcon, PlusIcon } from './icons';
 import { FormProgress } from './FormProgress';
@@ -37,6 +32,13 @@ import { MeasureMenu, type MeasureMenuItem } from './MeasureMenu';
 import { NoteDialog } from './NoteDialog';
 import { RIGHT_HAND_NAME } from './right-hand-name';
 import { Sheet } from './Sheet';
+import {
+  exportFileNameFor,
+  handsLabel,
+  midiFileOf,
+  tracksOf,
+  type ExportKind,
+} from './song-export';
 import { SongHeader } from './SongHeader';
 import { StaffSheet } from './StaffSheet';
 import { MAX_TRANSPOSE, Toolbar } from './Toolbar';
@@ -45,31 +47,6 @@ import { useMeasureMenu } from './useMeasureMenu';
 import { useMeasureNotes } from './useMeasureNotes';
 
 const LEVEL_LABEL = { easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' } as const;
-
-/** What a download contains: the hands that are switched on, and the voice guide when it plays. */
-function tracksOf(performance: Performance, mode: HandMode, voiceGuide: boolean): Track[] {
-  const hands: Track[] = mode === 'both' ? ['right', 'left'] : [mode];
-  const hasVoice = performance.song.measures.some((measure) => measure.voice !== undefined);
-  return hasVoice && voiceGuide ? [...hands, 'voice'] : hands;
-}
-
-/** Names the two hands of a performance, e.g. "Alberti bass, accompaniment". */
-function handsLabel(performance: Performance): string {
-  const { arrangement, rightHand } = performance;
-  return rightHand === 'melody'
-    ? arrangement.name
-    : `${arrangement.name}, ${RIGHT_HAND_NAME[rightHand].toLowerCase()}`;
-}
-
-function fileNameFor(performance: Performance, extension: string): string {
-  const { meta } = performance.song;
-  return exportFileName(
-    meta.title,
-    handsLabel(performance).replace(' + ', ' with '),
-    noteNameToText(meta.key),
-    extension,
-  );
-}
 
 /** Hands a generated file to the browser as a download. */
 function saveFile(file: Blob, name: string): void {
@@ -107,6 +84,8 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
   const [semitones, setSemitones] = useState(0);
   const [printing, setPrinting] = useState(false);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
+  // The file the player asked for, while the dialog asks whether its settings are right.
+  const [downloadAsked, setDownloadAsked] = useState<ExportKind | null>(null);
 
   const introSetting = useSettings((state) => state.intro);
   const endingSetting = useSettings((state) => state.ending);
@@ -184,6 +163,8 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (isTypingTarget(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
+      // While a dialog is open, the keys belong to its buttons.
+      if (document.querySelector('.dialog')) return;
       const player = usePlayer.getState();
       if (event.code === 'Space') {
         event.preventDefault();
@@ -220,19 +201,10 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
   // chosen, the key, the tempo, and only what is switched on in the transport bar.
   const downloadMidi = useCallback(() => {
     const { tempo, handMode, voiceGuide } = usePlayer.getState();
-    const { song, arrangement: played, sections } = performance;
-    const bytes = toMidiFile(song, buildNoteEvents(song, played), {
-      tempo,
-      tracks: tracksOf(performance, handMode, voiceGuide),
-      // The repeat in a higher key announces itself with a new key signature.
-      keyChanges: sections.map((section) => ({
-        tick: song.measures[section.start].startTick,
-        key: section.key,
-      })),
-    });
+    const bytes = midiFileOf(performance, tempo, tracksOf(performance, handMode, voiceGuide));
     saveFile(
       new Blob([bytes.slice().buffer], { type: 'audio/midi' }),
-      fileNameFor(performance, 'mid'),
+      exportFileNameFor(performance, 'midi'),
     );
   }, [performance]);
 
@@ -247,7 +219,7 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
       const file = await encodeMp3(audio, (fraction) =>
         setExportStatus(`Encoding ${Math.round(fraction * 100)}%`),
       );
-      saveFile(file, fileNameFor(performance, 'mp3'));
+      saveFile(file, exportFileNameFor(performance, 'mp3'));
     } catch (error) {
       console.error(error);
       usePlayer.setState({ error: 'The MP3 could not be created. Please try again.' });
@@ -382,8 +354,8 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
               onTranspose={transposeTo}
               soundingKey={performance.song.meta.key}
               onPrint={print}
-              onDownloadMidi={downloadMidi}
-              onDownloadMp3={() => void downloadMp3()}
+              performance={performance}
+              onAskDownload={setDownloadAsked}
               exportStatus={exportStatus}
             />,
             tools,
@@ -451,6 +423,19 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
           onSave={saveNote}
           onDelete={(id) => void playerNotes.remove(id)}
           onClose={() => setNoteTargetOpen(null)}
+        />
+      )}
+      {downloadAsked && (
+        <DownloadDialog
+          kind={downloadAsked}
+          bundle={bundle}
+          performance={performance}
+          intro={intro}
+          ending={ending}
+          lift={lift}
+          semitones={semitones}
+          onConfirm={downloadAsked === 'midi' ? downloadMidi : () => void downloadMp3()}
+          onClose={() => setDownloadAsked(null)}
         />
       )}
       <TransportBar song={performance.song} names={names} />

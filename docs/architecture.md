@@ -192,7 +192,10 @@ for every song, starting from the left hand remembered for it.
 | `usePlayhead`      | Follows the audio clock and highlights the slots being played             |
 | `MeasureMenu`      | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
 | `useMeasureMenu`   | Opens that menu on a right click or a long press, on either notation      |
+| `Dialog`           | The frame of a dialog: centred, or a bottom sheet on a phone              |
 | `NoteDialog`       | The notes on one measure: read, write, change, delete                     |
+| `DownloadDialog`   | Lists what a file will hold and asks before it is made                    |
+| `song-export.ts`   | What a download holds right now: tracks, tempo, length, file name, sizes  |
 | `useMeasureNotes`  | Loads and saves the notes of a song: in its folder, or in the browser     |
 | `FormProgress`     | The progress bar under the controls: the part of the piece one is in      |
 | `view-position.ts` | Which measure the reader is at, from the scroll position; scrolling there |
@@ -250,6 +253,12 @@ Layout notes:
   matches what is heard: one conductor track with tempo, meter, and key, one track per hand,
   and one for the voice when it plays. The ticks are the engine's own (480 per quarter note),
   so nothing is rounded.
+- Sizes before a download: `useExportFacts` follows the playback bar and says what a file
+  would hold at this moment. The MIDI file is small and quick to write, so its size is taken
+  from the file itself. An MP3 takes seconds to render, so its size is computed instead: the
+  encoder runs at a constant bit rate, which makes the size the length of the recording (the
+  music plus the tail in which the last notes ring out) times that rate. The download menu and
+  the confirmation dialog read the same facts, so they cannot disagree.
 - Staff notation: `mei.ts` gives every note the id of the slot it stands for and every measure
   the id of its index. Verovio keeps those ids in the SVG, so the playhead, the highlight of the
   current measure, and click-to-seek work exactly as on the numbered sheet. The introduction and
@@ -314,6 +323,8 @@ its files with their extension.
 - the MIDI writer, read back byte by byte;
 - sheet layout;
 - the home page: song summaries, search, sorting, favourites, and relative dates;
+- downloads: the length of a performance, the size of a recording, and how sizes and lengths
+  are written;
 - notes on measures: the place a note refers to, reading a file that was edited by hand, and
   writing, reading back, and removing the file in a temporary folder;
 - every committed song must load without errors or warnings.

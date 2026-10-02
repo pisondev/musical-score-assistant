@@ -128,6 +128,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A menu for every measure, opened with a right click, or with a long press on a phone, on
   the numbered sheet and on the staff alike: play from here, loop this measure, extend the
   loop to here, and switch the loop off.
+- File sizes in the download menu: exact for MIDI, and for MP3 an estimate from the length of
+  the piece that is within a frame or two of the file. They follow the tempo and the hands
+  that are switched on.
+- A confirmation before a download. Choosing MIDI or MP3 opens a dialog that lists what the
+  file will hold as things are set at that moment: the song, the left hand with its level and
+  style, the right-hand mode, the intro, the repeat and its key, the ending, the key, the
+  tempo, the hands and the voice guide, the length, the file name, and the size. The file is
+  made only after **Download** in that dialog; **Cancel** leaves everything as it was.
 - A progress bar under the controls of a song. It names the part of the piece that is in view
   (_Intro_, _Song (verse)_, _Song (refrain)_, _Interlude_, _Repeat (verse)_, _Ending_) and
   fills from left to right; at the end of the piece it is full. While the music plays it

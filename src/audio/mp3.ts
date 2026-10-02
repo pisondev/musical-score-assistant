@@ -1,5 +1,7 @@
 /** Bit rate of the encoded file, in kilobits per second. */
 const BIT_RATE = 160;
+/** Silence appended to a recording so the last notes can ring out, in seconds. */
+export const RECORDING_TAIL = 2.5;
 /** Samples per MP3 frame; the encoder is fed one frame at a time. */
 const FRAME_SIZE = 1152;
 /** Frames encoded before the browser gets a chance to repaint. */
@@ -27,6 +29,15 @@ export function toInt16(samples: Float32Array, gain = 1): Int16Array {
     result[index] = Math.round(clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff);
   }
   return result;
+}
+
+/**
+ * Size of the MP3 file of a recording, in bytes, from its length in seconds
+ * (the music and the tail after it). The bit rate is constant, so the
+ * estimate is off by no more than a frame or two.
+ */
+export function estimateMp3Bytes(seconds: number): number {
+  return Math.round((Math.max(0, seconds) * BIT_RATE * 1000) / 8);
 }
 
 function peakOf(channels: Float32Array[]): number {

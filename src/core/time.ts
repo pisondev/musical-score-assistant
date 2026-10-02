@@ -17,3 +17,8 @@ export function measureTicks(time: TimeSignature): number {
 export function quarterNotesPerMinute(tempo: number, time: TimeSignature): number {
   return (tempo * 4) / time.unit;
 }
+
+/** How long a number of ticks lasts at a tempo counted in beats of the time signature, in seconds. */
+export function ticksToSeconds(ticks: number, tempo: number, time: TimeSignature): number {
+  return (ticks / PPQ) * (60 / quarterNotesPerMinute(tempo, time));
+}
