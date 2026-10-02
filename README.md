@@ -8,6 +8,8 @@ back so each idea can be heard before it is practised.
 
 ![The same score in staff notation](docs/images/staff-notation.png)
 
+![An accompaniment for singers: the sung melody as a small row above the right hand](docs/images/accompaniment.png)
+
 ## What it does
 
 - **Numbered score for both hands.** The melody is on the upper row and the left hand on the
@@ -17,6 +19,11 @@ back so each idea can be heard before it is practised.
   root-fifth-octave pattern on the printed chords. Further arrangements are grouped as easy,
   intermediate, and advanced, and each teaches a style: ballad, hymn, classical, gospel,
   majestic, jazz. A guide explains the new patterns and every changed measure.
+- **Three roles for the right hand.** _Melody_ plays the printed tune. _Melody + fills_ keeps
+  every printed note and adds fills where the tune waits. _Accompaniment_ leaves the tune to
+  the singers and plays chords, rhythm, and fills instead; the sung melody stays on the sheet
+  as a small row and can be played as a soft guide. Fills and accompaniment are written for
+  each left hand, so they agree with its chords and share the gaps with its fills.
 - **An introduction.** An optional intro plays before the song: the last phrase of the song, or
   one of several newly written ones in different styles. It has its own block at the top of the
   sheet.
@@ -29,14 +36,15 @@ back so each idea can be heard before it is practised.
 - **Dynamics.** Marks from _pp_ to _ff_ and crescendo or diminuendo hairpins are shown on the
   sheet and shape the loudness of the playback.
 - **Playback that follows the page.** Play both hands, the right hand alone to check the melody,
-  or the left hand alone to hear a suggestion. The note being played is highlighted on the score.
+  or the left hand alone to hear a suggestion, with or without the voice guide. The note being
+  played is highlighted on the score.
 - **Practice controls.** Tempo, metronome with a count-in, looping a range of measures, and
   switching arrangements, keys, or hands while the music keeps playing.
 - **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
   key, and introduction.
-- **MIDI and MP3 download.** The same performance as a file: introduction, left hand, key, and
-  dynamics as on the sheet, at the tempo of the slider. MIDI holds the notes, one track per hand;
-  MP3 is a recording with the piano sound of the app.
+- **MIDI and MP3 download.** The same performance as a file: introduction, both hands as
+  chosen, key, and dynamics as on the sheet, at the tempo of the slider. MIDI holds the notes,
+  one track per hand and one for the voice guide; MP3 is a recording with the sounds of the app.
 
 The web app only displays and plays. Songs and arrangements are plain files in `songs/`, written
 outside the app (see [Adding a song](#adding-a-song)).
@@ -63,31 +71,35 @@ The toolbar above the sheet decides what is shown; the bar at the bottom control
 | Control           | What it does                                                                                                  |
 | ----------------- | ------------------------------------------------------------------------------------------------------------- |
 | **Left hand**     | Opens the arrangements, grouped by level, each tagged with its style                                          |
+| **Right hand**    | Melody, _Melody + fills_, or _Accompaniment_, written to go with the selected left hand                       |
 | **Intro**         | Off, _Last phrase_, or a written intro; when on, playback starts with the intro                               |
 | **Key**           | Transposes by half steps; click the key to return to the original                                             |
 | **Show**          | Shows or hides lyrics and dynamics                                                                            |
 | **1 2 3 / Staff** | Switches between numbered notation and staff notation                                                         |
 | **Guide**         | Opens the panel that explains the arrangement: patterns, tips, measure notes                                  |
 | **Print / PDF**   | Opens the print dialog; choose "Save as PDF" as the destination for a file                                    |
-| **Download**      | Saves what is on the sheet as MIDI (`.mid`) or MP3, at the current tempo, with the hands that are switched on |
+| **Download**      | Saves what is on the sheet as MIDI (`.mid`) or MP3, at the current tempo, with what is switched on in the bar |
 
 | Playback action           | Mouse                  | Keyboard                     |
 | ------------------------- | ---------------------- | ---------------------------- |
 | Play or pause             | Round button           | `Space`                      |
 | Stop and return to start  | Square button          | `Home`                       |
 | Both hands / right / left | Segmented control      | `1` `2` `3`                  |
+| Voice guide on or off     | **Voice** button       | `V`                          |
 | Move the playhead         | Click a measure        | `Enter` on a focused measure |
 | Reset the tempo           | Click the tempo number |                              |
 
 A dot next to a measure number means the guide explains that measure. Chords on a light-blue
-background differ from the printed score. The intro choice and the visible rows are remembered
-between visits.
+background differ from the printed score. The **Voice** button appears while the right hand
+accompanies; the row marked V is what the singers sing. The intro, the right-hand mode, and the
+visible rows are remembered between visits.
 
 ## Adding a song
 
 1. Create a folder under `songs/` (or under `songs/private/` for copyrighted material).
 2. Write `song.txt`: header, melody, chords, lyrics, dynamics.
-3. Optionally write `arrangements.json` with left-hand arrangements and an introduction.
+3. Optionally write `arrangements.json` with left-hand arrangements, the right-hand parts
+   that go with them, and introductions.
 4. Run `npm run check` and fix what it reports.
 
 Arrangements are written for a 61-key keyboard (C2 to C7), so the left hand never goes below C2.

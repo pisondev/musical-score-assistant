@@ -27,6 +27,10 @@ describe('bundled songs', () => {
       ...bundle.song.issues,
       ...bundle.issues,
       ...bundle.arrangements.flatMap((arrangement) => arrangement.issues),
+      ...bundle.arrangements.flatMap((arrangement) =>
+        Object.values(arrangement.rightHand).flatMap((part) => part.issues),
+      ),
+      ...bundle.intro.written.flatMap((written) => written.issues),
     ].filter((issue) => issue.severity !== 'info');
 
     expect(problems).toEqual([]);

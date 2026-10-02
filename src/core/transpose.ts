@@ -91,6 +91,7 @@ export function transpose(
   const measures: Measure[] = song.measures.map((measure) => ({
     ...measure,
     slots: shiftSlots(measure.slots, shift.pitchShift),
+    voice: measure.voice && shiftSlots(measure.voice, shift.pitchShift),
     chords: shiftChords(measure.chords, shift),
   }));
   const parts: ArrangementMeasure[] = arrangement.measures.map((part) => ({

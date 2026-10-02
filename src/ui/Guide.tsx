@@ -1,6 +1,7 @@
 import type { Performance } from '../core';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
+import { RIGHT_HAND_NAME } from './right-hand-name';
 
 interface GuideProps {
   performance: Performance;
@@ -8,16 +9,24 @@ interface GuideProps {
 
 const LEVEL_LABEL = { easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' } as const;
 
+interface MeasureNote {
+  index: number;
+  label: string;
+  left?: string;
+  right?: string;
+}
+
 /** Explains the selected arrangement: what is new, how to practise it, and why each measure changed. */
 export function Guide({ performance }: GuideProps) {
-  const { song, arrangement, introMeasures } = performance;
+  const { song, arrangement, introMeasures, rightHand } = performance;
+  const rightPart = rightHand === 'melody' ? undefined : arrangement.rightHand[rightHand];
   const currentMeasure = usePlayer((state) => state.currentMeasure);
   const status = usePlayer((state) => state.status);
   const seekToMeasure = usePlayer((state) => state.seekToMeasure);
   const active = status === 'playing' || status === 'paused';
 
   const notes = arrangement.measures
-    .map((part, index) => {
+    .map((part, index): MeasureNote => {
       const measure = song.measures[index];
       const label =
         measure.part === 'intro'
@@ -25,11 +34,9 @@ export function Guide({ performance }: GuideProps) {
           : measure.number === null
             ? '–'
             : `${measure.number}`;
-      return { index, label, text: part.note };
+      return { index, label, left: part.note, right: part.rightNote };
     })
-    .filter((entry): entry is { index: number; label: string; text: string } =>
-      Boolean(entry.text),
-    );
+    .filter((entry) => Boolean(entry.left || entry.right));
 
   return (
     <aside className="guide" aria-label="About this arrangement">
@@ -47,6 +54,18 @@ export function Guide({ performance }: GuideProps) {
           This is the pattern you already play. Pick another left hand, then switch back here at any
           time to compare.
         </p>
+      )}
+
+      {rightPart && (
+        <section>
+          <h3>Right hand: {RIGHT_HAND_NAME[rightHand]}</h3>
+          <p className="guide__text">{rightPart.summary}</p>
+          <p className="guide__footnote">
+            {rightHand === 'fills'
+              ? 'The printed melody stays as it is; the notes around it are added where it waits.'
+              : 'The singers carry the melody, shown on the small row above the right hand. Switch Voice on to hear it with the accompaniment.'}
+          </p>
+        </section>
       )}
 
       {arrangement.patterns.length > 0 && (
@@ -91,7 +110,14 @@ export function Guide({ performance }: GuideProps) {
                   onClick={() => seekToMeasure(note.index)}
                 >
                   <span className="measure-notes__number">{note.label}</span>
-                  <span>{note.text}</span>
+                  <span className="measure-notes__text">
+                    {note.left && <span>{note.left}</span>}
+                    {note.right && (
+                      <span>
+                        <em>Right hand:</em> {note.right}
+                      </span>
+                    )}
+                  </span>
                 </button>
               </li>
             ))}

@@ -6,7 +6,7 @@ Every song lives in its own folder under `songs/`:
 songs/
   amazing-grace/
     song.txt             melody, printed chords, lyrics, and dynamics
-    arrangements.json    left-hand arrangements and the introduction (optional)
+    arrangements.json    left-hand arrangements, right-hand parts, and introductions (optional)
   private/               git-ignored: copyrighted songs stay on this machine
     <song>/
       song.txt
@@ -131,8 +131,9 @@ L: ma-zing _ grace! how
 
 ## `arrangements.json`
 
-Left-hand arrangements and the introduction for one song. The app always adds one more
-arrangement by itself, called **My style**: root, fifth, octave on the printed chords.
+Left-hand arrangements, the right-hand parts that go with them, and the introductions for one
+song. The app always adds one more arrangement by itself, called **My style**: root, fifth,
+octave on the printed chords.
 
 ```json
 {
@@ -154,6 +155,11 @@ arrangement by itself, called **My style**: root, fifth, octave on the printed c
       }
     ]
   },
+  "baseline": {
+    "rightHand": {
+      "fills": { "summary": "…", "measures": [{ "measure": 7, "right": "5 (7 2') (7 5)" }] }
+    }
+  },
   "arrangements": [
     {
       "id": "walking-bass",
@@ -173,7 +179,22 @@ arrangement by itself, called **My style**: root, fifth, octave on the printed c
         { "measure": 0, "left": "0" },
         { "measure": 1, "left": "[G]1 <5 1'> <5 1'>" },
         { "measure": 2, "left": "[G/B]3 <5 1'> <5 1'>", "note": "Why this measure changed." }
-      ]
+      ],
+      "rightHand": {
+        "fills": {
+          "summary": "One sentence that describes the fills.",
+          "measures": [
+            { "measure": 7, "right": "5 (6 7) (1' 7)", "note": "Fill: what the right hand adds." }
+          ]
+        },
+        "accompaniment": {
+          "summary": "One sentence that describes the texture.",
+          "measures": [
+            { "measure": 0, "right": "5," },
+            { "measure": 1, "right": "5 . 6" }
+          ]
+        }
+      }
     }
   ]
 }
@@ -193,6 +214,7 @@ arrangement by itself, called **My style**: root, fifth, octave on the printed c
 | `measures[].measure` | Printed measure number; `0` is the pickup measure                                            |
 | `measures[].left`    | Left-hand notation for that measure (see below), without barlines                            |
 | `measures[].note`    | Short explanation shown in the guide                                                         |
+| `rightHand`          | Right-hand parts written for this left hand (see [Right-hand parts](#right-hand-parts))      |
 
 A measure that is missing from the list falls back to the baseline.
 
@@ -239,6 +261,54 @@ the fifth below the root, of `F7/Eb` the seventh below the root:
 A chord symbol also lifts the sustain pedal in playback: left-hand notes ring until the next
 chord symbol or the end of the measure.
 
+### Right-hand parts
+
+Besides the printed melody, the player can choose two other things for the right hand:
+
+| Mode               | Key             | What the right hand plays                                                             |
+| ------------------ | --------------- | ------------------------------------------------------------------------------------- |
+| **Melody**         | (nothing)       | The melody of `song.txt`, note for note. Always available.                            |
+| **Melody + fills** | `fills`         | The melody, unchanged, plus notes that fill the places where it waits.                |
+| **Accompaniment**  | `accompaniment` | Chords, rhythm, and fills for accompanying singers. The melody is left to the voices. |
+
+The player picks the mode independently of the left hand, but **the notes are written per
+arrangement**, under its `rightHand` entry. That pairing is deliberate:
+
+- arrangements replace chords, so a right hand written for the printed chords would clash with
+  a reharmonized left hand;
+- a gap in the melody can be filled only once: when the right hand takes the fill, the left
+  hand of that arrangement may have to step back, and the other way round;
+- the right hand should speak the style of the left hand it goes with.
+
+The baseline has no entry under `arrangements`, so its parts go under the top-level
+`baseline.rightHand`. A mode that an arrangement does not write is greyed out in the menu and
+the app plays the melody instead.
+
+| Field                | Meaning                                                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `summary`            | One or two sentences shown in the guide                                                                               |
+| `measures[].measure` | Printed measure number; `0` is the pickup measure                                                                     |
+| `measures[].right`   | Right-hand notation for that measure, **relative to the key like the melody**, without barlines; `< >` stacks notes   |
+| `measures[].left`    | Optional. Left-hand notation (chord degrees) that replaces the arrangement's own in this measure while the mode is on |
+| `measures[].note`    | Short explanation shown in the guide                                                                                  |
+
+**Fills** list only the measures they change; every other measure keeps the printed melody.
+Each listed measure is written out in full: the melody notes at their printed positions, and
+the added notes around them. A melody note may get notes underneath it (`<1 3>` under an A),
+but it must stay the top note and stay on its beat. Lyrics follow the melody notes
+automatically.
+
+**Accompaniment** lists every measure, the pickup included. A measure that is missing is a
+measure of rest and is reported by the checker. The app shows the sung melody as a small row
+(or staff) above the right hand, carries the lyrics there, and can play it as a soft guide tone
+(**Voice** in the transport bar), so the accompaniment can be judged against the singing.
+
+Use `left` where the hands trade roles: for example, the left hand of an arrangement fills a
+gap with a run, and in _Melody + fills_ the right hand takes that run while the left hand goes
+back to its plain pattern. End a replaced measure on the same chord as the measure it replaces.
+
+The introduction is not affected: it is instrumental and always carries the tune.
+
 ### Introduction
 
 The app shows the introduction in its own block above the song and plays it first. The player
@@ -277,6 +347,10 @@ loses the beat there. Every arrangement must therefore:
   repeating the beat;
 - lead into the next entry of the melody, and use a different figure from one gap to the next.
 
+With a right-hand part the two hands share that duty: between them they must sound every beat
+and, from the intermediate level on, move. A _Melody + fills_ part must add at least one note
+of its own in every gap; that is what it is for.
+
 `npm run check` lists the gaps of each song and warns about any that are left unfilled. The end
 of the song is not a gap.
 
@@ -298,7 +372,7 @@ ties, beams, and accidentals on a grand staff. Nothing extra has to be written f
 ```bash
 npm run check                       # every song
 npm run check -- songs/amazing-grace
-npm run check -- --dump             # also list the notes of every arrangement and introduction
+npm run check -- --dump             # also list the notes of every arrangement, part, and introduction
 ```
 
 Errors (wrong number of beats, unknown chord, malformed notation) fail the check. Warnings do
@@ -314,3 +388,16 @@ not, but each one deserves a look:
   extension, such as `Gm9` or `C13`, when the note is meant to be part of the chord);
 - an introduction whose last measure does not line up with the pickup;
 - a note marked with `?`.
+
+Right-hand parts are checked together with the left hand they belong to:
+
+- a fill that drops, moves, or covers a melody note;
+- a gap in which a _Melody + fills_ part adds nothing, or in which neither hand marks a beat;
+- an accompaniment measure that is not written;
+- the hands crossing: a right-hand note at or below a left-hand note that sounds with it;
+- right-hand notes wider than an octave, or above C7;
+- a right-hand chord, or a single note of a beat or more, that lies a half step from a tone of
+  the chord in force (short single notes pass freely);
+- in an accompaniment, such a note a half step from what the singers are singing at that
+  moment, or a held note that a new long note of the singers rubs against;
+- a replaced left-hand measure that ends on another chord than the measure it replaces.

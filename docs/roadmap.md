@@ -14,7 +14,9 @@ compared, and then practised.
 3. The player listens to the right hand alone in the app and compares it with the printed score.
    Corrections go back to the assistant or straight into `song.txt`.
 4. The assistant writes `arrangements.json` with several left-hand versions and checks it again.
-5. The player switches between the versions in the app, listens to the left hand alone and to
+5. The assistant adds the right-hand parts of every arrangement: fills for the gaps, and an
+   accompaniment for singers.
+6. The player switches between the versions in the app, listens to the left hand alone and to
    both hands, and reports what works and what does not.
 
 The web app itself never generates music; it displays, plays, and explains.
@@ -29,6 +31,8 @@ The web app itself never generates music; it displays, plays, and explains.
   hymn or waltz, contemporary, classical, gospel, majestic, jazz.
 - An introduction before the song: its last phrase, or one of several written ones.
 - Fills in every gap of the melody, checked automatically.
+- Right-hand parts paired with every left hand: the melody with fills, and an accompaniment for
+  singers, with the sung melody as a cue on the sheet and a guide voice in the playback.
 - Staff notation as an alternative to numbered notation.
 - A 61-key keyboard as the target instrument.
 - Transposition by half steps.
@@ -43,11 +47,11 @@ The web app itself never generates music; it displays, plays, and explains.
 ## Next
 
 - **Repeats in playback.** Repeat barlines are displayed but played straight through.
-- **Right-hand fills.** Fills are written for the left hand only; a second right-hand voice
-  would allow echoes and runs above the melody.
+- **Two voices in the right hand.** A fill is written in the same line as the melody, so a
+  long note is restruck or cut where the fill begins. A second voice would let it ring on.
 - **Tempo changes** such as ritardando and a fermata on the last chord.
 - **Dynamics per arrangement**, so that a majestic version can be louder than a ballad.
-- **Volume balance** between the hands.
+- **Volume balance** between the hands and the voice guide.
 - **Pattern library** shared across songs: patterns the player liked, and ideas that were
   rejected, so new arrangements build on that history.
 - **More styles** as they are asked for: ragtime, pop, Latin.

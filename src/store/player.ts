@@ -29,6 +29,8 @@ interface PlayerState {
   /** Beats per minute, counted in beats of the song's time signature. */
   tempo: number;
   metronome: boolean;
+  /** Whether the sung melody is played as a guide while the right hand accompanies. */
+  voiceGuide: boolean;
   loop: LoopSetting;
   /** Zero-based index of the measure under the playhead. */
   currentMeasure: number;
@@ -45,6 +47,7 @@ interface PlayerState {
   setHandMode: (mode: HandMode) => void;
   setTempo: (tempo: number) => void;
   toggleMetronome: () => void;
+  toggleVoiceGuide: () => void;
   setLoop: (loop: Partial<LoopSetting>) => void;
   setCurrentMeasure: (index: number) => void;
 }
@@ -72,6 +75,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   handMode: 'both',
   tempo: 80,
   metronome: false,
+  voiceGuide: true,
   loop: { enabled: false, from: 0, to: 0 },
   currentMeasure: 0,
 
@@ -149,6 +153,12 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     const metronome = !get().metronome;
     engine.setMetronome(metronome);
     set({ metronome });
+  },
+
+  toggleVoiceGuide() {
+    const voiceGuide = !get().voiceGuide;
+    engine.setVoiceGuide(voiceGuide);
+    set({ voiceGuide });
   },
 
   setLoop(change) {

@@ -1,7 +1,7 @@
 import { chordTimeline } from './arrangement';
 import { DynamicsTimeline } from './dynamics';
 import { beatTicks } from './time';
-import type { Arrangement, Hand, NoteEvent, Slot, SlotSpan, Song } from './types';
+import type { Arrangement, NoteEvent, Slot, SlotSpan, Song, Track } from './types';
 
 interface StaffMeasure {
   startTick: number;
@@ -10,17 +10,18 @@ interface StaffMeasure {
 }
 
 /** Velocities at mezzo-forte; the dynamics of the song scale them up or down. */
-const VELOCITY: Record<Hand, { downbeat: number; beat: number; offbeat: number }> = {
+const VELOCITY: Record<Track, { downbeat: number; beat: number; offbeat: number }> = {
   right: { downbeat: 0.7, beat: 0.64, offbeat: 0.58 },
   left: { downbeat: 0.48, beat: 0.42, offbeat: 0.38 },
+  voice: { downbeat: 0.62, beat: 0.6, offbeat: 0.56 },
 };
 
 const MEZZO_FORTE_GAIN = 0.82;
 const MIN_VELOCITY = 0.08;
 const MAX_VELOCITY = 1;
 
-/** Turns the written slots of one hand into sounding notes; hold dots extend them. */
-function eventsForHand(hand: Hand, measures: StaffMeasure[], beat: number): NoteEvent[] {
+/** Turns the written slots of one track into sounding notes; hold dots extend them. */
+function eventsForTrack(track: Track, measures: StaffMeasure[], beat: number): NoteEvent[] {
   const events: NoteEvent[] = [];
   let sounding: NoteEvent[] = [];
 
@@ -33,12 +34,12 @@ function eventsForHand(hand: Hand, measures: StaffMeasure[], beat: number): Note
       sounding = [];
       if (slot.kind === 'rest') continue;
 
-      const levels = VELOCITY[hand];
+      const levels = VELOCITY[track];
       const velocity =
         slot.start === 0 ? levels.downbeat : slot.start % beat === 0 ? levels.beat : levels.offbeat;
       for (const pitch of slot.pitches) {
         const event: NoteEvent = {
-          hand,
+          track,
           tick: measure.startTick + slot.start,
           duration: slot.duration,
           midi: pitch.midi,
@@ -78,23 +79,41 @@ function sustainLeftHand(events: NoteEvent[], song: Song, arrangement: Arrangeme
   }
 }
 
+/**
+ * The notes exactly as written: hold dots extend them, but no pedal and no
+ * dynamics are applied. The sung melody, when the song carries one beside the
+ * right hand, becomes the track "voice".
+ */
+export function buildWrittenNotes(song: Song, arrangement: Arrangement): NoteEvent[] {
+  const beat = beatTicks(song.meta.time);
+  const rows = (track: Track, slotsOf: (index: number) => Slot[]) =>
+    eventsForTrack(
+      track,
+      song.measures.map((measure, index) => ({
+        startTick: measure.startTick,
+        length: measure.length,
+        slots: slotsOf(index),
+      })),
+      beat,
+    );
+
+  return [
+    ...rows('right', (index) => song.measures[index].slots),
+    ...rows('left', (index) => arrangement.measures[index].slots),
+    ...rows('voice', (index) => song.measures[index].voice ?? []),
+  ];
+}
+
 /** Builds every sounding note of the song with the given left-hand arrangement. */
 export function buildNoteEvents(song: Song, arrangement: Arrangement): NoteEvent[] {
-  const beat = beatTicks(song.meta.time);
-  const right = eventsForHand('right', song.measures, beat);
-  const left = eventsForHand(
-    'left',
-    song.measures.map((measure, index) => ({
-      startTick: measure.startTick,
-      length: measure.length,
-      slots: arrangement.measures[index].slots,
-    })),
-    beat,
+  const events = buildWrittenNotes(song, arrangement);
+  sustainLeftHand(
+    events.filter((event) => event.track === 'left'),
+    song,
+    arrangement,
   );
-  sustainLeftHand(left, song, arrangement);
 
   const dynamics = new DynamicsTimeline(song.measures);
-  const events = [...right, ...left];
   for (const event of events) {
     const scaled = (event.velocity * dynamics.gainAt(event.tick)) / MEZZO_FORTE_GAIN;
     event.velocity = Math.min(MAX_VELOCITY, Math.max(MIN_VELOCITY, scaled));
@@ -106,14 +125,15 @@ export function buildNoteEvents(song: Song, arrangement: Arrangement): NoteEvent
 export function buildSlotSpans(song: Song, arrangement: Arrangement): SlotSpan[] {
   const spans: SlotSpan[] = [];
   song.measures.forEach((measure, index) => {
-    const rows: [Hand, Slot[]][] = [
+    const rows: [Track, Slot[]][] = [
       ['right', measure.slots],
       ['left', arrangement.measures[index].slots],
+      ['voice', measure.voice ?? []],
     ];
-    for (const [hand, slots] of rows) {
+    for (const [track, slots] of rows) {
       for (const slot of slots) {
         const start = measure.startTick + slot.start;
-        spans.push({ id: slot.id, hand, start, end: start + slot.duration });
+        spans.push({ id: slot.id, track, start, end: start + slot.duration });
       }
     }
   });

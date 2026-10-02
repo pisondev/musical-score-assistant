@@ -193,6 +193,37 @@
   color: var(--ink);
 }
 
+/* The sung melody above an accompaniment: a smaller, quieter row to follow, not to play. */
+.track--voice {
+  --note-size: 14px;
+  --digit-width: 10px;
+  --digit-height: 16px;
+  --dot-zone: 5px;
+  --cell-height: calc(var(--digit-height) + 2 * var(--dot-zone));
+  --beam-zone: 8px;
+
+  height: calc(var(--cell-height) + var(--beam-zone));
+  color: var(--voice);
+}
+
+.track--voice .tone__dots i {
+  width: 2.5px;
+  height: 2.5px;
+}
+
+.track--voice .glyph--hold::after {
+  width: 3px;
+  height: 3px;
+  margin-left: -1.5px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.track--voice .slot--rest .glyph {
+  color: currentColor;
+  opacity: 0.6;
+}
+
 .track--lyrics {
   height: 20px;
 }
@@ -428,6 +459,11 @@
   background: var(--left-hand);
 }
 
+.track--voice .slot.is-active .slot__body {
+  color: #fff;
+  background: var(--voice);
+}
+
 .slot--rest.is-active .glyph {
   color: #fff;
 }
@@ -506,6 +542,11 @@
   fill: var(--left-hand);
 }
 
+.staff-view g.voice.is-active {
+  color: var(--voice);
+  fill: var(--voice);
+}
+
 /* Paper: smaller symbols so four measures fit across an A4 page. */
 .sheet--print {
   --note-size: 15px;
@@ -523,6 +564,14 @@
 
 .sheet--print .sheet__section {
   gap: 12px;
+}
+
+.sheet--print .track--voice {
+  --note-size: 11.5px;
+  --digit-width: 8px;
+  --digit-height: 13px;
+  --dot-zone: 4px;
+  --beam-zone: 7px;
 }
 
 .sheet--print .tone__dots i {
@@ -572,6 +621,10 @@
   .system__labels .track span,
   .slot--rest .glyph {
     color: #000;
+  }
+
+  .track--voice {
+    color: #444;
   }
 
   .chord--changed {

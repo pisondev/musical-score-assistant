@@ -17,6 +17,7 @@ export function SongHeader({ song, isPrivate }: SongHeaderProps) {
   ].filter(Boolean);
   const numbered = song.measures.filter((measure) => measure.number !== null).length;
   const octaves = Math.round((song.rightDo - song.leftDo) / 12);
+  const hasVoice = song.measures.some((measure) => measure.voice !== undefined);
 
   return (
     <section className="song-header">
@@ -49,6 +50,8 @@ export function SongHeader({ song, isPrivate }: SongHeaderProps) {
           {midiToText(song.leftDo)}, {octaves === 1 ? 'one octave' : `${octaves} octaves`} lower.
           Notes written one above the other are played together. A stroke through a digit raises (/)
           or lowers (\) the note by a half step.
+          {hasVoice &&
+            ' The small row marked V is the melody the singers carry while the right hand accompanies.'}
         </p>
       </details>
     </section>

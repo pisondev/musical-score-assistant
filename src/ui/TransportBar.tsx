@@ -2,11 +2,11 @@ import type { HandMode } from '../audio/engine';
 import type { Measure, Song } from '../core';
 import { MAX_TEMPO, MIN_TEMPO, usePlayer } from '../store/player';
 import { cx } from './classnames';
-import { LoopIcon, MetronomeIcon, PauseIcon, PlayIcon, StopIcon } from './icons';
+import { LoopIcon, MetronomeIcon, PauseIcon, PlayIcon, StopIcon, VoiceIcon } from './icons';
 
 const HAND_MODES: { mode: HandMode; label: string; hint: string }[] = [
   { mode: 'both', label: 'Both', hint: 'Both hands (1)' },
-  { mode: 'right', label: 'Right', hint: 'Melody only (2)' },
+  { mode: 'right', label: 'Right', hint: 'Right hand only (2)' },
   { mode: 'left', label: 'Left', hint: 'Left hand only (3)' },
 ];
 
@@ -29,11 +29,15 @@ export function TransportBar({ song }: TransportBarProps) {
   const handMode = usePlayer((state) => state.handMode);
   const tempo = usePlayer((state) => state.tempo);
   const metronome = usePlayer((state) => state.metronome);
+  const voiceGuide = usePlayer((state) => state.voiceGuide);
   const loop = usePlayer((state) => state.loop);
   const currentMeasure = usePlayer((state) => state.currentMeasure);
-  const { toggle, stop, setHandMode, setTempo, toggleMetronome, setLoop } = usePlayer.getState();
+  const { toggle, stop, setHandMode, setTempo, toggleMetronome, toggleVoiceGuide, setLoop } =
+    usePlayer.getState();
 
   const playing = status === 'playing';
+  // The sung melody is a separate line only while the right hand accompanies.
+  const hasVoice = song.measures.some((measure) => measure.voice !== undefined);
   const current = song.measures[currentMeasure];
   const lastNumber = song.measures[song.measures.length - 1]?.number;
 
@@ -134,6 +138,18 @@ export function TransportBar({ song }: TransportBarProps) {
         </label>
 
         <div className="transport__group">
+          {hasVoice && (
+            <button
+              type="button"
+              className={cx('button', 'button--toggle', voiceGuide && 'is-on')}
+              onClick={toggleVoiceGuide}
+              aria-pressed={voiceGuide}
+              title="Play the sung melody as a guide (V)"
+            >
+              <VoiceIcon />
+              <span>Voice</span>
+            </button>
+          )}
           <button
             type="button"
             className={cx('button', 'button--toggle', metronome && 'is-on')}

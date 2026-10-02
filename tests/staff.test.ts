@@ -221,7 +221,7 @@ describe('toMei', () => {
   it('lists a time span for every written symbol', () => {
     expect(spans.find((span) => span.id === 'r1-0')).toEqual({
       id: 'r1-0',
-      hand: 'right',
+      track: 'right',
       start: 960,
       end: 1920,
     });

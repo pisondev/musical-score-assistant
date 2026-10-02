@@ -1,6 +1,6 @@
 ---
 name: new-song
-description: Add a song to the app from a photo or scan of a numbered-notation score. Transcribes the melody and chords into song.txt, writes left-hand arrangements by level and style plus an introduction into arrangements.json, and checks both. Use when the user provides a score image and asks for a song, a transcription, or left-hand suggestions.
+description: Add a song to the app from a photo or scan of a numbered-notation score. Transcribes the melody and chords into song.txt, writes left-hand arrangements by level and style, the right-hand parts that go with them (fills and an accompaniment for singers), and introductions into arrangements.json, and checks everything. Use when the user provides a score image and asks for a song, a transcription, or left-hand or right-hand suggestions.
 ---
 
 # Add a song from a printed score
@@ -97,6 +97,67 @@ tell when to come in.
 3. Mention each fill in the `note` of its measure, starting with "Fill:", and list the fill
    figures under `patterns`.
 
+### Right-hand parts
+
+Once the left hands are written and clean, give every arrangement two right-hand parts under
+`rightHand`, and the baseline the same two under the top-level `baseline.rightHand`. The
+player chooses the mode freely, but the notes are written per arrangement on purpose: they use
+its chords, speak its style, and share the gaps with its left hand. The right hand is written
+relative to the key, like the melody.
+
+**Melody + fills** (`fills`): the printed melody stays; the right hand adds notes where it
+waits.
+
+- List only the measures that change: every gap, and the final long note if it helps.
+- Copy the measure from `song.txt` and add notes around the melody. Never move, drop, or cover
+  a melody note; other notes may be stacked beneath it (`<1 3>`).
+- Choose the figure by style:
+
+  | Style        | Right-hand fills that fit                                                 |
+  | ------------ | ------------------------------------------------------------------------- |
+  | Basic        | Single notes: an arch through the chord, a turn, a climb                  |
+  | Ballad       | Double notes (thirds, sixths), an echo of the opening of the tune         |
+  | Hymn         | An inner voice that walks by step, like an alto under a held soprano      |
+  | Contemporary | The added second, a suspended note that resolves with the left hand       |
+  | Classical    | Scale runs and broken chords in sixteenths, a turn around one note        |
+  | Gospel       | Thirds that climb with a walk-up, a blue-note slide, a triplet roll       |
+  | Majestic     | Full chords rising through their positions, both hands in the same rhythm |
+  | Jazz         | Arpeggios that follow the changes, chords placed off the beat             |
+
+- Where the left hand of the arrangement already fills the gap with a busy figure, either
+  write a right hand that goes with it (thirds on each bass step, a chord between bass notes,
+  the same rhythm in both hands) or add `left` to the measure so the left hand returns to its
+  plain pattern and the fill moves to the right hand. Never set a triplet in one hand against
+  eighths in the other.
+- Use a different figure in each gap.
+
+**Accompaniment** (`accompaniment`): for accompanying singers; the right hand does not play
+the tune.
+
+- Write every measure. In the pickup, double the melody so the singers find their first notes.
+- Give each arrangement one texture and keep it:
+
+  | id                 | Right-hand texture                                                    |
+  | ------------------ | --------------------------------------------------------------------- |
+  | baseline           | Sustained three-note chords, one per harmony                          |
+  | `one-step-further` | Rocking pairs, a third or a sixth on every beat                       |
+  | `walking-bass`     | A descant: single long notes in which every seventh resolves by step  |
+  | `new-chords`       | Syncopated chords with an added second                                |
+  | `alberti-bass`     | A second voice in thirds and sixths, in half notes                    |
+  | `gospel`           | Chords on the backbeat; a chord on every step of a walk-up            |
+  | `majestic`         | Four-note chords, long, short-long                                    |
+  | `jazz`             | Rootless voicings (third, seventh, ninth) on one and the "and" of two |
+
+- Stay above the left hand, roughly from E4 to A5, and clear of the singers: no chord tone a
+  half step from the melody note that is sung at that moment. Leave such a tone out.
+- **Share the gaps.** In about half of them the right hand takes the fill (with `left` when
+  the fill of the left hand would collide); in the others it holds and lets the left hand
+  speak. Under the baseline the right hand fills every gap, because that left hand never does.
+- End on a held chord.
+
+Explain each fill in the `note` of its measure, starting with "Fill:", say in a `note` on
+measure 1 of an accompaniment what the texture is, and give each part a `summary`.
+
 Guidelines:
 
 - **Left hand moves when the melody rests, and rests when the melody moves.** Fills under long
@@ -123,7 +184,9 @@ Guidelines:
 1. Run `npm run check -- <folder> --dump`.
 2. Read the dump measure by measure and confirm the pitches are the ones intended; the degrees
    are relative to the chord root, so slash-chord basses are easy to get wrong.
-3. Resolve every error and every warning. A warning may stay only if it is deliberate, and then
+3. Each arrangement is followed by the lines `right hand, melody + fills` and
+   `right hand, accompaniment`. Both must be there for every arrangement, "My style" included.
+4. Resolve every error and every warning. A warning may stay only if it is deliberate, and then
    say so in the hand-over.
 
 ## 5. Hand over
@@ -134,6 +197,9 @@ Tell the user:
 - which notes were uncertain in the transcription;
 - what each arrangement does in one line, and any chord that was replaced;
 - how each gap is filled in each arrangement, in a line or two;
-- that the dynamics and the written introductions are your own suggestions.
+- what the right hand does in **Melody + fills** and in **Accompaniment**, and that **Voice**
+  lets them hear an accompaniment together with the sung melody;
+- that the dynamics, the written introductions, and the right-hand parts are your own
+  suggestions.
 
 Do not commit or push unless the user asks.

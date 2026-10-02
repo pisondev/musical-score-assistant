@@ -121,7 +121,9 @@ describe('DynamicsTimeline', () => {
   });
 
   it('scales the velocity of the notes', () => {
-    const events = buildNoteEvents(bundle.song, baseline).filter((event) => event.hand === 'right');
+    const events = buildNoteEvents(bundle.song, baseline).filter(
+      (event) => event.track === 'right',
+    );
     const soft = events.find((event) => event.tick === measure(1))!;
     const loud = events.find((event) => event.tick === measure(3))!;
     expect(loud.velocity).toBeGreaterThan(soft.velocity);

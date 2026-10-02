@@ -79,8 +79,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     normal listening level.
 - Fills in "Amazing Grace" where the melody holds (measures 7 and 8) for the majestic and jazz
   arrangements.
+- Right-hand parts. A **Right hand** menu chooses between the printed melody, _Melody + fills_
+  (every printed note stays; fills are added where the melody waits), and _Accompaniment_
+  (chords, rhythm, and fills for accompanying singers). The parts are stored per arrangement
+  under `rightHand`, and under `baseline.rightHand` for "My style", so they follow the chords
+  of the selected left hand and share the gaps with it; a measure may replace the left hand
+  where the hands trade roles.
+- The sung melody of an accompaniment: a small row above the right hand on the numbered sheet,
+  a staff of its own in staff notation, both with the lyrics; a **Voice** button (key `V`)
+  that plays it as a soft guide tone; a third track in the MIDI file and in the MP3 recording.
+- Checks for right-hand parts: fills must keep the melody in place and on top and add
+  something in every gap; an accompaniment must be written for every measure, stay above the
+  left hand, and stay clear of the chord and of the sung melody by more than a half step; the
+  two hands together must mark every beat of a gap.
+- Right-hand parts for every arrangement of "Amazing Grace", "My style" included.
 
 ### Changed
+
+- The engine addresses note events and playhead spans by `track` (right, left, or voice)
+  instead of `hand`, and the MIDI writer takes a list of tracks.
+- Guide, Print and Download move together to a second toolbar row when the window is narrow.
 
 - `intro.improvised` in `arrangements.json` became the list `intro.written`, whose entries have
   an `id`, a `name`, and a `style`.

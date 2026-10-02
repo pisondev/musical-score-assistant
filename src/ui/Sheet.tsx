@@ -89,6 +89,18 @@ function ToneGlyph({ tone }: { tone: ScaleTone }) {
   );
 }
 
+/** Every row of slots that an arrangement may put into one song measure, in any right-hand mode. */
+function rowsOf(arrangement: Arrangement, index: number): Slot[][] {
+  const rows = [arrangement.measures[index].slots];
+  for (const part of Object.values(arrangement.rightHand)) {
+    const written = part.measures[index];
+    if (!written) continue;
+    rows.push(written.slots);
+    if (written.left) rows.push(written.left.slots);
+  }
+  return rows;
+}
+
 /** Number of stacked digits a slot occupies. */
 function cellCount(slot: Slot): number {
   return slot.kind === 'note' ? Math.max(1, slot.pitches.length) : 1;
@@ -169,6 +181,21 @@ function ChordRow({ chords, length }: { chords: ChordMark[]; length: number }) {
           {formatChordSymbol(chord.symbol)}
         </span>
       ))}
+    </>
+  );
+}
+
+function LyricRow({ slots, length }: { slots: Slot[]; length: number }) {
+  return (
+    <>
+      {slots.map(
+        (slot) =>
+          slot.lyric && (
+            <span key={slot.id} className="lyric" style={{ left: percent(slot.start, length) }}>
+              {slot.lyric}
+            </span>
+          ),
+      )}
     </>
   );
 }
@@ -254,6 +281,7 @@ const MeasureView = memo(function MeasureView({
       : measure.number === null
         ? 'Pickup measure'
         : `Measure ${measure.number}`;
+  const explanation = [part.note, part.rightNote].filter(Boolean).join(' ');
   return (
     <div
       id={`measure-${measure.index}`}
@@ -279,29 +307,28 @@ const MeasureView = memo(function MeasureView({
       <div className="measure__meta">
         <span className="measure__number">{label}</span>
         {measure.section && <span className="measure__section">{measure.section}</span>}
-        {part.note && <span className="measure__flag" title={part.note} />}
+        {explanation && <span className="measure__flag" title={explanation} />}
       </div>
       <div className="track track--chords">
         <ChordRow chords={part.chords} length={measure.length} />
       </div>
       <div className="measure__staff">
+        {measure.voice && (
+          <div className="track track--voice">
+            <StaffRow slots={measure.voice} length={measure.length} />
+          </div>
+        )}
+        {measure.voice && showLyrics && (
+          <div className="track track--lyrics">
+            <LyricRow slots={measure.voice} length={measure.length} />
+          </div>
+        )}
         <div className="track track--right">
           <StaffRow slots={measure.slots} length={measure.length} />
         </div>
-        {showLyrics && (
+        {!measure.voice && showLyrics && (
           <div className="track track--lyrics">
-            {measure.slots.map(
-              (slot) =>
-                slot.lyric && (
-                  <span
-                    key={slot.id}
-                    className="lyric"
-                    style={{ left: percent(slot.start, measure.length) }}
-                  >
-                    {slot.lyric}
-                  </span>
-                ),
-            )}
+            <LyricRow slots={measure.slots} length={measure.length} />
           </div>
         )}
         {showDynamics && (
@@ -317,15 +344,29 @@ const MeasureView = memo(function MeasureView({
   );
 });
 
-function RowLabels({ showLyrics, showDynamics }: { showLyrics: boolean; showDynamics: boolean }) {
+function RowLabels({
+  showVoice,
+  showLyrics,
+  showDynamics,
+}: {
+  showVoice: boolean;
+  showLyrics: boolean;
+  showDynamics: boolean;
+}) {
   return (
     <div className="system__labels" aria-hidden="true">
       <div className="measure__meta" />
       <div className="track track--chords" />
+      {showVoice && (
+        <div className="track track--voice">
+          <span>V</span>
+        </div>
+      )}
+      {showVoice && showLyrics && <div className="track track--lyrics" />}
       <div className="track track--right">
         <span>R</span>
       </div>
-      {showLyrics && <div className="track track--lyrics" />}
+      {!showVoice && showLyrics && <div className="track track--lyrics" />}
       {showDynamics && <div className="track track--dynamics" />}
       <div className="track track--left">
         <span>L</span>
@@ -371,7 +412,11 @@ function hairpinsByMeasure(measures: Measure[]): HairpinPiece[][] {
 
 const NO_HAIRPINS: HairpinPiece[] = [];
 
-/** The numbered-notation score: melody above, the chosen left hand below. */
+/**
+ * The numbered-notation score: the right hand above, the chosen left hand
+ * below, and the sung melody as a small row on top when the right hand
+ * accompanies.
+ */
 export function Sheet({
   bundle,
   performance,
@@ -386,8 +431,8 @@ export function Sheet({
   const width = printing ? PRINT_WIDTH : measuredWidth;
   const unitWidth = printing ? PRINT_UNIT_WIDTH : MIN_UNIT_WIDTH;
 
-  // Song measures leave room for the left hand of every arrangement, so the
-  // layout stays put when the player switches between them.
+  // Song measures leave room for every arrangement and every right-hand part,
+  // so the layout stays put when the player switches between them.
   const weights = useMemo(() => {
     const beat = beatTicks(song.meta.time);
     return song.measures.map((measure, index) => {
@@ -395,9 +440,9 @@ export function Sheet({
         index < introMeasures
           ? [measure.slots, arrangement.measures[index].slots]
           : [
-              measure.slots,
-              ...bundle.arrangements.map(
-                (candidate: Arrangement) => candidate.measures[index - introMeasures].slots,
+              bundle.song.measures[index - introMeasures].slots,
+              ...bundle.arrangements.flatMap((candidate) =>
+                rowsOf(candidate, index - introMeasures),
               ),
             ];
       return measureWeight(measure.length, beat, rows);
@@ -425,7 +470,8 @@ export function Sheet({
   usePlayhead(song, spans);
 
   const hasLyrics = useMemo(
-    () => song.measures.some((measure) => measure.slots.some((slot) => slot.lyric)),
+    () =>
+      song.measures.some((measure) => (measure.voice ?? measure.slots).some((slot) => slot.lyric)),
     [song],
   );
   const hasDynamics = useMemo(
@@ -463,9 +509,10 @@ export function Sheet({
           ...system.measures.map((index) => tallestStack(arrangement.measures[index].slots)),
         ),
       } as CSSProperties;
+      const showVoice = system.measures.some((index) => song.measures[index].voice !== undefined);
       return (
         <div key={system.measures[0]} className="system" style={rowHeights}>
-          <RowLabels showLyrics={lyrics} showDynamics={dynamics} />
+          <RowLabels showVoice={showVoice} showLyrics={lyrics} showDynamics={dynamics} />
           {system.measures.map((index, position) => {
             const measure = song.measures[index];
             const label = measure.part === 'intro' ? `${index + 1}` : `${measure.number ?? ''}`;

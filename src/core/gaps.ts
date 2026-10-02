@@ -19,7 +19,10 @@ export interface Gap {
   beats: number[];
 }
 
-function noteOnsets(measures: ReadonlyArray<{ startTick: number; slots: Slot[] }>): number[] {
+/** Absolute ticks at which a row of slots strikes a note. */
+export function noteOnsets(
+  measures: ReadonlyArray<{ startTick: number; slots: Slot[] }>,
+): number[] {
   return measures.flatMap((measure) =>
     measure.slots
       .filter((slot) => slot.kind === 'note')

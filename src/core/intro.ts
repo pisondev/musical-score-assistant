@@ -164,6 +164,7 @@ export function buildWrittenIntro(song: Song, spec: WrittenIntroSpec): WrittenIn
       tips: [],
       patterns: [],
       measures: parts,
+      rightHand: {},
       issues: [],
     };
     issues.push(...validateArrangement(introSong, introArrangement));

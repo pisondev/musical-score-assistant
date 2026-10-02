@@ -16,6 +16,7 @@
 
   --right-hand: #1d4ed8;
   --left-hand: #0284c7;
+  --voice: #6366f1;
 
   --warning: #b45309;
   --warning-soft: #fef3c7;
@@ -273,8 +274,11 @@ code {
   gap: 10px;
 }
 
-.toolbar__spacer {
-  flex: 1;
+.toolbar__actions {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-left: auto;
 }
 
 .popover {
@@ -724,6 +728,10 @@ code {
   color: var(--muted);
 }
 
+.guide__text {
+  color: var(--ink-soft);
+}
+
 .patterns {
   display: grid;
   gap: 10px;
@@ -794,6 +802,17 @@ code {
 .measure-notes button:hover,
 .measure-notes button.is-current {
   background: var(--primary-soft);
+}
+
+.measure-notes__text {
+  display: grid;
+  gap: 4px;
+}
+
+.measure-notes__text em {
+  font-style: normal;
+  font-weight: 650;
+  color: var(--primary-strong);
 }
 
 .measure-notes__number {
@@ -1011,8 +1030,8 @@ code {
     display: none;
   }
 
-  .toolbar__spacer {
-    display: none;
+  .toolbar__actions {
+    margin-left: 0;
   }
 
   .toolbar {

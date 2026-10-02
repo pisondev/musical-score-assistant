@@ -2,6 +2,9 @@
 
 export type Hand = 'right' | 'left';
 
+/** A line of music that sounds: one of the hands, or the sung melody played as a guide. */
+export type Track = Hand | 'voice';
+
 export type Severity = 'error' | 'warning' | 'info';
 
 /** A problem found while parsing or validating a song or an arrangement. */
@@ -108,6 +111,11 @@ export interface Measure {
   /** Actual length in ticks; shorter than a full measure for pickups. */
   length: number;
   slots: Slot[];
+  /**
+   * The sung melody, when the right hand accompanies instead of playing it.
+   * It is shown as a cue above the right hand and can be played as a guide.
+   */
+  voice?: Slot[];
   chords: ChordMark[];
   dynamics: DynamicMark[];
   barline: Barline;
@@ -156,7 +164,37 @@ export interface ArrangementMeasure {
   chords: ChordMark[];
   /** Why this measure differs from the printed score. */
   note?: string;
+  /** What the right hand does in this measure, when it does not play the plain melody. */
+  rightNote?: string;
 }
+
+/**
+ * What the right hand plays: the printed melody, the melody with fills where
+ * it waits, or an accompaniment for singers that leaves the melody to them.
+ */
+export type RightHandMode = 'melody' | 'fills' | 'accompaniment';
+
+/** The right-hand modes that are written out measure by measure. */
+export type WrittenRightHandMode = Exclude<RightHandMode, 'melody'>;
+
+export interface RightHandMeasure {
+  /** Right-hand slots that take the place of the printed melody. */
+  slots: Slot[];
+  /** Left hand that replaces the arrangement's own here, when the hands trade roles. */
+  left?: ArrangementMeasure;
+  note?: string;
+}
+
+/** A right-hand part that belongs to one left-hand arrangement. */
+export interface RightHandPart {
+  mode: WrittenRightHandMode;
+  summary: string;
+  /** One entry per song measure; null where the measure keeps the printed melody. */
+  measures: (RightHandMeasure | null)[];
+  issues: Issue[];
+}
+
+export type RightHandParts = Partial<Record<WrittenRightHandMode, RightHandPart>>;
 
 export interface Arrangement {
   id: string;
@@ -171,8 +209,28 @@ export interface Arrangement {
   patterns: PatternIdea[];
   /** One entry per song measure, in the same order. */
   measures: ArrangementMeasure[];
+  /** Right-hand parts written to go with this left hand. */
+  rightHand: RightHandParts;
   issues: Issue[];
 }
+
+/** One measure of a right-hand part as stored in arrangements.json. */
+export interface RightHandMeasureSpec {
+  /** Printed measure number; 0 addresses the pickup measure. */
+  measure: number;
+  /** Right-hand notation, relative to the key like the melody. */
+  right: string;
+  /** Left-hand notation that replaces the arrangement's own in this measure. */
+  left?: string;
+  note?: string;
+}
+
+export interface RightHandPartSpec {
+  summary?: string;
+  measures: RightHandMeasureSpec[];
+}
+
+export type RightHandSpec = Partial<Record<WrittenRightHandMode, RightHandPartSpec>>;
 
 /** Arrangement as stored in arrangements.json. */
 export interface ArrangementSpec {
@@ -184,6 +242,7 @@ export interface ArrangementSpec {
   tips?: string[];
   patterns?: PatternIdea[];
   measures: ArrangementMeasureSpec[];
+  rightHand?: RightHandSpec;
 }
 
 export interface ArrangementMeasureSpec {
@@ -222,6 +281,8 @@ export interface IntroSpec {
 
 export interface ArrangementFile {
   intro?: IntroSpec;
+  /** Additions to the generated baseline, which has no entry under `arrangements`. */
+  baseline?: { rightHand?: RightHandSpec };
   arrangements: ArrangementSpec[];
 }
 
@@ -250,7 +311,7 @@ export type IntroChoice = string;
 
 /** A single sounding note, ready to be scheduled. */
 export interface NoteEvent {
-  hand: Hand;
+  track: Track;
   /** Absolute start in ticks. */
   tick: number;
   /** Sounding duration in ticks. */
@@ -264,7 +325,7 @@ export interface NoteEvent {
 /** The time span a written slot occupies, used to highlight the playhead. */
 export interface SlotSpan {
   id: string;
-  hand: Hand;
+  track: Track;
   start: number;
   end: number;
 }

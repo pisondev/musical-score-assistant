@@ -1,5 +1,6 @@
 import { buildArrangement, buildBaseline } from './arrangement';
 import { buildWrittenIntro, lastPhraseStart } from './intro';
+import { buildRightHandPart, RIGHT_HAND_MODES } from './right-hand';
 import { parseSong } from './song';
 import type {
   Arrangement,
@@ -9,12 +10,14 @@ import type {
   Issue,
   Level,
   PatternIdea,
+  RightHandMeasureSpec,
+  RightHandSpec,
   Song,
   WrittenIntro,
   WrittenIntroSpec,
 } from './types';
 import { INTRO_LAST_PHRASE, INTRO_OFF } from './types';
-import { validateArrangement } from './validate';
+import { validateArrangement, validateRightHand } from './validate';
 
 /** A song together with its baseline, every stored arrangement, and its introductions. */
 export interface SongBundle {
@@ -49,6 +52,64 @@ function readPatterns(value: unknown): PatternIdea[] {
     notation: String(item.notation ?? ''),
     description: String(item.description ?? ''),
   }));
+}
+
+/** Reads the right-hand parts of one arrangement, reporting entries that are malformed. */
+function readRightHandSpec(value: unknown, label: string, issues: Issue[]): RightHandSpec {
+  if (value === undefined) return {};
+  if (!isRecord(value)) {
+    issues.push({ severity: 'error', message: `${label}: "rightHand" must be an object.` });
+    return {};
+  }
+
+  const spec: RightHandSpec = {};
+  for (const mode of RIGHT_HAND_MODES) {
+    const entry = value[mode];
+    if (entry === undefined) continue;
+    if (!isRecord(entry) || !Array.isArray(entry.measures)) {
+      issues.push({
+        severity: 'error',
+        message: `${label}: right hand "${mode}" needs a "measures" array.`,
+      });
+      continue;
+    }
+
+    const measures: RightHandMeasureSpec[] = [];
+    for (const measure of entry.measures) {
+      if (
+        !isRecord(measure) ||
+        typeof measure.measure !== 'number' ||
+        typeof measure.right !== 'string'
+      ) {
+        issues.push({
+          severity: 'error',
+          message: `${label}: right hand "${mode}" has a measure without a numeric "measure" and a text "right".`,
+        });
+        continue;
+      }
+      measures.push({
+        measure: measure.measure,
+        right: measure.right,
+        left: typeof measure.left === 'string' ? measure.left : undefined,
+        note: typeof measure.note === 'string' ? measure.note : undefined,
+      });
+    }
+    spec[mode] = {
+      summary: typeof entry.summary === 'string' ? entry.summary : undefined,
+      measures,
+    };
+  }
+  return spec;
+}
+
+/** Reads what the file adds to the generated baseline: its right-hand parts. */
+export function readBaselineSpec(data: unknown, issues: Issue[]): RightHandSpec {
+  if (!isRecord(data) || data.baseline === undefined) return {};
+  if (!isRecord(data.baseline)) {
+    issues.push({ severity: 'error', message: 'The "baseline" entry must be an object.' });
+    return {};
+  }
+  return readRightHandSpec(data.baseline.rightHand, 'Baseline', issues);
 }
 
 /** Reads arrangement descriptions from parsed JSON, reporting entries that are malformed. */
@@ -109,6 +170,7 @@ export function readArrangementSpecs(data: unknown, issues: Issue[]): Arrangemen
       tips: readStrings(entry.tips),
       patterns: readPatterns(entry.patterns),
       measures,
+      rightHand: readRightHandSpec(entry.rightHand, label, issues),
     });
   });
   return specs;
@@ -189,20 +251,33 @@ export function readIntroSpec(data: unknown, issues: Issue[]): IntroSpec {
   return spec;
 }
 
+/** Builds and checks the right-hand parts written for an arrangement. */
+function addRightHand(song: Song, arrangement: Arrangement, spec: RightHandSpec | undefined): void {
+  for (const mode of RIGHT_HAND_MODES) {
+    const partSpec = spec?.[mode];
+    if (!partSpec) continue;
+    const part = buildRightHandPart(song, arrangement, mode, partSpec);
+    part.issues.push(...validateRightHand(song, arrangement, part));
+    arrangement.rightHand[mode] = part;
+  }
+}
+
 /**
  * Builds everything the app needs for one song: the parsed melody, the
- * baseline left hand, each stored arrangement with its validation results,
- * and the introductions.
+ * baseline left hand, each stored arrangement with its right-hand parts and
+ * validation results, and the introductions.
  */
 export function createSongBundle(songText: string, arrangementData?: unknown): SongBundle {
   const issues: Issue[] = [];
   const song = parseSong(songText);
   const baseline = buildBaseline(song);
   baseline.issues.push(...validateArrangement(song, baseline));
+  addRightHand(song, baseline, readBaselineSpec(arrangementData, issues));
 
   const arrangements = readArrangementSpecs(arrangementData, issues).map((spec) => {
     const arrangement = buildArrangement(song, spec);
     arrangement.issues.push(...validateArrangement(song, arrangement));
+    addRightHand(song, arrangement, spec.rightHand);
     return arrangement;
   });
 

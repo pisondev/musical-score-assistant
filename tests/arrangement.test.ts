@@ -181,7 +181,7 @@ describe('playback', () => {
   const events = buildNoteEvents(WALTZ, arrangement);
 
   it('merges hold dots into the note they extend', () => {
-    const melody = events.filter((event) => event.hand === 'right');
+    const melody = events.filter((event) => event.track === 'right');
     expect(melody.map((event) => [event.tick, event.duration])).toEqual([
       [0, 480],
       [480, 960],
@@ -193,7 +193,7 @@ describe('playback', () => {
   });
 
   it('lets the left hand ring until the chord changes or the measure ends', () => {
-    const left = events.filter((event) => event.hand === 'left');
+    const left = events.filter((event) => event.track === 'left');
     expect(left.map((event) => [event.tick, event.duration, event.midi])).toEqual([
       [480, 1440, 43],
       [960, 960, 50],
@@ -205,7 +205,7 @@ describe('playback', () => {
   });
 
   it('plays the downbeat louder than the other beats', () => {
-    const [pickup, downbeat, third] = events.filter((event) => event.hand === 'right');
+    const [pickup, downbeat, third] = events.filter((event) => event.track === 'right');
     expect(downbeat.velocity).toBeGreaterThan(third.velocity);
     expect(pickup.velocity).toBe(downbeat.velocity);
   });

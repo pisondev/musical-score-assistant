@@ -1,6 +1,7 @@
 import { chordAt, chordTimeline } from './arrangement';
 import type { SongBundle } from './bundle';
 import { INTRO_ID_PREFIX } from './intro';
+import { applyRightHand, availableRightHand } from './right-hand';
 import { transpose } from './transpose';
 import { INTRO_LAST_PHRASE } from './types';
 import type {
@@ -10,19 +11,23 @@ import type {
   IntroChoice,
   Issue,
   Measure,
+  RightHandMode,
   Slot,
   Song,
 } from './types';
 
 /**
- * What is actually shown and played: the song with the chosen arrangement,
- * optionally preceded by an introduction and moved to another key.
+ * What is actually shown and played: the song with the chosen arrangement and
+ * right-hand part, optionally preceded by an introduction and moved to
+ * another key.
  */
 export interface Performance {
   song: Song;
   arrangement: Arrangement;
   /** Number of introduction measures at the start of `song.measures`. */
   introMeasures: number;
+  /** What the right hand plays; "melody" when the arrangement has no part for the request. */
+  rightHand: RightHandMode;
 }
 
 function copySlots(slots: Slot[]): Slot[] {
@@ -81,14 +86,20 @@ function shiftIssues(issues: Issue[], offset: number): Issue[] {
       );
 }
 
-/** Assembles the measures to show and play for the current settings. */
+/**
+ * Assembles the measures to show and play for the current settings. The
+ * right-hand mode applies to the song only: an introduction is instrumental
+ * and always carries the tune.
+ */
 export function buildPerformance(
   bundle: SongBundle,
   arrangement: Arrangement,
   intro: IntroChoice,
   semitones: number,
+  rightHand: RightHandMode = 'melody',
 ): Performance {
-  const { song } = bundle;
+  const mode = availableRightHand(arrangement, rightHand);
+  const { song, arrangement: played } = applyRightHand(bundle.song, arrangement, mode);
   let introMeasures: Measure[] = [];
   let introParts: ArrangementMeasure[] = [];
   let introIssues: Issue[] = [];
@@ -117,10 +128,14 @@ export function buildPerformance(
     issues: [...introIssues, ...shiftIssues(song.issues, count)],
   };
   const composedArrangement: Arrangement = {
-    ...arrangement,
-    measures: [...introParts, ...arrangement.measures],
-    issues: shiftIssues(arrangement.issues, count),
+    ...played,
+    measures: [...introParts, ...played.measures],
+    issues: shiftIssues(played.issues, count),
   };
 
-  return { ...transpose(composed, composedArrangement, semitones), introMeasures: count };
+  return {
+    ...transpose(composed, composedArrangement, semitones),
+    introMeasures: count,
+    rightHand: mode,
+  };
 }

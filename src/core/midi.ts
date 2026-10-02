@@ -1,24 +1,30 @@
 import { keySignatureFifths } from './staff';
 import { PPQ, quarterNotesPerMinute } from './time';
-import type { Hand, NoteEvent, Song } from './types';
+import type { NoteEvent, Song, Track } from './types';
 
 /**
  * Writes a performance as a Standard MIDI File (format 1): a conductor track
- * with tempo, time signature, and key, then one track per hand. The file uses
- * the same 480 ticks per quarter note as the rest of the engine, so every
- * note lands exactly where it is played in the app.
+ * with tempo, time signature, and key, then one track per hand and one for
+ * the sung melody when it is included. The file uses the same 480 ticks per
+ * quarter note as the rest of the engine, so every note lands exactly where
+ * it is played in the app.
  */
 
 export interface MidiOptions {
   /** Beats per minute, counted in beats of the song's time signature. */
   tempo: number;
-  /** Hands to include; each becomes a track of its own. */
-  hands: Hand[];
+  /** What to include; each entry becomes a track of its own. */
+  tracks: Track[];
 }
 
-const CHANNEL: Record<Hand, number> = { right: 0, left: 1 };
-const TRACK_NAME: Record<Hand, string> = { right: 'Right hand', left: 'Left hand' };
-const ACOUSTIC_GRAND_PIANO = 0;
+const CHANNEL: Record<Track, number> = { right: 0, left: 1, voice: 2 };
+const TRACK_NAME: Record<Track, string> = {
+  right: 'Right hand',
+  left: 'Left hand',
+  voice: 'Voice',
+};
+/** General MIDI programs: a grand piano for the hands, "Voice Oohs" for the sung melody. */
+const PROGRAM: Record<Track, number> = { right: 0, left: 0, voice: 53 };
 
 interface TimedBytes {
   tick: number;
@@ -68,14 +74,14 @@ function track(events: TimedBytes[], endTick: number): number[] {
 }
 
 /**
- * Notes of one hand as note-on and note-off events. When a pitch is struck
+ * Notes of one track as note-on and note-off events. When a pitch is struck
  * again while it still rings, the earlier note is cut at that point; MIDI
  * cannot hold the same key twice on one channel.
  */
-function noteEvents(events: NoteEvent[], hand: Hand): TimedBytes[] {
-  const channel = CHANNEL[hand];
+function noteEvents(events: NoteEvent[], name: Track): TimedBytes[] {
+  const channel = CHANNEL[name];
   const notes = events
-    .filter((event) => event.hand === hand)
+    .filter((event) => event.track === name)
     .map((event) => ({ ...event, end: event.tick + event.duration }))
     .sort((a, b) => a.tick - b.tick);
 
@@ -125,14 +131,14 @@ export function toMidiFile(song: Song, events: NoteEvent[], options: MidiOptions
   ];
 
   const tracks = [track(conductor, endTick)];
-  for (const hand of options.hands) {
-    const channel = CHANNEL[hand];
+  for (const name of options.tracks) {
+    const channel = CHANNEL[name];
     tracks.push(
       track(
         [
-          { tick: 0, order: 0, bytes: metaEvent(0x03, textBytes(TRACK_NAME[hand])) },
-          { tick: 0, order: 0, bytes: [0xc0 | channel, ACOUSTIC_GRAND_PIANO] },
-          ...noteEvents(events, hand),
+          { tick: 0, order: 0, bytes: metaEvent(0x03, textBytes(TRACK_NAME[name])) },
+          { tick: 0, order: 0, bytes: [0xc0 | channel, PROGRAM[name]] },
+          ...noteEvents(events, name),
         ],
         endTick,
       ),

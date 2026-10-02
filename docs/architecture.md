@@ -11,7 +11,7 @@ songs/<song>/arrangements.json ─┤
                                 │
         Song, Arrangement[], introductions, Issue[]
                                 │
-        selected arrangement + intro choice + transposition
+   selected arrangement + right-hand mode + intro choice + transposition
                                 ▼
                      buildPerformance()                     src/core
                                 │
@@ -39,6 +39,7 @@ in the command-line checker.
 | File             | Responsibility                                                               |
 | ---------------- | ---------------------------------------------------------------------------- |
 | `types.ts`       | Domain types: `Song`, `Measure`, `Slot`, `Arrangement`, `NoteEvent`, `Issue` |
+| `right-hand.ts`  | Builds the right-hand parts of an arrangement and puts one in place          |
 | `time.ts`        | Tick arithmetic (480 ticks per quarter note)                                 |
 | `notes.ts`       | Note names, pitch classes, and spelling a pitch as a scale degree            |
 | `chord.ts`       | Chord-symbol parsing, extensions, chord degrees, and transposing symbols     |
@@ -54,7 +55,7 @@ in the command-line checker.
 | `mei.ts`         | Serializes a performance as MEI for the staff-notation engraver              |
 | `midi.ts`        | Writes a performance as a Standard MIDI File                                 |
 | `transpose.ts`   | Moves a song and an arrangement to another key                               |
-| `performance.ts` | Combines song, arrangement, introduction, and transposition                  |
+| `performance.ts` | Combines song, arrangement, right-hand part, introduction, and transposition |
 | `validate.ts`    | Playability and harmony checks                                               |
 | `playback.ts`    | Converts a performance to timed note events                                  |
 | `bundle.ts`      | Reads `arrangements.json` and assembles everything for one song              |
@@ -75,6 +76,13 @@ Key ideas:
   symbols are already transposed. Everything downstream (sheet, audio, playhead, loop) works on
   that result and needs no special cases. Introduction measures carry `part: 'intro'` and slot
   ids of their own.
+- **A right-hand part replaces measures, not the model.** Each arrangement carries the fills
+  and the accompaniment written for it. `applyRightHand` swaps the part's slots into the song's
+  measures (and the left hand of a measure, where the part replaces it), so everything
+  downstream still sees a plain song and arrangement. For an accompaniment the printed melody
+  moves to `Measure.voice`: a third line that the sheet shows, the playhead follows, and the
+  engine plays as its own track. The introduction is built from the unchanged song, so it keeps
+  the tune in every mode.
 - **Transposition keeps the digits.** Numbered notation is relative to "1", so transposing
   changes pitches, chord symbols, and the key, and leaves every written tone as it is.
 - **Dynamics are a timeline.** Level marks and hairpins from all measures form one timeline.
@@ -91,6 +99,9 @@ keep the first page view light.
 - Each hand has its own sampler and channel, sharing one set of decoded sample buffers. Switching
   between both hands, right, and left only mutes a channel, so it is instant and never interrupts
   playback.
+- A third track, the voice, plays the sung melody while the right hand accompanies. It uses a
+  plain synthesized tone instead of the piano, so the guide and the accompaniment can be told
+  apart, and has a channel of its own that the **Voice** button mutes.
 - Notes are scheduled on the Tone.js transport in ticks. Tempo changes therefore take effect
   immediately, and replacing the notes while the transport runs (a new left hand or key) keeps
   the position.
@@ -111,8 +122,8 @@ Two small Zustand stores:
   current measure) and forwards every change to the engine. When new music is loaded it is told
   how much changed: nothing structural (keep the playhead), the measures (rewind), or the song
   (rewind and restore the tempo).
-- `settings.ts` holds display preferences (introduction, visible rows, guide) and persists them
-  in the browser.
+- `settings.ts` holds display preferences (introduction, right-hand mode, visible rows, guide)
+  and persists them in the browser.
 
 The selected arrangement and the transposition live in `App` and reset when the song changes.
 
@@ -120,7 +131,7 @@ The selected arrangement and the transposition live in `App` and reset when the 
 
 | Component         | Responsibility                                                          |
 | ----------------- | ----------------------------------------------------------------------- |
-| `Toolbar`         | Left-hand menu by level, intro menu, transposition, visible rows, print |
+| `Toolbar`         | Menus for both hands and the intro, transposition, visible rows, export |
 | `Popover`         | Generic drop-down panel used by the toolbar                             |
 | `Sheet`           | The numbered score: introduction and song sections, systems, measures   |
 | `StaffSheet`      | The same score in staff notation, engraved by Verovio as SVG            |
@@ -137,18 +148,21 @@ Layout notes:
 - Symbols are positioned along a measure by time, as a percentage of the measure length, so the
   two hands always line up.
 - Measure widths are weighted by how densely each beat is subdivided, taking every arrangement
-  into account. The layout therefore does not shift when the arrangement changes.
+  and every right-hand part into account. The layout therefore does not shift when either hand
+  changes.
 - The introduction and the song are laid out as separate runs of systems, so the song always
   starts on a new system.
 - The playhead toggles a CSS class directly on the slot elements instead of re-rendering React
   components on every animation frame.
 - MIDI download: `midi.ts` writes the same note events the audio engine plays, so the file
-  matches what is heard: one conductor track with tempo, meter, and key, and one track per
-  hand. The ticks are the engine's own (480 per quarter note), so nothing is rounded.
+  matches what is heard: one conductor track with tempo, meter, and key, one track per hand,
+  and one for the voice when it plays. The ticks are the engine's own (480 per quarter note),
+  so nothing is rounded.
 - Staff notation: `mei.ts` gives every note the id of the slot it stands for and every measure
   the id of its index. Verovio keeps those ids in the SVG, so the playhead, the highlight of the
   current measure, and click-to-seek work exactly as on the numbered sheet. The introduction and
-  the song are engraved separately, so each starts on its own system.
+  the song are engraved separately, so each starts on its own system. The voice of an
+  accompaniment becomes a staff of its own above the grand staff and carries the lyrics.
 - Printing: on `beforeprint` the sheet switches to a fixed paper width with smaller symbols, so
   four measures fit across an A4 page; `afterprint` restores the screen layout. Print styles hide
   the controls. Saving as PDF is the browser's print-to-PDF.
@@ -161,7 +175,7 @@ Collects every `songs/**/song.txt` and its `arrangements.json` at build time thr
 ### `scripts/check-songs.ts`
 
 Runs the same engine from the command line and prints the issues for every song, arrangement,
-and written introduction. It is the quickest way to verify a transcription or an arrangement
+right-hand part, and written introduction. It is the quickest way to verify a transcription or an arrangement
 before opening the app.
 
 ## Testing
@@ -171,6 +185,8 @@ before opening the app.
 - notation, chord, and song parsing;
 - left-hand resolution, the baseline, validation, and playback events;
 - dynamics, transposition, introductions, and chord extensions;
+- right-hand parts: building, the rules for fills and accompaniments, the voice in the note
+  events, the staff notation, and the MIDI file;
 - staff notation (note values, ties, beams, accidentals, MEI output, and a render through the
   engraver), gap detection, and the keyboard range;
 - the MIDI writer, read back byte by byte;

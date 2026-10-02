@@ -2,7 +2,7 @@ import { formatChordSymbol } from './chord';
 import { DynamicsTimeline } from './dynamics';
 import { engraveRow, keySignatureFifths, type StaffEvent, type StaffPitch } from './staff';
 import { beatTicks, measureTicks } from './time';
-import type { Arrangement, Hand, Measure, SlotSpan, Song } from './types';
+import type { Arrangement, Measure, SlotSpan, Song, Track } from './types';
 
 /**
  * Serializes a performance as MEI, the format the staff-notation engraver
@@ -68,9 +68,9 @@ class LyricWriter {
   }
 }
 
-function eventElement(event: StaffEvent, hand: Hand, lyrics: LyricWriter | null): string {
-  // The hand becomes a class on the drawn symbol, which the playhead colours by.
-  const id = `xml:id="${staffElementId(event.id)}" type="${hand}"`;
+function eventElement(event: StaffEvent, track: Track, lyrics: LyricWriter | null): string {
+  // The track becomes a class on the drawn symbol, which the playhead colours by.
+  const id = `xml:id="${staffElementId(event.id)}" type="${track}"`;
   const duration = `dur="${event.value}"${event.dots > 0 ? ` dots="${event.dots}"` : ''}`;
   if (event.kind === 'rest') return `<rest ${id} ${duration}/>`;
 
@@ -87,7 +87,7 @@ function eventElement(event: StaffEvent, hand: Hand, lyrics: LyricWriter | null)
 function layerContent(
   events: StaffEvent[],
   measureLength: number,
-  hand: Hand,
+  track: Track,
   lyrics: LyricWriter | null,
 ): string {
   const wholeRest =
@@ -103,7 +103,7 @@ function layerContent(
   for (const event of events) {
     if (event.triplet === 'start') content += '<tuplet num="3" numbase="2">';
     if (event.beam === 'start') content += '<beam>';
-    content += eventElement(event, hand, lyrics);
+    content += eventElement(event, track, lyrics);
     if (event.beam === 'end') content += '</beam>';
     if (event.triplet === 'end') content += '</tuplet>';
   }
@@ -117,7 +117,9 @@ function timestamp(offset: number, beat: number): string {
 
 /**
  * Writes the measures `from` (inclusive) to `to` (exclusive) of a performance
- * as a grand staff: the melody on the upper staff, the left hand on the lower.
+ * as a grand staff: the right hand on the upper staff, the left hand on the
+ * lower. When the right hand accompanies, the sung melody gets a smaller
+ * staff of its own above the two, and carries the lyrics.
  */
 export function toMei(
   song: Song,
@@ -138,12 +140,23 @@ export function toMei(
     time,
     key,
   );
+  const hasVoice = measures.some((measure) => measure.voice !== undefined);
+  const voice = hasVoice
+    ? engraveRow(
+        measures.map((measure) => ({ length: measure.length, slots: measure.voice ?? [] })),
+        time,
+        key,
+      )
+    : null;
+  // Staff numbers count from the top; the voice staff pushes the hands down by one.
+  const rightStaff = hasVoice ? 2 : 1;
+  const leftStaff = rightStaff + 1;
 
   const spans: SlotSpan[] = [];
-  const collect = (hand: Hand, measure: Measure, events: StaffEvent[]) => {
+  const collect = (track: Track, measure: Measure, events: StaffEvent[]) => {
     for (const event of events) {
       const start = measure.startTick + event.start;
-      spans.push({ id: event.id, hand, start, end: start + event.duration });
+      spans.push({ id: event.id, track, start, end: start + event.duration });
     }
   };
 
@@ -157,6 +170,7 @@ export function toMei(
     .map((measure, position) => {
       collect('right', measure, right[position]);
       collect('left', measure, left[position]);
+      if (voice) collect('voice', measure, voice[position]);
 
       const controls: string[] = [];
       for (const chord of parts[position].chords) {
@@ -168,7 +182,7 @@ export function toMei(
         for (const mark of measure.dynamics) {
           if (mark.sign === '<' || mark.sign === '>') continue;
           controls.push(
-            `<dynam staff="1" place="below" tstamp="${timestamp(mark.start, beat)}">${mark.sign}</dynam>`,
+            `<dynam staff="${rightStaff}" place="below" tstamp="${timestamp(mark.start, beat)}">${mark.sign}</dynam>`,
           );
         }
         for (const hairpin of hairpins) {
@@ -190,7 +204,7 @@ export function toMei(
           if (endPosition === -1) continue;
           const endOffset = end - measures[endPosition].startTick;
           controls.push(
-            `<hairpin staff="1" place="below" form="${hairpin.kind === 'crescendo' ? 'cres' : 'dim'}" ` +
+            `<hairpin staff="${rightStaff}" place="below" form="${hairpin.kind === 'crescendo' ? 'cres' : 'dim'}" ` +
               `tstamp="${timestamp(begin - measure.startTick, beat)}" ` +
               `tstamp2="${endPosition - position}m+${timestamp(endOffset, beat)}"/>`,
           );
@@ -207,10 +221,13 @@ export function toMei(
       else if (measure.barline === 'repeat-end') attributes.push('right="rptend"');
       else if (isLast) attributes.push('right="dbl"');
 
+      const staff = (number: number, track: Track, events: StaffEvent[], words: boolean) =>
+        `<staff n="${number}"><layer n="1">${layerContent(events, measure.length, track, words ? lyrics : null)}</layer></staff>`;
       return (
         `<measure ${attributes.join(' ')}>` +
-        `<staff n="1"><layer n="1">${layerContent(right[position], measure.length, 'right', lyrics)}</layer></staff>` +
-        `<staff n="2"><layer n="1">${layerContent(left[position], measure.length, 'left', null)}</layer></staff>` +
+        (voice ? staff(1, 'voice', voice[position], true) : '') +
+        staff(rightStaff, 'right', right[position], !voice) +
+        staff(leftStaff, 'left', left[position], false) +
         controls.join('') +
         '</measure>'
       );
@@ -225,10 +242,15 @@ export function toMei(
     `<meiHead><fileDesc><titleStmt><title>${escapeXml(song.meta.title)}</title></titleStmt><pubStmt/></fileDesc></meiHead>` +
     '<music><body><mdiv><score>' +
     `<scoreDef keysig="${signature}" meter.count="${time.beats}" meter.unit="${time.unit}">` +
+    (hasVoice
+      ? '<staffGrp><staffDef n="1" lines="5" clef.shape="G" clef.line="2" scale="75%"/>'
+      : '') +
     '<staffGrp symbol="brace" bar.thru="true">' +
-    '<staffDef n="1" lines="5" clef.shape="G" clef.line="2"/>' +
-    '<staffDef n="2" lines="5" clef.shape="F" clef.line="4"/>' +
-    '</staffGrp></scoreDef>' +
+    `<staffDef n="${rightStaff}" lines="5" clef.shape="G" clef.line="2"/>` +
+    `<staffDef n="${leftStaff}" lines="5" clef.shape="F" clef.line="4"/>` +
+    '</staffGrp>' +
+    (hasVoice ? '</staffGrp>' : '') +
+    '</scoreDef>' +
     `<section>${body}</section>` +
     '</score></mdiv></body></music></mei>';
 

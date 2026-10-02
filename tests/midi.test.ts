@@ -3,7 +3,7 @@ import { createSongBundle } from '../src/core/bundle';
 import { exportFileName, toMidiFile, variableLength } from '../src/core/midi';
 import { buildPerformance } from '../src/core/performance';
 import { buildNoteEvents } from '../src/core/playback';
-import type { Hand, NoteEvent } from '../src/core/types';
+import type { NoteEvent, Track } from '../src/core/types';
 
 const bundle = createSongBundle(
   'title: Test Song\nkey: F\ntime: 3/4\ntempo: 90\n| 5, | [F]1 . 3 | [C7]5 . . ||',
@@ -23,8 +23,8 @@ const bundle = createSongBundle(
 );
 const performance = buildPerformance(bundle, bundle.arrangements[1], 'off', 0);
 const events = buildNoteEvents(performance.song, performance.arrangement);
-const write = (hands: Hand[], tempo = 90, notes: NoteEvent[] = events) =>
-  toMidiFile(performance.song, notes, { tempo, hands });
+const write = (tracks: Track[], tempo = 90, notes: NoteEvent[] = events) =>
+  toMidiFile(performance.song, notes, { tempo, tracks });
 
 /** Minimal reader: splits a file into its chunks. */
 function readChunks(bytes: Uint8Array): { id: string; data: Uint8Array }[] {
@@ -117,7 +117,7 @@ describe('toMidiFile', () => {
 
   it('writes every melody note at its tick, with its length', () => {
     const notes = readNotes(chunks[2].data);
-    const melody = events.filter((event) => event.hand === 'right');
+    const melody = events.filter((event) => event.track === 'right');
     expect(notes.filter((note) => note.on).map((note) => [note.tick, note.pitch])).toEqual(
       melody.map((event) => [event.tick, event.midi]),
     );
@@ -132,14 +132,14 @@ describe('toMidiFile', () => {
   it('puts the left hand on its own track', () => {
     const notes = readNotes(chunks[3].data).filter((note) => note.on);
     expect(notes.map((note) => note.pitch)).toEqual(
-      events.filter((event) => event.hand === 'left').map((event) => event.midi),
+      events.filter((event) => event.track === 'left').map((event) => event.midi),
     );
   });
 
   it('cuts a ringing note when the same key is struck again', () => {
     const overlapping: NoteEvent[] = [
-      { hand: 'left', tick: 0, duration: 960, midi: 41, velocity: 0.5, slotId: 'a' },
-      { hand: 'left', tick: 480, duration: 480, midi: 41, velocity: 0.5, slotId: 'b' },
+      { track: 'left', tick: 0, duration: 960, midi: 41, velocity: 0.5, slotId: 'a' },
+      { track: 'left', tick: 480, duration: 480, midi: 41, velocity: 0.5, slotId: 'b' },
     ];
     const notes = readNotes(readChunks(write(['left'], 90, overlapping))[2].data);
     expect(notes.map((note) => [note.tick, note.on])).toEqual([
@@ -154,7 +154,7 @@ describe('toMidiFile', () => {
     const moved = buildPerformance(bundle, bundle.arrangements[1], 'last-phrase', 2);
     const file = toMidiFile(moved.song, buildNoteEvents(moved.song, moved.arrangement), {
       tempo: 90,
-      hands: ['right'],
+      tracks: ['right'],
     });
     const notes = readNotes(readChunks(file)[2].data).filter((note) => note.on);
     const plain = readNotes(chunks[2].data).filter((note) => note.on);

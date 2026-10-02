@@ -6,6 +6,7 @@ import {
   type IntroChoice,
   type Level,
   type NoteName,
+  type RightHandMode,
   type SongBundle,
 } from '../core';
 import { useSettings, type Notation } from '../store/settings';
@@ -13,6 +14,7 @@ import { cx } from './classnames';
 import { introName } from './intro-name';
 import { BookIcon, CheckIcon, DownloadIcon, MinusIcon, PlusIcon, PrinterIcon } from './icons';
 import { Popover } from './Popover';
+import { RIGHT_HAND_NAME } from './right-hand-name';
 
 export const MAX_TRANSPOSE = 6;
 
@@ -28,6 +30,19 @@ const LEVEL_LABEL: Record<Level, string> = {
   advanced: 'Advanced',
 };
 
+const RIGHT_HAND_OPTIONS: { mode: RightHandMode; description: string }[] = [
+  { mode: 'melody', description: 'The printed melody, note for note.' },
+  {
+    mode: 'fills',
+    description: 'The printed melody stays as it is; fills are added where it waits.',
+  },
+  {
+    mode: 'accompaniment',
+    description:
+      'For accompanying singers: chords, rhythm, and fills. The melody is left to the voices.',
+  },
+];
+
 const NOTATIONS: { notation: Notation; label: string; hint: string }[] = [
   { notation: 'numbers', label: '1 2 3', hint: 'Numbered notation' },
   { notation: 'staff', label: 'Staff', hint: 'Staff notation on a grand staff' },
@@ -37,6 +52,8 @@ interface ToolbarProps {
   bundle: SongBundle;
   arrangement: Arrangement;
   onSelectArrangement: (id: string) => void;
+  /** What the right hand plays, after falling back when a part is not written. */
+  rightHand: RightHandMode;
   /** The introduction in effect, after falling back when one is unavailable. */
   intro: IntroChoice;
   semitones: number;
@@ -105,6 +122,47 @@ function LeftHandMenu({
               </section>
             );
           })}
+        </div>
+      )}
+    </Popover>
+  );
+}
+
+function RightHandMenu({
+  arrangement,
+  rightHand,
+}: Pick<ToolbarProps, 'arrangement' | 'rightHand'>) {
+  const setRightHand = useSettings((state) => state.setRightHand);
+  return (
+    <Popover label="Right hand" value={RIGHT_HAND_NAME[rightHand]}>
+      {(close) => (
+        <div className="menu" role="radiogroup" aria-label="Right hand">
+          {RIGHT_HAND_OPTIONS.map(({ mode, description }) => {
+            const written = mode === 'melody' || arrangement.rightHand[mode] !== undefined;
+            return (
+              <button
+                key={mode}
+                type="button"
+                role="radio"
+                aria-checked={rightHand === mode}
+                className={cx('option', rightHand === mode && 'is-selected')}
+                disabled={!written}
+                onClick={() => {
+                  setRightHand(mode);
+                  close();
+                }}
+              >
+                <span className="option__title">{RIGHT_HAND_NAME[mode]}</span>
+                <span className="option__summary">
+                  {written ? description : 'Not written for this left hand yet.'}
+                </span>
+              </button>
+            );
+          })}
+          <p className="menu__note">
+            Fills and accompaniment are written for each left hand, so they follow its chords and
+            share the gaps with its fills. Now paired with: {arrangement.name}.
+          </p>
         </div>
       )}
     </Popover>
@@ -267,7 +325,8 @@ function DownloadMenu({
     {
       name: 'MIDI',
       extension: '.mid',
-      description: 'The notes themselves, one track per hand. For a keyboard or a music program.',
+      description:
+        'The notes themselves, one track per hand and one for the voice guide. For a keyboard or a music program.',
       action: onDownloadMidi,
     },
     {
@@ -312,8 +371,8 @@ function DownloadMenu({
             </button>
           ))}
           <p className="menu__note">
-            Both contain what is on the sheet: the intro, the left hand, the key, and the dynamics,
-            at the current tempo and with the hands that are switched on.
+            Both contain what is on the sheet: the intro, both hands as chosen, the key, and the
+            dynamics, at the current tempo and with what is switched on in the bar below.
           </p>
         </div>
       )}
@@ -321,7 +380,7 @@ function DownloadMenu({
   );
 }
 
-/** The controls that decide what is on the sheet: left hand, intro, key, notation, and rows. */
+/** The controls that decide what is on the sheet: both hands, intro, key, notation, and rows. */
 export function Toolbar(props: ToolbarProps) {
   const guideOpen = useSettings((state) => state.guideOpen);
   const toggleGuide = useSettings((state) => state.toggleGuide);
@@ -333,6 +392,7 @@ export function Toolbar(props: ToolbarProps) {
         arrangement={props.arrangement}
         onSelectArrangement={props.onSelectArrangement}
       />
+      <RightHandMenu arrangement={props.arrangement} rightHand={props.rightHand} />
       <IntroMenu bundle={props.bundle} intro={props.intro} />
       <TransposeControl
         semitones={props.semitones}
@@ -341,31 +401,33 @@ export function Toolbar(props: ToolbarProps) {
       />
       <ViewMenu />
       <NotationSwitch />
-      <div className="toolbar__spacer" />
-      <button
-        type="button"
-        className={cx('button', 'button--toggle', guideOpen && 'is-on')}
-        onClick={toggleGuide}
-        aria-pressed={guideOpen}
-        title="Explain this arrangement"
-      >
-        <BookIcon width={18} height={18} />
-        <span>Guide</span>
-      </button>
-      <button
-        type="button"
-        className="button"
-        onClick={props.onPrint}
-        title="Print the score or save it as a PDF"
-      >
-        <PrinterIcon width={18} height={18} />
-        <span>Print / PDF</span>
-      </button>
-      <DownloadMenu
-        onDownloadMidi={props.onDownloadMidi}
-        onDownloadMp3={props.onDownloadMp3}
-        exportStatus={props.exportStatus}
-      />
+      {/* Kept together, so they move to a row of their own when the window is narrow. */}
+      <div className="toolbar__actions">
+        <button
+          type="button"
+          className={cx('button', 'button--toggle', guideOpen && 'is-on')}
+          onClick={toggleGuide}
+          aria-pressed={guideOpen}
+          title="Explain this arrangement"
+        >
+          <BookIcon width={18} height={18} />
+          <span>Guide</span>
+        </button>
+        <button
+          type="button"
+          className="button"
+          onClick={props.onPrint}
+          title="Print the score or save it as a PDF"
+        >
+          <PrinterIcon width={18} height={18} />
+          <span>Print / PDF</span>
+        </button>
+        <DownloadMenu
+          onDownloadMidi={props.onDownloadMidi}
+          onDownloadMp3={props.onDownloadMp3}
+          exportStatus={props.exportStatus}
+        />
+      </div>
     </div>
   );
 }

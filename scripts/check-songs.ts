@@ -3,7 +3,7 @@
  *
  *   npm run check                      check all songs
  *   npm run check -- songs/amazing-grace
- *   npm run check -- --dump            also print the left-hand notes per measure
+ *   npm run check -- --dump            also print the notes of every part per measure
  *
  * Exits with status 1 when any song or arrangement contains an error.
  */
@@ -15,13 +15,26 @@ import {
   findGaps,
   formatNoteName,
   midiToText,
+  RIGHT_HAND_MODES,
   toneToText,
 } from '../src/core';
-import type { Arrangement, Issue, Slot, Song, WrittenIntro } from '../src/core';
+import type {
+  Arrangement,
+  Issue,
+  RightHandPart,
+  Slot,
+  Song,
+  WrittenIntro,
+  WrittenRightHandMode,
+} from '../src/core';
 
 const SONG_FILE = 'song.txt';
 const ARRANGEMENT_FILE = 'arrangements.json';
 const SONGS_ROOT = 'songs';
+const RIGHT_HAND_LABEL: Record<WrittenRightHandMode, string> = {
+  fills: 'melody + fills',
+  accompaniment: 'accompaniment',
+};
 
 function findSongFolders(root: string): string[] {
   if (!existsSync(root)) return [];
@@ -33,16 +46,16 @@ function findSongFolders(root: string): string[] {
     .sort();
 }
 
-function describeIssue(issue: Issue, song: Song): string {
+function describeIssue(issue: Issue, song: Song, rightName = 'melody', indent = '    '): string {
   const where: string[] = [];
   if (issue.measure !== undefined) {
     const number = song.measures[issue.measure]?.number;
     where.push(number === null ? 'pickup' : `m.${number}`);
   }
-  if (issue.hand) where.push(issue.hand === 'right' ? 'melody' : 'left hand');
+  if (issue.hand) where.push(issue.hand === 'right' ? rightName : 'left hand');
   if (issue.line) where.push(`line ${issue.line}${issue.column ? `:${issue.column}` : ''}`);
   const location = where.length > 0 ? ` (${where.join(', ')})` : '';
-  return `    ${issue.severity.toUpperCase()}${location}: ${issue.message}`;
+  return `${indent}${issue.severity.toUpperCase()}${location}: ${issue.message}`;
 }
 
 function describeSlots(slots: Slot[]): string {
@@ -64,6 +77,22 @@ function dumpArrangement(song: Song, arrangement: Arrangement): void {
     const chords = part.chords.map((chord) => chord.symbol).join(' ');
     const label = measure.number === null ? 'pickup' : `m.${measure.number}`;
     console.log(`      ${label.padEnd(6)} ${chords.padEnd(18)} ${describeSlots(part.slots)}`);
+  });
+}
+
+/** Prints the measures a right-hand part writes, with the left hand where it replaces it. */
+function dumpRightHand(song: Song, part: RightHandPart): void {
+  song.measures.forEach((measure, index) => {
+    const written = part.measures[index];
+    if (!written) return;
+    const label = measure.number === null ? 'pickup' : `m.${measure.number}`;
+    console.log(`        ${label.padEnd(6)} ${''.padEnd(18)} R: ${describeSlots(written.slots)}`);
+    if (written.left) {
+      const chords = written.left.chords.map((chord) => chord.symbol).join(' ');
+      console.log(
+        `        ${''.padEnd(6)} ${chords.padEnd(18)} L: ${describeSlots(written.left.slots)}`,
+      );
+    }
   });
 }
 
@@ -141,6 +170,16 @@ function checkFolder(folder: string, dump: boolean): boolean {
     console.log(`  arrangement "${arrangement.name}" (${kind}): ${summarize(arrangement.issues)}`);
     reportable(arrangement.issues).forEach((issue) => console.log(describeIssue(issue, song)));
     if (dump) dumpArrangement(song, arrangement);
+
+    for (const mode of RIGHT_HAND_MODES) {
+      const part = arrangement.rightHand[mode];
+      if (!part) continue;
+      console.log(`    right hand, ${RIGHT_HAND_LABEL[mode]}: ${summarize(part.issues)}`);
+      reportable(part.issues).forEach((issue) =>
+        console.log(describeIssue(issue, song, 'right hand', '      ')),
+      );
+      if (dump) dumpRightHand(song, part);
+    }
   }
 
   const firstOfPhrase = song.measures[intro.lastPhraseStart]?.number ?? 0;
@@ -165,6 +204,7 @@ function checkFolder(folder: string, dump: boolean): boolean {
     ...fileIssues,
     ...issues,
     ...arrangements.flatMap((a) => a.issues),
+    ...arrangements.flatMap((a) => Object.values(a.rightHand).flatMap((part) => part.issues)),
     ...introIssues,
   ];
   return !all.some((issue) => issue.severity === 'error');

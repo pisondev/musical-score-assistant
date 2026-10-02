@@ -1,9 +1,12 @@
 import type * as ToneModule from 'tone';
-import { PPQ, type Hand, type NoteEvent } from '../core';
+import { PPQ, type NoteEvent, type Track } from '../core';
 
 type Tone = typeof ToneModule;
 
 export type HandMode = 'both' | 'right' | 'left';
+
+/** What plays one track: a sampled piano for the hands, a soft synthesizer for the voice. */
+type Instrument = ToneModule.Sampler | ToneModule.PolySynth;
 
 /** Everything the engine needs to play one song with one arrangement. */
 export interface Score {
@@ -43,8 +46,8 @@ const SAMPLE_NOTES = [
 ];
 
 const SAMPLE_BASE_URL = `${import.meta.env.BASE_URL}samples/piano/`;
-const HANDS: Hand[] = ['right', 'left'];
-const CHANNEL_VOLUME: Record<Hand, number> = { right: 2, left: -1 };
+const TRACKS: Track[] = ['right', 'left', 'voice'];
+const CHANNEL_VOLUME: Record<Track, number> = { right: 2, left: -1, voice: -19 };
 const SAMPLER_RELEASE = 1.2;
 /** Silence appended to a recording so the last notes can ring out, in seconds. */
 const RECORDING_TAIL = 2.5;
@@ -58,8 +61,9 @@ function sampleFile(note: string): string {
 
 /**
  * Plays a score with two independent piano voices, one per hand, so either
- * hand can be muted while the music keeps running. Tone.js and the samples are
- * loaded on first use to keep the initial page light.
+ * hand can be muted while the music keeps running. A third, flute-like voice
+ * plays the sung melody as a guide when the right hand accompanies. Tone.js
+ * and the samples are loaded on first use to keep the initial page light.
  */
 export class PlaybackEngine {
   /** Called on the main thread when playback reaches the end of the song. */
@@ -68,8 +72,8 @@ export class PlaybackEngine {
   private tone: Tone | null = null;
   private loading: Promise<void> | null = null;
   private buffers: ToneModule.ToneAudioBuffers | null = null;
-  private samplers: Record<Hand, ToneModule.Sampler> | null = null;
-  private channels: Record<Hand, ToneModule.Channel> | null = null;
+  private instruments: Record<Track, Instrument> | null = null;
+  private channels: Record<Track, ToneModule.Channel> | null = null;
   private click: ToneModule.Synth | null = null;
   private countIn: ToneModule.Synth | null = null;
   private parts: ToneModule.Part[] = [];
@@ -78,6 +82,7 @@ export class PlaybackEngine {
 
   private score: Score | null = null;
   private handMode: HandMode = 'both';
+  private voiceGuide = true;
   private quarterTempo = 80;
   private metronome = false;
   private loop: LoopRange | null = null;
@@ -106,16 +111,20 @@ export class PlaybackEngine {
       });
     });
 
-    const channels = {} as Record<Hand, ToneModule.Channel>;
-    const samplers = {} as Record<Hand, ToneModule.Sampler>;
-    for (const hand of HANDS) {
-      ({ channel: channels[hand], sampler: samplers[hand] } = createVoice(tone, buffers, hand));
+    const channels = {} as Record<Track, ToneModule.Channel>;
+    const instruments = {} as Record<Track, Instrument>;
+    for (const track of TRACKS) {
+      ({ channel: channels[track], instrument: instruments[track] } = createInstrument(
+        tone,
+        buffers,
+        track,
+      ));
     }
 
     this.tone = tone;
     this.buffers = buffers;
     this.channels = channels;
-    this.samplers = samplers;
+    this.instruments = instruments;
     this.click = this.createClick(tone);
 
     transport.bpm.value = this.quarterTempo;
@@ -141,18 +150,18 @@ export class PlaybackEngine {
 
   private rebuild(): void {
     const tone = this.tone;
-    if (!tone || !this.samplers || !this.score) return;
+    if (!tone || !this.instruments || !this.score) return;
     const transport = tone.getTransport();
 
     for (const part of this.parts) part.dispose();
-    this.parts = HANDS.map((hand) => {
-      const sampler = this.samplers![hand];
-      const events = this.score!.events.filter((event) => event.hand === hand).map((event) => ({
+    this.parts = TRACKS.map((track) => {
+      const instrument = this.instruments![track];
+      const events = this.score!.events.filter((event) => event.track === track).map((event) => ({
         ...event,
         time: `${event.tick}i`,
       }));
       const part = new tone.Part((time, event) => {
-        sampler.triggerAttackRelease(
+        instrument.triggerAttackRelease(
           tone.Frequency(event.midi, 'midi').toNote(),
           tone.Ticks(event.duration).toSeconds(),
           time,
@@ -226,7 +235,11 @@ export class PlaybackEngine {
   private silence(): void {
     this.countIn?.dispose();
     this.countIn = null;
-    if (this.samplers) for (const hand of HANDS) this.samplers[hand].releaseAll();
+    this.releaseAll();
+  }
+
+  private releaseAll(): void {
+    if (this.instruments) for (const track of TRACKS) this.instruments[track].releaseAll();
   }
 
   pause(): void {
@@ -259,7 +272,7 @@ export class PlaybackEngine {
     this.pendingTick = tick;
     if (!this.tone) return;
     this.tone.getTransport().ticks = tick;
-    if (this.samplers) for (const hand of HANDS) this.samplers[hand].releaseAll();
+    this.releaseAll();
   }
 
   /** Current position in ticks. */
@@ -282,10 +295,17 @@ export class PlaybackEngine {
     this.applyHandMode();
   }
 
+  /** Switches the guide that plays the sung melody on or off. */
+  setVoiceGuide(enabled: boolean): void {
+    this.voiceGuide = enabled;
+    this.applyHandMode();
+  }
+
   private applyHandMode(): void {
     if (!this.channels) return;
     this.channels.right.mute = this.handMode === 'left';
     this.channels.left.mute = this.handMode === 'right';
+    this.channels.voice.mute = !this.voiceGuide;
   }
 
   setMetronome(enabled: boolean): void {
@@ -323,10 +343,10 @@ export class PlaybackEngine {
 
   /**
    * Renders the loaded score to audio, faster than real time, with the same
-   * piano, tempo, and dynamics as live playback. Only the given hands are
+   * sounds, tempo, and dynamics as live playback. Only the given tracks are
    * included; the metronome and the loop are not.
    */
-  async render(hands: Hand[]): Promise<AudioBuffer> {
+  async render(tracks: Track[]): Promise<AudioBuffer> {
     await this.preload();
     const tone = this.tone!;
     const buffers = this.buffers!;
@@ -337,11 +357,11 @@ export class PlaybackEngine {
     const duration = score.totalTicks * secondsPerTick + RECORDING_TAIL;
     const rendered = await tone.Offline(
       () => {
-        for (const hand of hands) {
-          const { sampler } = createVoice(tone, buffers, hand);
+        for (const track of tracks) {
+          const { instrument } = createInstrument(tone, buffers, track);
           for (const event of score.events) {
-            if (event.hand !== hand) continue;
-            sampler.triggerAttackRelease(
+            if (event.track !== track) continue;
+            instrument.triggerAttackRelease(
               tone.Frequency(event.midi, 'midi').toNote(),
               event.duration * secondsPerTick,
               event.tick * secondsPerTick,
@@ -377,18 +397,29 @@ export class PlaybackEngine {
   }
 }
 
-/** One hand's piano: a sampler routed through its own channel to the output. */
-function createVoice(
+/**
+ * The instrument of one track, routed through its own channel to the output:
+ * a sampled piano for a hand, and for the voice a plain, flute-like tone that
+ * stands apart from the piano.
+ */
+function createInstrument(
   tone: Tone,
   buffers: ToneModule.ToneAudioBuffers,
-  hand: Hand,
-): { channel: ToneModule.Channel; sampler: ToneModule.Sampler } {
-  const channel = new tone.Channel({ volume: CHANNEL_VOLUME[hand] }).toDestination();
+  track: Track,
+): { channel: ToneModule.Channel; instrument: Instrument } {
+  const channel = new tone.Channel({ volume: CHANNEL_VOLUME[track] }).toDestination();
+  if (track === 'voice') {
+    const synth = new tone.PolySynth(tone.Synth, {
+      oscillator: { type: 'triangle' },
+      envelope: { attack: 0.04, decay: 0.2, sustain: 0.75, release: 0.3 },
+    }).connect(channel);
+    return { channel, instrument: synth };
+  }
   const sampler = new tone.Sampler({
     urls: Object.fromEntries(SAMPLE_NOTES.map((note) => [note, buffers.get(note)])),
     release: SAMPLER_RELEASE,
   }).connect(channel);
-  return { channel, sampler };
+  return { channel, instrument: sampler };
 }
 
 /** The single engine instance shared by the whole app. */

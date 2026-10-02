@@ -12,9 +12,9 @@ import {
   exportFileName,
   noteNameToText,
   toMidiFile,
-  type Hand,
   type IntroChoice,
   type Performance,
+  type Track,
 } from './core';
 import { library } from './library';
 import { usePlayer, type ScoreReset } from './store/player';
@@ -26,6 +26,7 @@ import { Sheet } from './ui/Sheet';
 import { SongHeader } from './ui/SongHeader';
 import { StaffSheet } from './ui/StaffSheet';
 import { introName } from './ui/intro-name';
+import { RIGHT_HAND_NAME } from './ui/right-hand-name';
 import { MAX_TRANSPOSE, Toolbar } from './ui/Toolbar';
 import { TransportBar } from './ui/TransportBar';
 import { cx } from './ui/classnames';
@@ -39,15 +40,26 @@ function songIdFromLocation(): string | null {
   return new URLSearchParams(window.location.hash.slice(1)).get(SONG_PARAMETER);
 }
 
-function handsOf(mode: HandMode): Hand[] {
-  return mode === 'both' ? ['right', 'left'] : [mode];
+/** What a download contains: the hands that are switched on, and the voice guide when it plays. */
+function tracksOf(performance: Performance, mode: HandMode, voiceGuide: boolean): Track[] {
+  const hands: Track[] = mode === 'both' ? ['right', 'left'] : [mode];
+  const hasVoice = performance.song.measures.some((measure) => measure.voice !== undefined);
+  return hasVoice && voiceGuide ? [...hands, 'voice'] : hands;
+}
+
+/** Names the two hands of a performance, e.g. "Alberti bass, accompaniment". */
+function handsLabel(performance: Performance): string {
+  const { arrangement, rightHand } = performance;
+  return rightHand === 'melody'
+    ? arrangement.name
+    : `${arrangement.name}, ${RIGHT_HAND_NAME[rightHand].toLowerCase()}`;
 }
 
 function fileNameFor(performance: Performance, extension: string): string {
   const { meta } = performance.song;
   return exportFileName(
     meta.title,
-    performance.arrangement.name,
+    handsLabel(performance).replace(' + ', ' with '),
     noteNameToText(meta.key),
     extension,
   );
@@ -78,6 +90,7 @@ export function App() {
   const [exportStatus, setExportStatus] = useState<string | null>(null);
 
   const introSetting = useSettings((state) => state.intro);
+  const rightHand = useSettings((state) => state.rightHand);
   const notation = useSettings((state) => state.notation);
   const showLyrics = useSettings((state) => state.showLyrics);
   const showDynamics = useSettings((state) => state.showDynamics);
@@ -100,8 +113,11 @@ export function App() {
   const intro: IntroChoice = known ? introSetting : INTRO_LAST_PHRASE;
 
   const performance = useMemo(
-    () => (bundle && arrangement ? buildPerformance(bundle, arrangement, intro, semitones) : null),
-    [bundle, arrangement, intro, semitones],
+    () =>
+      bundle && arrangement
+        ? buildPerformance(bundle, arrangement, intro, semitones, rightHand)
+        : null,
+    [bundle, arrangement, intro, semitones, rightHand],
   );
 
   // Tell the engine what changed, so it keeps the playhead whenever it can.
@@ -123,7 +139,7 @@ export function App() {
       return;
     }
     const { meta } = performance.song;
-    document.title = `${meta.title} - ${performance.arrangement.name} (1 = ${formatNoteName(meta.key)})`;
+    document.title = `${meta.title} - ${handsLabel(performance)} (1 = ${formatNoteName(meta.key)})`;
   }, [performance]);
 
   // Fetch the piano samples as soon as the player touches the page, so the
@@ -148,6 +164,7 @@ export function App() {
       } else if (event.key === '1') player.setHandMode('both');
       else if (event.key === '2') player.setHandMode('right');
       else if (event.key === '3') player.setHandMode('left');
+      else if (event.key === 'v' || event.key === 'V') player.toggleVoiceGuide();
       else if (event.key === 'Home') player.stop();
     };
     window.addEventListener('keydown', onKeyDown);
@@ -172,15 +189,15 @@ export function App() {
     window.print();
   }, []);
 
-  // A download holds what is on the sheet: the introduction, the chosen left
-  // hand, the key, the tempo, and only the hands that are switched on.
+  // A download holds what is on the sheet: the introduction, both hands as
+  // chosen, the key, the tempo, and only what is switched on in the transport bar.
   const downloadMidi = useCallback(() => {
     if (!performance) return;
-    const { tempo, handMode } = usePlayer.getState();
+    const { tempo, handMode, voiceGuide } = usePlayer.getState();
     const { song, arrangement: played } = performance;
     const bytes = toMidiFile(song, buildNoteEvents(song, played), {
       tempo,
-      hands: handsOf(handMode),
+      tracks: tracksOf(performance, handMode, voiceGuide),
     });
     saveFile(
       new Blob([bytes.slice().buffer], { type: 'audio/midi' }),
@@ -195,7 +212,7 @@ export function App() {
     player.stop();
     try {
       setExportStatus('Recording…');
-      const audio = await engine.render(handsOf(player.handMode));
+      const audio = await engine.render(tracksOf(performance, player.handMode, player.voiceGuide));
       const file = await encodeMp3(audio, (fraction) =>
         setExportStatus(`Encoding ${Math.round(fraction * 100)}%`),
       );
@@ -270,6 +287,7 @@ export function App() {
               bundle={bundle}
               arrangement={arrangement}
               onSelectArrangement={setArrangementId}
+              rightHand={performance.rightHand}
               intro={intro}
               semitones={semitones}
               onTranspose={transposeTo}
@@ -291,7 +309,8 @@ export function App() {
               <section className="card card--sheet">
                 <p className="print-summary">
                   Left hand: {arrangement.name} ({LEVEL_LABEL[arrangement.level]}
-                  {arrangement.style && `, ${arrangement.style}`})
+                  {arrangement.style && `, ${arrangement.style}`}) · Right hand:{' '}
+                  {RIGHT_HAND_NAME[performance.rightHand]}
                 </p>
                 {notation === 'staff' ? (
                   <StaffSheet

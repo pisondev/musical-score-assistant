@@ -12,7 +12,7 @@ function describeLocation(issue: Issue, song: Song): string {
     const number = song.measures[issue.measure]?.number;
     parts.push(number === null ? 'Pickup' : `Measure ${number}`);
   }
-  if (issue.hand) parts.push(issue.hand === 'right' ? 'melody' : 'left hand');
+  if (issue.hand) parts.push(issue.hand === 'right' ? 'right hand' : 'left hand');
   if (issue.line) parts.push(`line ${issue.line}`);
   return parts.join(', ');
 }

@@ -142,8 +142,66 @@ export function buildBaseline(song: Song): Arrangement {
     tips: [],
     patterns: [],
     measures: song.measures.map((measure) => buildBaselineMeasure(measure, printed, beat, context)),
+    rightHand: {},
     issues: [],
   };
+}
+
+/**
+ * Resolves the left-hand notation of one measure against the chord that is in
+ * force when the measure begins. Returns null, with the reason added to
+ * `issues`, when the notation does not describe exactly one measure.
+ */
+export function buildLeftMeasure(
+  song: Song,
+  measure: Measure,
+  notation: string,
+  carried: Chord | null,
+  printed: TimedChord[],
+  issues: Issue[],
+): { part: ArrangementMeasure; chord: Chord | null } | null {
+  const beat = beatTicks(song.meta.time);
+  const parsed = parseNotationLine(notation, beat, 0);
+  for (const issue of parsed.issues) {
+    issues.push({
+      severity: issue.severity,
+      message: issue.message,
+      measure: measure.index,
+      hand: 'left',
+    });
+  }
+  if (parsed.measures.length !== 1) {
+    issues.push({
+      severity: 'error',
+      message: 'Left-hand notation must describe exactly one measure, without barlines.',
+      measure: measure.index,
+      hand: 'left',
+    });
+    return null;
+  }
+
+  const raw = parsed.measures[0];
+  if (raw.length !== measure.length) {
+    issues.push({
+      severity: 'error',
+      message: `Left hand has ${raw.length / beat} beats; this measure needs ${measure.length / beat}.`,
+      measure: measure.index,
+      hand: 'left',
+    });
+  }
+
+  const resolved = resolveLeftMeasure(raw, measure.index, carried, leftContext(song));
+  issues.push(...resolved.issues);
+
+  const chords = resolved.chords.map((mark) => {
+    const printedChord = chordAt(printed, measure.startTick + mark.start);
+    const changed =
+      !printedChord ||
+      normalizeChordSymbol(printedChord.symbol) !== normalizeChordSymbol(mark.symbol);
+    return { ...mark, changed };
+  });
+
+  return { part: { slots: resolved.slots, chords }, chord: resolved.chord };
 }
 
 /** Builds an arrangement from its stored description, measure by measure. */
@@ -192,48 +250,10 @@ export function buildArrangement(song: Song, spec: ArrangementSpec): Arrangement
       return fallback();
     }
 
-    const parsed = parseNotationLine(entry.left, beat, 0);
-    for (const issue of parsed.issues) {
-      issues.push({
-        severity: issue.severity,
-        message: issue.message,
-        measure: measure.index,
-        hand: 'left',
-      });
-    }
-    if (parsed.measures.length !== 1) {
-      issues.push({
-        severity: 'error',
-        message: 'Left-hand notation must describe exactly one measure, without barlines.',
-        measure: measure.index,
-        hand: 'left',
-      });
-      return { ...fallback(), note: entry.note };
-    }
-
-    const raw = parsed.measures[0];
-    if (raw.length !== measure.length) {
-      issues.push({
-        severity: 'error',
-        message: `Left hand has ${raw.length / beat} beats; this measure needs ${measure.length / beat}.`,
-        measure: measure.index,
-        hand: 'left',
-      });
-    }
-
-    const resolved = resolveLeftMeasure(raw, measure.index, carried, context);
-    issues.push(...resolved.issues);
-    carried = resolved.chord;
-
-    const chords = resolved.chords.map((mark) => {
-      const printedChord = chordAt(printed, measure.startTick + mark.start);
-      const changed =
-        !printedChord ||
-        normalizeChordSymbol(printedChord.symbol) !== normalizeChordSymbol(mark.symbol);
-      return { ...mark, changed };
-    });
-
-    return { slots: resolved.slots, chords, note: entry.note };
+    const built = buildLeftMeasure(song, measure, entry.left, carried, printed, issues);
+    if (!built) return { ...fallback(), note: entry.note };
+    carried = built.chord;
+    return { ...built.part, note: entry.note };
   });
 
   return {
@@ -246,6 +266,7 @@ export function buildArrangement(song: Song, spec: ArrangementSpec): Arrangement
     tips: spec.tips ?? [],
     patterns: spec.patterns ?? [],
     measures,
+    rightHand: {},
     issues,
   };
 }

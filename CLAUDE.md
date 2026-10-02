@@ -46,6 +46,10 @@ Things to keep in mind:
   intermediate level on, play a fill that suits the style and leads into the next phrase. A
   static arpeggio through those places is what the tool exists to replace: the congregation
   loses the beat. Use a different fill in each gap.
+- **Right-hand parts are written per arrangement.** Every arrangement, the baseline included,
+  gets a _Melody + fills_ part and an _Accompaniment_ part that agree with its chords and share
+  the gaps with its left hand. The player chooses the mode freely; the notes are paired on
+  purpose. Fills never change a printed melody note.
 - **Write for a 61-key keyboard** (C2 to C7), not a full piano: no left-hand note below C2.
 - After writing or changing any song file, run `npm run check -- <folder> --dump` and resolve every
   error and warning before handing the song over.
