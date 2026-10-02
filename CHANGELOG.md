@@ -207,6 +207,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Scrollbars are drawn by the app, on the page and in every panel that scrolls (the options,
+  the guide, the dialogs): a slim, rounded thumb without a track that darkens under the
+  pointer. Browsers without the WebKit scrollbar parts get a thin scrollbar in the same colour.
+
 - In the **Options** panel the setting that is open is one block with a slightly darker
   background, its line a shade darker again, so its choices stand apart from the settings
   around it.

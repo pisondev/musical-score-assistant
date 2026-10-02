@@ -29,6 +29,11 @@
   --panel-open-head: #dde7f3;
   --panel-open-line: #d3deed;
 
+  /* Scrollbars: the thumb at rest, under the pointer, and while it is dragged. */
+  --scroll-thumb: #b4c6dc;
+  --scroll-thumb-hover: #7f9fc4;
+  --scroll-thumb-active: #4f7fb8;
+
   --radius: 14px;
   --radius-small: 9px;
   --shadow: 0 1px 2px rgb(16 32 58 / 5%), 0 8px 24px -12px rgb(37 99 235 / 18%);
@@ -86,6 +91,54 @@ select {
 
 button {
   cursor: pointer;
+}
+
+/*
+ * Scrollbars of our own, on the page and in every panel that scrolls: a slim, rounded thumb
+ * that floats in a track without a colour, and darkens under the pointer.
+ *
+ * Browsers built on WebKit or Chromium draw them from the pseudo-elements below. Those
+ * browsers ignore the pseudo-elements as soon as the standard properties are set, so the
+ * standard properties are given only to browsers that have nothing else (Firefox).
+ */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* The see-through border keeps the thumb away from the edges; only its inside is painted. */
+::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  min-width: 44px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-color: var(--scroll-thumb);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--scroll-thumb-active);
+}
+
+/* No arrow buttons at the ends. */
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+  }
 }
 
 /* A tap acts at once: no highlight flash, and no wait for a possible double tap. */
