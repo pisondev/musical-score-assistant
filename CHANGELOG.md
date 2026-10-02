@@ -24,3 +24,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   notes of every measure.
 - The song and arrangement file format, documented in `docs/song-format.md`.
 - A public-domain demo song, "Amazing Grace", with three left-hand arrangements.
+- The web app:
+  - a numbered score with the melody and the left hand on two aligned rows, chords, lyrics,
+    section labels, beams, octave dots, accidentals, and vertically stacked notes;
+  - an arrangement picker with the baseline "My style" and every stored arrangement, and a side
+    panel that explains new patterns, practice tips, and each changed measure;
+  - playback with a sampled piano, separate channels for the two hands (both, right only, left
+    only), tempo control, a metronome with count-in, and looping over a range of measures;
+  - a playhead that highlights the notes being played and keeps the current measure in view;
+  - keyboard shortcuts for play, stop, and hand selection;
+  - a list of errors and warnings for the song and the selected arrangement.
+- A test launcher (`scripts/run-tests.mjs`) that starts Vitest from the canonical working
+  directory, so the tests also pass in Windows terminals that report a lowercase drive letter.
+- Piano samples from the Salamander Grand Piano (CC BY 3.0).
+- Documentation: usage in `README.md`, code structure in `docs/architecture.md`, purpose and
+  planned work in `docs/roadmap.md`, and the `new-song` skill for adding a song from a score.

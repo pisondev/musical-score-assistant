@@ -1,0 +1,404 @@
+/*
+ * Numbered-notation sheet.
+ *
+ * A system is a row of measures. Every measure stacks four tracks: chords,
+ * right hand, lyrics, left hand. Symbols are placed along a track by time, so
+ * both hands line up beat for beat.
+ */
+
+.sheet {
+  --note-size: 19px;
+  --digit-width: 13px;
+  --digit-height: 21px;
+  --dot-zone: 7px;
+  --cell-height: calc(var(--digit-height) + 2 * var(--dot-zone));
+  --beam-zone: 11px;
+  --bar: #9fb4d3;
+
+  display: grid;
+  gap: 22px;
+  user-select: none;
+}
+
+.system {
+  display: flex;
+  align-items: stretch;
+}
+
+.system__labels {
+  flex: none;
+  width: 22px;
+}
+
+.system__labels .track {
+  margin: 0;
+}
+
+.system__labels .track span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--dot-zone);
+  height: var(--digit-height);
+  line-height: var(--digit-height);
+  text-align: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #9aabc6;
+}
+
+.measure {
+  position: relative;
+  min-width: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  outline-offset: -2px;
+}
+
+.measure__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 15px;
+  padding-left: 10px;
+  font-size: 10.5px;
+  line-height: 1;
+  color: #9aabc6;
+  font-variant-numeric: tabular-nums;
+}
+
+.measure__section {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+}
+
+/* Marks a measure that carries an explanation in the side panel. */
+.measure__flag {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sky);
+}
+
+.measure__staff {
+  border-right: 1.5px solid var(--bar);
+  border-radius: 0;
+  transition: background 0.12s;
+}
+
+.measure--first .measure__staff {
+  border-left: 1.5px solid var(--bar);
+}
+
+.measure--final .measure__staff {
+  border-right: 5px double var(--ink-soft);
+}
+
+.measure--repeat-end .measure__staff {
+  border-right: 4px double var(--ink-soft);
+}
+
+.measure--repeat-start .measure__staff {
+  border-left: 4px double var(--ink-soft);
+}
+
+.measure:hover .measure__staff {
+  background: #f6f9ff;
+}
+
+.measure.in-loop .measure__staff {
+  background: #f1f9ff;
+  box-shadow: inset 0 -3px 0 var(--sky);
+}
+
+.measure.is-current .measure__staff {
+  background: var(--primary-soft);
+}
+
+.measure.has-warning .measure__number,
+.measure.has-error .measure__number {
+  padding: 2px 5px;
+  border-radius: 5px;
+  font-weight: 700;
+}
+
+.measure.has-warning .measure__number {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.measure.has-error .measure__number {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.measure.has-error .measure__staff {
+  box-shadow: inset 0 0 0 1.5px #fca5a5;
+}
+
+/* Tracks */
+
+.track {
+  position: relative;
+  margin: 0 12px 0 10px;
+}
+
+.track--chords {
+  height: 22px;
+}
+
+.track--right {
+  height: calc(var(--cell-height) + var(--beam-zone));
+  color: var(--ink);
+}
+
+.track--lyrics {
+  height: 20px;
+}
+
+.track--left {
+  height: calc(var(--left-cells, 1) * var(--cell-height) + var(--beam-zone) + 6px);
+  color: var(--ink);
+}
+
+/* A faint rule keeps the two hands visually apart. */
+.measure__staff .track--left::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  right: -12px;
+  top: 0;
+  border-top: 1px dashed var(--line);
+}
+
+.chord {
+  position: absolute;
+  bottom: 3px;
+  padding: 0 1px;
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 16px;
+  white-space: nowrap;
+  color: var(--primary-strong);
+}
+
+.chord--changed {
+  margin-left: -4px;
+  padding: 0 5px;
+  border-radius: 5px;
+  color: var(--sky-strong);
+  background: var(--sky-soft);
+  box-shadow: inset 0 0 0 1px #bae6fd;
+}
+
+.chord--unknown {
+  color: var(--danger);
+  text-decoration: underline wavy;
+}
+
+.lyric {
+  position: absolute;
+  top: 1px;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+/* Slots */
+
+.slot {
+  position: absolute;
+  bottom: 0;
+  min-width: var(--digit-width);
+}
+
+.slot__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--digit-width);
+  border-radius: 6px;
+  transition:
+    background 0.08s,
+    color 0.08s;
+}
+
+.tone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--digit-width);
+  height: var(--cell-height);
+}
+
+.tone__dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  height: var(--dot-zone);
+}
+
+.tone__dots--up {
+  justify-content: flex-end;
+  padding-bottom: 1px;
+}
+
+.tone__dots--down {
+  justify-content: flex-start;
+  padding-top: 1px;
+}
+
+.tone__dots i {
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.tone__digit,
+.glyph {
+  position: relative;
+  display: block;
+  height: var(--digit-height);
+  font-size: var(--note-size);
+  font-weight: 600;
+  line-height: var(--digit-height);
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: center;
+}
+
+/* Accidentals are a stroke through the digit: "/" raises, "\" lowers. */
+.tone__digit.is-sharp::after,
+.tone__digit.is-flat::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.6px;
+  height: 125%;
+  border-radius: 1px;
+  background: currentColor;
+  transform: translate(-50%, -50%) rotate(34deg);
+}
+
+.tone__digit.is-flat::after {
+  transform: translate(-50%, -50%) rotate(-34deg);
+}
+
+.glyph {
+  width: var(--digit-width);
+  margin: var(--dot-zone) 0;
+}
+
+.slot--rest .glyph {
+  color: #8fa1bd;
+  font-weight: 500;
+}
+
+/* A hold is drawn as a dot on the baseline, like the printed scores. */
+.glyph--hold::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: #7f93b3;
+}
+
+/* Beams sit above the tallest stack of their beat. */
+.beam {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--beam-cells, 1) * var(--cell-height) + 2px);
+  width: var(--digit-width);
+  height: 1.6px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.beam--join {
+  width: 100%;
+}
+
+.beam--second {
+  bottom: calc(var(--beam-cells, 1) * var(--cell-height) + 6px);
+}
+
+.tuplet {
+  position: absolute;
+  left: 100%;
+  bottom: calc(var(--beam-cells, 1) * var(--cell-height) + 5px);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.slot--uncertain .slot__body {
+  box-shadow: 0 0 0 1.5px #f59e0b;
+  background: var(--warning-soft);
+}
+
+/* Playhead */
+
+.track--right .slot.is-active .slot__body {
+  color: #fff;
+  background: var(--right-hand);
+}
+
+.track--left .slot.is-active .slot__body {
+  color: #fff;
+  background: var(--left-hand);
+}
+
+.slot--rest.is-active .glyph {
+  color: #fff;
+}
+
+.slot--hold.is-active .glyph--hold::after {
+  background: #fff;
+}
+
+.track--right .slot--hold.is-active .slot__body,
+.track--right .slot--rest.is-active .slot__body {
+  background: #93b4f5;
+}
+
+.track--left .slot--hold.is-active .slot__body,
+.track--left .slot--rest.is-active .slot__body {
+  background: #7cc4e8;
+}
+
+@media (max-width: 720px) {
+  .sheet {
+    --note-size: 18px;
+    --digit-width: 12px;
+  }
+}
+
+@media print {
+  .sheet {
+    --bar: #000;
+  }
+
+  .measure__flag {
+    display: none;
+  }
+
+  .system {
+    break-inside: avoid;
+  }
+}

@@ -12,8 +12,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "node scripts/run-tests.mjs run",
+    "test:watch": "node scripts/run-tests.mjs",
     "check": "tsx scripts/check-songs.ts",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run check && npm run build",
     "prepare": "node scripts/install-git-hooks.mjs"
