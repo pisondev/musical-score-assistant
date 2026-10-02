@@ -604,8 +604,17 @@ code {
   transform: rotate(180deg);
 }
 
+/*
+ * The line of the setting that is open stays at the top of the panel while its choices
+ * scroll, so it is always clear which setting they belong to. The ring in the colour of the
+ * panel hides what scrolls past its rounded corners.
+ */
 .setting.is-open .setting__head {
+  position: sticky;
+  top: var(--setting-stick, 0px);
+  z-index: 1;
   background: var(--bg);
+  box-shadow: 0 0 0 6px var(--surface);
 }
 
 .setting__body {
@@ -689,12 +698,20 @@ code {
   border-bottom: 1px solid var(--line);
 }
 
+/* The levels are headings, not choices: small and pale, so they are not taken for buttons. */
 .levels__column h3 {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #94a3bb;
 }
 
-.levels__column header p,
+.levels__column header p {
+  font-size: 12px;
+  color: #a6b3c8;
+}
+
 .levels__empty {
   font-size: 12px;
   color: var(--muted);
@@ -1675,10 +1692,15 @@ a.button {
     animation: sheet-up 0.2s ease-out;
   }
 
+  /* The open setting stays below the heading of the sheet. */
+  .popover__panel {
+    --setting-stick: 59px;
+  }
+
   .popover__sheet-head {
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: space-between;

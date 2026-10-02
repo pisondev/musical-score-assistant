@@ -130,7 +130,8 @@ piece is reached. A click on a part scrolls there and moves the playhead to its 
 
 **Options** opens the settings of the score as a list. Each line shows the choice in effect,
 and a click on a line opens its choices; the list stays open, so several settings can be
-changed in one go.
+changed in one go. The line of the setting that is open stays at the top of the panel while its
+choices scroll, so it is always clear which setting they belong to.
 
 | In **Options** | What it does                                                                                      |
 | -------------- | ------------------------------------------------------------------------------------------------- |

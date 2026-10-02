@@ -183,6 +183,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- In the **Options** panel the line of the setting that is open stays at the top while its
+  choices scroll. The level headings in the list of left hands (Easy, Intermediate, Advanced)
+  are small and pale, so they are not taken for choices.
+
 - With **Right** or **Left** selected in the playback bar, the hand that is switched off is
   drawn in pale grey on the numbered sheet and on the staff, and its playhead is pale grey
   too. The hand that sounds keeps its black notes and its coloured playhead. Printed pages
