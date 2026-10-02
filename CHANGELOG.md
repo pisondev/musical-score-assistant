@@ -61,7 +61,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The checker reports the level and style of every arrangement and validates the written
   introduction.
 
+- Staff notation: a switch in the toolbar draws the score on a grand staff (treble clef for the
+  melody, bass clef for the left hand) with key and time signatures, ties, beams, accidentals,
+  chord symbols, lyrics, dynamics, and hairpins. The playhead, click-to-seek, the introduction
+  block, and printing work in both notations. The engraver (Verovio) loads on demand.
+- Several written introductions per song, each with a name and a style, next to the last-phrase
+  introduction.
+- Gap detection: `npm run check` lists the places where the melody waits for more than two
+  beats and warns when the left hand does not mark every beat there or, from the intermediate
+  level on, does not move.
+- The 61-key keyboard as the target instrument: a warning for left-hand notes below C2, and
+  transposition that keeps the left hand on the keyboard.
+- Fills in "Amazing Grace" where the melody holds (measures 7 and 8) for the majestic and jazz
+  arrangements.
+
 ### Changed
+
+- `intro.improvised` in `arrangements.json` became the list `intro.written`, whose entries have
+  an `id`, a `name`, and a `style`.
+- A lowered fifth is written as a raised fourth, the more familiar spelling in numbered notation.
 
 - The interface is organised around a toolbar of drop-down menus (left hand, intro, key, visible
   rows) instead of showing every option at once. Song credits and the notation legend are folded

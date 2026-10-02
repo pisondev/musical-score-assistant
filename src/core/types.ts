@@ -203,15 +203,21 @@ export interface IntroMeasureSpec {
   note?: string;
 }
 
+/** A written introduction as stored in arrangements.json. */
+export interface WrittenIntroSpec {
+  id: string;
+  name: string;
+  style?: string;
+  summary?: string;
+  measures: IntroMeasureSpec[];
+}
+
 /** Introduction settings as stored in arrangements.json. */
 export interface IntroSpec {
   /** Measure number at which the last phrase begins; defaults to the last four measures. */
   lastPhraseFrom?: number;
-  /** A newly written introduction, offered next to the last phrase. */
-  improvised?: {
-    summary?: string;
-    measures: IntroMeasureSpec[];
-  };
+  /** Newly written introductions, offered next to the last phrase. */
+  written?: WrittenIntroSpec[];
 }
 
 export interface ArrangementFile {
@@ -220,15 +226,27 @@ export interface ArrangementFile {
 }
 
 /** A written introduction, resolved to measures for both hands. */
-export interface ImprovisedIntro {
+export interface WrittenIntro {
+  id: string;
+  name: string;
+  /** Musical style of the introduction, such as "Gospel". */
+  style: string;
   summary: string;
   measures: Measure[];
   parts: ArrangementMeasure[];
   issues: Issue[];
 }
 
-/** Which introduction precedes the song in playback and on the sheet. */
-export type IntroChoice = 'off' | 'last-phrase' | 'improvised';
+/** The introduction that plays no measures at all. */
+export const INTRO_OFF = 'off';
+/** The introduction that repeats the closing phrase of the song. */
+export const INTRO_LAST_PHRASE = 'last-phrase';
+
+/**
+ * Which introduction precedes the song: `INTRO_OFF`, `INTRO_LAST_PHRASE`, or
+ * the id of a written introduction.
+ */
+export type IntroChoice = string;
 
 /** A single sounding note, ready to be scheduled. */
 export interface NoteEvent {

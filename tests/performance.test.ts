@@ -17,13 +17,23 @@ time: 4/4
 const ARRANGEMENTS = {
   intro: {
     lastPhraseFrom: 3,
-    improvised: {
-      summary: 'Two measures.',
-      measures: [
-        { right: "{mf}5 6 <3 5> 1'", left: "[F]1 5 1' 5", note: 'First.' },
-        { right: '5 .', left: '[C7]<1 7> .' },
-      ],
-    },
+    written: [
+      {
+        id: 'short',
+        name: 'Short lead-in',
+        style: 'Ballad',
+        summary: 'Two measures.',
+        measures: [
+          { right: "{mf}5 6 <3 5> 1'", left: "[F]1 5 1' 5", note: 'First.' },
+          { right: '5 .', left: '[C7]<1 7> .' },
+        ],
+      },
+      {
+        id: 'other',
+        name: 'Other lead-in',
+        measures: [{ right: '5 .', left: '[C]<1 5> .' }],
+      },
+    ],
   },
   arrangements: [
     {
@@ -198,7 +208,9 @@ describe('transposition', () => {
 describe('introductions', () => {
   it('report nothing wrong with the written introduction', () => {
     expect(bundle.issues).toEqual([]);
-    expect(bundle.intro.improvised?.issues).toEqual([]);
+    expect(bundle.intro.written.map((written) => written.id)).toEqual(['short', 'other']);
+    expect(bundle.intro.written.map((written) => written.style)).toEqual(['Ballad', '']);
+    expect(bundle.intro.written.flatMap((written) => written.issues)).toEqual([]);
     expect(bundle.intro.lastPhraseStart).toBe(3);
   });
 
@@ -240,12 +252,7 @@ describe('introductions', () => {
   });
 
   it('put the written introduction in front of the song with both hands', () => {
-    const { song, arrangement, introMeasures } = buildPerformance(
-      bundle,
-      baseline,
-      'improvised',
-      0,
-    );
+    const { song, arrangement, introMeasures } = buildPerformance(bundle, baseline, 'short', 0);
     expect(introMeasures).toBe(2);
     expect(song.measures[0].slots[2].pitches.map((pitch) => pitch.midi)).toEqual([69, 72]);
     expect(song.measures[1].length).toBe(2 * 480);
@@ -255,6 +262,15 @@ describe('introductions', () => {
     expect(arrangement.measures[1].slots[0].pitches.map((pitch) => pitch.midi)).toEqual([36, 46]);
     expect(arrangement.measures[0].note).toBe('First.');
     expect(arrangement.measures[2].slots).toEqual(baseline.measures[0].slots);
+  });
+
+  it('keep the slot ids of different written introductions apart', () => {
+    const ids = bundle.intro.written.flatMap((written) => [
+      ...written.measures.flatMap((measure) => measure.slots),
+      ...written.parts.flatMap((part) => part.slots),
+    ]);
+    expect(new Set(ids.map((slot) => slot.id)).size).toBe(ids.length);
+    expect(buildPerformance(bundle, baseline, 'other', 0).introMeasures).toBe(1);
   });
 
   it('move issue positions along with the measures', () => {
@@ -267,24 +283,43 @@ describe('introductions', () => {
   it('report mistakes in a written introduction', () => {
     const faulty = createSongBundle(SONG, {
       intro: {
-        improvised: {
-          measures: [
-            { right: '5 6 5', left: "[F]1 5 1' 5" },
-            { right: '5 .', left: '[C]1 .' },
-          ],
-        },
+        written: [
+          {
+            id: 'faulty',
+            name: 'Faulty',
+            measures: [
+              { right: '5 6 5', left: "[F]1 5 1' 5" },
+              { right: '5 .', left: '[C]1 .' },
+            ],
+          },
+        ],
       },
       arrangements: [],
     });
-    const messages = faulty.intro.improvised!.issues.map((issue) => issue.message);
+    const messages = faulty.intro.written[0].issues.map((issue) => issue.message);
     expect(messages.some((message) => message.includes('3 beats and left hand 4'))).toBe(true);
     expect(messages.some((message) => message.includes('the time signature needs 4'))).toBe(true);
   });
 
+  it('reject malformed introductions without failing', () => {
+    const malformed = createSongBundle(SONG, {
+      intro: {
+        written: [
+          { name: 'No id', measures: [] },
+          { id: 'off', name: 'Reserved id', measures: [{ right: '5 .', left: '[C]1 .' }] },
+          { id: 'empty', name: 'No measures' },
+        ],
+      },
+      arrangements: [],
+    });
+    expect(malformed.intro.written).toEqual([]);
+    expect(malformed.issues).toHaveLength(3);
+  });
+
   it('fall back to no introduction when none is written', () => {
     const plain = createSongBundle(SONG);
-    expect(plain.intro.improvised).toBeNull();
-    expect(buildPerformance(plain, plain.arrangements[0], 'improvised', 0).introMeasures).toBe(0);
+    expect(plain.intro.written).toEqual([]);
+    expect(buildPerformance(plain, plain.arrangements[0], 'short', 0).introMeasures).toBe(0);
     // Without a setting, the last phrase is the last four measures.
     expect(plain.intro.lastPhraseStart).toBe(1);
   });

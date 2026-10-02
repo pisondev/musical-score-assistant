@@ -57,18 +57,52 @@ across songs; the `level` decides the column and the `style` is the tag the play
 Other styles are welcome when the user asks for them; choose the level by how hard the left
 hand is to play, not by how unusual the chords are.
 
-Then write the introduction under `intro`:
+Then write the introductions under `intro`:
 
 - `lastPhraseFrom`: the measure number where the closing phrase of the song begins.
-- `improvised`: four measures or so, with both hands written out (`right` relative to the key,
-  `left` in chord degrees). Give it a shape: a line that rises and falls, a bass that moves, and
-  an ending on the dominant so the song can enter. Every measure must be full except the last,
-  which together with the pickup of the song must make one full measure.
+- `written`: three or four introductions in different styles (for example gospel, classical,
+  majestic, jazz), each with an `id`, a `name`, a `style`, and a `summary`. Four measures or so,
+  with both hands written out (`right` relative to the key, `left` in chord degrees). Give each
+  a shape: a line that rises and falls, a bass that moves, and an ending that lets the song
+  enter. Every measure must be full except the last, which together with the pickup of the song
+  must make one full measure.
+
+### The first criterion: fill the gaps
+
+This is what the player asked for above everything else. A gap is a place where the melody
+starts no new note for more than two beats: a long held note, or a rest before the next phrase.
+With only a repeated arpeggio underneath, the gaps sound monotonous and the congregation cannot
+tell when to come in.
+
+1. Run `npm run check -- <folder>` once the melody is in place. The line `gaps to fill` lists
+   every gap. Also look at notes held for exactly two beats; they profit from movement too.
+2. In every gap, in every arrangement:
+   - sound the left hand on **every beat**, so the pulse stays audible;
+   - from the intermediate level on, write a **fill that moves** (eighths, sixteenths, or a
+     triplet) and belongs to the style:
+
+     | Style        | Fills that fit                                                             |
+     | ------------ | -------------------------------------------------------------------------- |
+     | Ballad       | An arch up through the chord to the high fifth and back                    |
+     | Hymn         | The bass walks one step per beat towards the next chord                    |
+     | Contemporary | A neighbour chord over the same bass (IV over I), a suspension             |
+     | Classical    | A scale run up and back, the Alberti figure in double time, a sweep        |
+     | Gospel       | An octave walk-up through a diminished chord, a triplet roll, a bass run   |
+     | Majestic     | Rising chord positions, a drum roll of repeated chords, octave walk-ups    |
+     | Jazz         | A walking bass between shells, a chord answered off the beat, a turnaround |
+
+   - **lead into the next entry**: put a clear bass note or chord on the beat just before the
+     melody returns, and let the line point at the next chord;
+   - use a **different fill in each gap** of the same arrangement.
+3. Mention each fill in the `note` of its measure, starting with "Fill:", and list the fill
+   figures under `patterns`.
 
 Guidelines:
 
-- **Left hand moves when the melody rests, and rests when the melody moves.** Flowing eighths
-  under long melody notes; plain quarter notes under busy melody.
+- **Left hand moves when the melody rests, and rests when the melody moves.** Fills under long
+  melody notes; plain quarter notes under busy melody.
+- **Write for a 61-key keyboard.** The lowest key is C2: never write a left-hand note below it,
+  not even as the lower half of an octave.
 - **Keep it playable.** Stacked notes span at most an octave (a tenth for `advanced`). Stay
   between C2 and E4 and below the melody. Avoid thirds below C3.
 - **Check every new chord against the melody** on the beats where it sounds. A melody note that
@@ -99,6 +133,7 @@ Tell the user:
 - where the song is and how to open it (`npm run dev`, then pick the song);
 - which notes were uncertain in the transcription;
 - what each arrangement does in one line, and any chord that was replaced;
-- that the dynamics and the improvised introduction are your own suggestions.
+- how each gap is filled in each arrangement, in a line or two;
+- that the dynamics and the written introductions are your own suggestions.
 
 Do not commit or push unless the user asks.

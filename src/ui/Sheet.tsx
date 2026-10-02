@@ -1,15 +1,7 @@
-import {
-  memo,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-  type RefObject,
-} from 'react';
+import { memo, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
 import {
   beatTicks,
+  buildSlotSpans,
   DynamicsTimeline,
   formatChordSymbol,
   type Arrangement,
@@ -25,6 +17,7 @@ import {
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
 import { layOutSystems, measureWeight, type SystemLayout } from './sheet-layout';
+import { useElementWidth } from './useElementWidth';
 import { slotElementId, usePlayhead } from './usePlayhead';
 
 /** Width, in pixels, that one weight unit (a plain beat) needs at minimum. */
@@ -58,21 +51,6 @@ interface HairpinPiece {
   openTo: number;
   /** True when the hairpin begins in this measure, right after a level mark or not. */
   startsHere: boolean;
-}
-
-/** Width of an element, tracked as it resizes. */
-function useElementWidth(element: RefObject<HTMLDivElement | null>): number {
-  const [width, setWidth] = useState(0);
-  useEffect(() => {
-    const target = element.current;
-    if (!target) return;
-    const measure = () => setWidth(target.clientWidth);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [element]);
-  return width;
 }
 
 function percent(part: number, whole: number): string {
@@ -443,7 +421,8 @@ export function Sheet({
   const status = usePlayer((state) => state.status);
   const loop = usePlayer((state) => state.loop);
   const seekToMeasure = usePlayer((state) => state.seekToMeasure);
-  usePlayhead(song, arrangement);
+  const spans = useMemo(() => buildSlotSpans(song, arrangement), [song, arrangement]);
+  usePlayhead(song, spans);
 
   const hasLyrics = useMemo(
     () => song.measures.some((measure) => measure.slots.some((slot) => slot.lyric)),

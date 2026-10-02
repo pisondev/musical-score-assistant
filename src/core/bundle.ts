@@ -1,17 +1,19 @@
 import { buildArrangement, buildBaseline } from './arrangement';
-import { buildImprovisedIntro, lastPhraseStart } from './intro';
+import { buildWrittenIntro, lastPhraseStart } from './intro';
 import { parseSong } from './song';
 import type {
   Arrangement,
   ArrangementSpec,
-  ImprovisedIntro,
   IntroMeasureSpec,
   IntroSpec,
   Issue,
   Level,
   PatternIdea,
   Song,
+  WrittenIntro,
+  WrittenIntroSpec,
 } from './types';
+import { INTRO_LAST_PHRASE, INTRO_OFF } from './types';
 import { validateArrangement } from './validate';
 
 /** A song together with its baseline, every stored arrangement, and its introductions. */
@@ -21,8 +23,8 @@ export interface SongBundle {
   intro: {
     /** Index of the measure where the last phrase begins. */
     lastPhraseStart: number;
-    /** The written introduction, when the song has one. */
-    improvised: ImprovisedIntro | null;
+    /** Newly written introductions, in the order of the file. */
+    written: WrittenIntro[];
   };
   /** Problems with the arrangement file itself, such as a malformed entry. */
   issues: Issue[];
@@ -112,6 +114,34 @@ export function readArrangementSpecs(data: unknown, issues: Issue[]): Arrangemen
   return specs;
 }
 
+/** Reads the measures of one written introduction. */
+function readIntroMeasures(value: unknown, label: string, issues: Issue[]): IntroMeasureSpec[] {
+  if (!Array.isArray(value)) {
+    issues.push({ severity: 'error', message: `${label} needs a "measures" array.` });
+    return [];
+  }
+  const measures: IntroMeasureSpec[] = [];
+  for (const measure of value) {
+    if (
+      !isRecord(measure) ||
+      typeof measure.right !== 'string' ||
+      typeof measure.left !== 'string'
+    ) {
+      issues.push({
+        severity: 'error',
+        message: `${label} has a measure without a text "right" and a text "left".`,
+      });
+      continue;
+    }
+    measures.push({
+      right: measure.right,
+      left: measure.left,
+      note: typeof measure.note === 'string' ? measure.note : undefined,
+    });
+  }
+  return measures;
+}
+
 /** Reads the introduction settings from parsed JSON. */
 export function readIntroSpec(data: unknown, issues: Issue[]): IntroSpec {
   if (!isRecord(data) || data.intro === undefined) return {};
@@ -123,40 +153,39 @@ export function readIntroSpec(data: unknown, issues: Issue[]): IntroSpec {
 
   const spec: IntroSpec = {};
   if (typeof intro.lastPhraseFrom === 'number') spec.lastPhraseFrom = intro.lastPhraseFrom;
+  if (intro.written === undefined) return spec;
+  if (!Array.isArray(intro.written)) {
+    issues.push({ severity: 'error', message: 'The "written" intros must be an array.' });
+    return spec;
+  }
 
-  if (intro.improvised !== undefined) {
-    const improvised = intro.improvised;
-    if (!isRecord(improvised) || !Array.isArray(improvised.measures)) {
+  const written: WrittenIntroSpec[] = [];
+  const seen = new Set<string>([INTRO_OFF, INTRO_LAST_PHRASE]);
+  intro.written.forEach((entry: unknown, index: number) => {
+    const label = `Intro ${index + 1}`;
+    if (!isRecord(entry) || typeof entry.id !== 'string' || typeof entry.name !== 'string') {
+      issues.push({ severity: 'error', message: `${label} needs a text "id" and "name".` });
+      return;
+    }
+    if (seen.has(entry.id)) {
       issues.push({
         severity: 'error',
-        message: 'The improvised intro needs a "measures" array.',
+        message: `Intro id "${entry.id}" is used twice or reserved.`,
       });
-      return spec;
+      return;
     }
-    const measures: IntroMeasureSpec[] = [];
-    for (const measure of improvised.measures) {
-      if (
-        !isRecord(measure) ||
-        typeof measure.right !== 'string' ||
-        typeof measure.left !== 'string'
-      ) {
-        issues.push({
-          severity: 'error',
-          message: 'Every intro measure needs a text "right" and a text "left".',
-        });
-        continue;
-      }
-      measures.push({
-        right: measure.right,
-        left: measure.left,
-        note: typeof measure.note === 'string' ? measure.note : undefined,
-      });
-    }
-    spec.improvised = {
-      summary: typeof improvised.summary === 'string' ? improvised.summary : undefined,
+    const measures = readIntroMeasures(entry.measures, label, issues);
+    if (measures.length === 0) return;
+    seen.add(entry.id);
+    written.push({
+      id: entry.id,
+      name: entry.name,
+      style: typeof entry.style === 'string' ? entry.style : undefined,
+      summary: typeof entry.summary === 'string' ? entry.summary : undefined,
       measures,
-    };
-  }
+    });
+  });
+  spec.written = written;
   return spec;
 }
 
@@ -193,10 +222,7 @@ export function createSongBundle(songText: string, arrangementData?: unknown): S
     arrangements: [baseline, ...arrangements],
     intro: {
       lastPhraseStart: lastPhraseStart(song, introSpec.lastPhraseFrom),
-      improvised:
-        introSpec.improvised && introSpec.improvised.measures.length > 0
-          ? buildImprovisedIntro(song, introSpec.improvised)
-          : null,
+      written: (introSpec.written ?? []).map((spec) => buildWrittenIntro(song, spec)),
     },
     issues,
   };

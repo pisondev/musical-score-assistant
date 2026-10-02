@@ -1,4 +1,5 @@
 import { transposeChordSymbol } from './chord';
+import { KEYBOARD_LOWEST } from './keyboard';
 import { mod, parseNoteName, pitchClass } from './notes';
 import type {
   Arrangement,
@@ -6,6 +7,7 @@ import type {
   ChordMark,
   Measure,
   NoteName,
+  Pitch,
   Slot,
   Song,
 } from './types';
@@ -41,6 +43,27 @@ function shiftSlots(slots: Slot[], amount: number): Slot[] {
   }));
 }
 
+/**
+ * Shifts left-hand slots and keeps them on the keyboard: a note that would
+ * fall below the lowest key is played an octave higher, and when that lands
+ * on a note already in the stack (the upper half of an octave) it is dropped.
+ */
+function shiftLeftSlots(slots: Slot[], amount: number): Slot[] {
+  return slots.map((slot) => {
+    const pitches: Pitch[] = [];
+    for (const pitch of slot.pitches) {
+      let midi = pitch.midi + amount;
+      let tone = pitch.tone;
+      while (midi < KEYBOARD_LOWEST) {
+        midi += 12;
+        tone = { ...tone, octave: tone.octave + 1 };
+      }
+      if (!pitches.some((existing) => existing.midi === midi)) pitches.push({ midi, tone });
+    }
+    return { ...slot, pitches: pitches.sort((a, b) => a.midi - b.midi) };
+  });
+}
+
 function shiftChords(chords: ChordMark[], shift: KeyShift): ChordMark[] {
   return chords.map((chord) => ({
     ...chord,
@@ -53,7 +76,9 @@ function shiftChords(chords: ChordMark[], shift: KeyShift): ChordMark[] {
 /**
  * Moves a song and its arrangement to another key. Numbered notation is
  * relative to "do", so the digits stay as they are: only the pitches, the
- * chord symbols, and the note that "1" stands for change.
+ * chord symbols, and the note that "1" stands for change. The one exception is
+ * a left-hand note that would leave the keyboard at the bottom; it moves up an
+ * octave.
  */
 export function transpose(
   song: Song,
@@ -70,7 +95,7 @@ export function transpose(
   }));
   const parts: ArrangementMeasure[] = arrangement.measures.map((part) => ({
     ...part,
-    slots: shiftSlots(part.slots, shift.pitchShift),
+    slots: shiftLeftSlots(part.slots, shift.pitchShift),
     chords: shiftChords(part.chords, shift),
   }));
 

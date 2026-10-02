@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { engine } from './audio/engine';
-import { BASELINE_ID, buildPerformance, formatNoteName, type IntroChoice } from './core';
+import {
+  BASELINE_ID,
+  buildPerformance,
+  formatNoteName,
+  INTRO_LAST_PHRASE,
+  INTRO_OFF,
+  type IntroChoice,
+} from './core';
 import { library } from './library';
 import { usePlayer, type ScoreReset } from './store/player';
 import { useSettings } from './store/settings';
@@ -10,17 +17,14 @@ import { NoteIcon } from './ui/icons';
 import { IssueList } from './ui/IssueList';
 import { Sheet } from './ui/Sheet';
 import { SongHeader } from './ui/SongHeader';
+import { StaffSheet } from './ui/StaffSheet';
+import { introName } from './ui/intro-name';
 import { MAX_TRANSPOSE, Toolbar } from './ui/Toolbar';
 import { TransportBar } from './ui/TransportBar';
 import { cx } from './ui/classnames';
 
 const SONG_PARAMETER = 'song';
 const APP_NAME = 'Musical Score Assistant';
-
-const INTRO_TITLE: Record<Exclude<IntroChoice, 'off'>, string> = {
-  'last-phrase': 'Last phrase',
-  improvised: 'Improvised',
-};
 
 const LEVEL_LABEL = { easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' } as const;
 
@@ -42,6 +46,7 @@ export function App() {
   const [printing, setPrinting] = useState(false);
 
   const introSetting = useSettings((state) => state.intro);
+  const notation = useSettings((state) => state.notation);
   const showLyrics = useSettings((state) => state.showLyrics);
   const showDynamics = useSettings((state) => state.showDynamics);
   const guideOpen = useSettings((state) => state.guideOpen);
@@ -55,9 +60,12 @@ export function App() {
     [bundle, arrangementId],
   );
 
-  // A song without a written introduction falls back to its last phrase.
-  const intro: IntroChoice =
-    introSetting === 'improvised' && !bundle?.intro.improvised ? 'last-phrase' : introSetting;
+  // An introduction written for another song falls back to the last phrase of this one.
+  const known =
+    introSetting === INTRO_OFF ||
+    introSetting === INTRO_LAST_PHRASE ||
+    bundle?.intro.written.some((written) => written.id === introSetting);
+  const intro: IntroChoice = known ? introSetting : INTRO_LAST_PHRASE;
 
   const performance = useMemo(
     () => (bundle && arrangement ? buildPerformance(bundle, arrangement, intro, semitones) : null),
@@ -143,6 +151,12 @@ export function App() {
   const transposeTo = (value: number) =>
     setSemitones(Math.min(MAX_TRANSPOSE, Math.max(-MAX_TRANSPOSE, value)));
 
+  const introHeading = bundle && intro !== INTRO_OFF && (
+    <h3 className="sheet__heading">
+      Intro <span>{introName(bundle, intro)}</span>
+    </h3>
+  );
+
   const publicSongs = library.filter((candidate) => !candidate.isPrivate);
   const privateSongs = library.filter((candidate) => candidate.isPrivate);
 
@@ -208,20 +222,24 @@ export function App() {
                   Left hand: {arrangement.name} ({LEVEL_LABEL[arrangement.level]}
                   {arrangement.style && `, ${arrangement.style}`})
                 </p>
-                <Sheet
-                  bundle={bundle}
-                  performance={performance}
-                  showLyrics={showLyrics}
-                  showDynamics={showDynamics}
-                  printing={printing}
-                  introHeading={
-                    intro !== 'off' && (
-                      <h3 className="sheet__heading">
-                        Intro <span>{INTRO_TITLE[intro]}</span>
-                      </h3>
-                    )
-                  }
-                />
+                {notation === 'staff' ? (
+                  <StaffSheet
+                    performance={performance}
+                    showLyrics={showLyrics}
+                    showDynamics={showDynamics}
+                    printing={printing}
+                    introHeading={introHeading}
+                  />
+                ) : (
+                  <Sheet
+                    bundle={bundle}
+                    performance={performance}
+                    showLyrics={showLyrics}
+                    showDynamics={showDynamics}
+                    printing={printing}
+                    introHeading={introHeading}
+                  />
+                )}
               </section>
               {guideOpen && (
                 <section className="card card--guide">

@@ -6,12 +6,12 @@ import { beatTicks, measureTicks } from './time';
 import type {
   Arrangement,
   ArrangementMeasure,
-  ImprovisedIntro,
-  IntroSpec,
   Issue,
   Measure,
   Slot,
   Song,
+  WrittenIntro,
+  WrittenIntroSpec,
 } from './types';
 import { validateArrangement } from './validate';
 
@@ -41,10 +41,7 @@ export function lastPhraseStart(song: Song, fromNumber?: number): number {
  * Builds a written introduction. Both hands are given measure by measure: the
  * right hand relative to the key, the left hand in chord degrees.
  */
-export function buildImprovisedIntro(
-  song: Song,
-  spec: NonNullable<IntroSpec['improvised']>,
-): ImprovisedIntro {
+export function buildWrittenIntro(song: Song, spec: WrittenIntroSpec): WrittenIntro {
   const issues: Issue[] = [];
   const beat = beatTicks(song.meta.time);
   const full = measureTicks(song.meta.time);
@@ -90,8 +87,10 @@ export function buildImprovisedIntro(
       );
     }
 
+    // Each written introduction gets ids of its own, so two of them never collide.
+    const prefix = `${INTRO_ID_PREFIX}-${spec.id}-`;
     const slots: Slot[] = rawRight.slots.map((slot, slotIndex) => ({
-      id: `${INTRO_ID_PREFIX}r${index}-${slotIndex}`,
+      id: `${prefix}r${index}-${slotIndex}`,
       kind: slot.kind,
       start: slot.start,
       duration: slot.duration,
@@ -124,7 +123,7 @@ export function buildImprovisedIntro(
       line: 0,
     });
     parts.push({
-      slots: resolved.slots.map((slot) => ({ ...slot, id: `${INTRO_ID_PREFIX}${slot.id}` })),
+      slots: resolved.slots.map((slot) => ({ ...slot, id: `${prefix}${slot.id}` })),
       chords: resolved.chords,
       note: entry.note,
     });
@@ -156,11 +155,11 @@ export function buildImprovisedIntro(
   if (measures.length > 0) {
     const introSong: Song = { ...song, measures, totalTicks: startTick, issues: [] };
     const introArrangement: Arrangement = {
-      id: 'intro',
-      name: 'Intro',
+      id: spec.id,
+      name: spec.name,
       summary: '',
-      level: 'intermediate',
-      style: '',
+      level: 'advanced',
+      style: spec.style ?? '',
       baseline: false,
       tips: [],
       patterns: [],
@@ -170,5 +169,13 @@ export function buildImprovisedIntro(
     issues.push(...validateArrangement(introSong, introArrangement));
   }
 
-  return { summary: spec.summary ?? '', measures, parts, issues };
+  return {
+    id: spec.id,
+    name: spec.name,
+    style: spec.style ?? '',
+    summary: spec.summary ?? '',
+    measures,
+    parts,
+    issues,
+  };
 }

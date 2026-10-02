@@ -27,7 +27,10 @@ The web app itself never generates music; it displays, plays, and explains.
 - Stored arrangements with per-measure explanations, new-pattern descriptions, and practice tips.
 - Arrangements grouped by level (easy, intermediate, advanced) and tagged with a style: ballad,
   hymn or waltz, contemporary, classical, gospel, majestic, jazz.
-- An introduction before the song: its last phrase, or a newly written one.
+- An introduction before the song: its last phrase, or one of several written ones.
+- Fills in every gap of the melody, checked automatically.
+- Staff notation as an alternative to numbered notation.
+- A 61-key keyboard as the target instrument.
 - Transposition by half steps.
 - Dynamics (pp to ff, crescendo, diminuendo) on the sheet and in the playback.
 - Playback with separate hands, tempo control, metronome with count-in, and looping.
@@ -39,6 +42,8 @@ The web app itself never generates music; it displays, plays, and explains.
 ## Next
 
 - **Repeats in playback.** Repeat barlines are displayed but played straight through.
+- **Right-hand fills.** Fills are written for the left hand only; a second right-hand voice
+  would allow echoes and runs above the melody.
 - **Tempo changes** such as ritardando and a fermata on the last chord.
 - **Dynamics per arrangement**, so that a majestic version can be louder than a ballad.
 - **Volume balance** between the hands.
@@ -49,7 +54,7 @@ The web app itself never generates music; it displays, plays, and explains.
 
 ## Later
 
-- Staff-notation view or MusicXML export.
+- MusicXML or MIDI export.
 - Written endings and interludes, like the introduction.
 - Different arrangements per verse.
 - Practice with a MIDI keyboard that waits for the right notes.

@@ -2,6 +2,7 @@ import { chordAt, chordTimeline } from './arrangement';
 import type { SongBundle } from './bundle';
 import { INTRO_ID_PREFIX } from './intro';
 import { transpose } from './transpose';
+import { INTRO_LAST_PHRASE } from './types';
 import type {
   Arrangement,
   ArrangementMeasure,
@@ -92,11 +93,12 @@ export function buildPerformance(
   let introParts: ArrangementMeasure[] = [];
   let introIssues: Issue[] = [];
 
-  if (intro === 'improvised' && bundle.intro.improvised) {
-    introMeasures = bundle.intro.improvised.measures;
-    introParts = bundle.intro.improvised.parts;
-    introIssues = bundle.intro.improvised.issues;
-  } else if (intro === 'last-phrase') {
+  const written = bundle.intro.written.find((candidate) => candidate.id === intro);
+  if (written) {
+    introMeasures = written.measures;
+    introParts = written.parts;
+    introIssues = written.issues;
+  } else if (intro === INTRO_LAST_PHRASE) {
     ({ measures: introMeasures, parts: introParts } = lastPhraseIntro(bundle, arrangement));
   }
 

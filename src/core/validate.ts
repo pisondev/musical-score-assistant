@@ -1,12 +1,10 @@
 import { chordPitchClasses, parseChord } from './chord';
+import { findGaps, leftHandOnsets } from './gaps';
+import { KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard';
 import { formatNoteName, mod, pitchClass } from './notes';
-import { buildNoteEvents } from './playback';
+import { buildNoteEvents, measureIndexAt } from './playback';
 import { beatTicks } from './time';
 import type { Arrangement, Issue, NoteEvent, Song } from './types';
-
-/** Playable range of the left hand: A1 to E4. */
-const LEFT_LOWEST = 33;
-const LEFT_HIGHEST = 64;
 
 /** Below C3, notes a third or less apart sound muddy. */
 const MUDDY_BELOW = 48;
@@ -17,6 +15,46 @@ const SPAN_LIMIT = { easy: 12, intermediate: 12, advanced: 16 } as const;
 
 function soundingAt(events: NoteEvent[], tick: number): NoteEvent[] {
   return events.filter((event) => event.tick <= tick && tick < event.tick + event.duration);
+}
+
+/**
+ * Checks the places where the melody waits. The left hand must mark every
+ * beat there, so the congregation can feel when to come in; from the
+ * intermediate level on it must also move, not just repeat the pulse.
+ */
+function checkGaps(song: Song, arrangement: Arrangement, issues: Issue[]): void {
+  const beat = beatTicks(song.meta.time);
+  const onsets = leftHandOnsets(song, arrangement.measures);
+  const needsMovement = arrangement.level !== 'easy';
+
+  for (const gap of findGaps(song)) {
+    const silent = gap.beats.find((tick) => !onsets.includes(tick));
+    if (silent !== undefined) {
+      const measure = measureIndexAt(song, silent);
+      const position = (silent - song.measures[measure].startTick) / beat + 1;
+      issues.push({
+        severity: 'warning',
+        message: `The melody waits here, but the left hand is silent on beat ${position}; mark every beat so the pulse stays audible.`,
+        measure,
+        hand: 'left',
+      });
+      continue;
+    }
+    if (!needsMovement) continue;
+
+    const moves = gap.beats.some(
+      (tick) => onsets.filter((onset) => onset >= tick && onset < tick + beat).length >= 2,
+    );
+    if (!moves) {
+      issues.push({
+        severity: 'warning',
+        message:
+          'The melody waits here and the left hand only repeats the beat; add a fill that moves and leads to the next entry.',
+        measure: gap.measure,
+        hand: 'left',
+      });
+    }
+  }
 }
 
 /**
@@ -39,8 +77,11 @@ export function validateArrangement(song: Song, arrangement: Arrangement): Issue
       const lowest = slot.pitches[0].midi;
       const highest = slot.pitches[slot.pitches.length - 1].midi;
 
-      if (lowest < LEFT_LOWEST || highest > LEFT_HIGHEST) {
-        warn('Left-hand note lies outside the comfortable range (A1 to E4).');
+      if (lowest < KEYBOARD_LOWEST) {
+        warn('Left-hand note lies below C2, the lowest key of a 61-key keyboard.');
+      }
+      if (highest > LEFT_HAND_HIGHEST) {
+        warn('Left-hand note lies above E4, where it gets in the way of the melody.');
       }
       if (highest - lowest > spanLimit) {
         warn(`Stacked notes span ${highest - lowest} semitones, wider than the hand reaches.`);
@@ -97,5 +138,6 @@ export function validateArrangement(song: Song, arrangement: Arrangement): Issue
     });
   });
 
+  checkGaps(song, arrangement, issues);
   return issues;
 }

@@ -1,31 +1,36 @@
 {
   "intro": {
     "lastPhraseFrom": 13,
-    "improvised": {
-      "summary": "Four measures that echo the shape of the tune, pass through a diminished chord, and pause on D7 before the first note.",
-      "measures": [
-        {
-          "right": "{mp}5 (. 6) (5 3)",
-          "left": "[G](1 5) (1' 3') 5'",
-          "note": "A small turn around the note D over a rising G arpeggio."
-        },
-        {
-          "right": "1' . (6 5)",
-          "left": "[C](1 5) (1' 3') [C#dim7]<1 7>",
-          "note": "The line reaches the high G over C; the bass then rises a half step to C sharp diminished."
-        },
-        {
-          "right": "{<}5 (3 2) (1 2)",
-          "left": "[G/D]<5, 5> (1' 3') [Em7](1 7)",
-          "note": "The diminished chord resolves to G over D, and the line walks down to G."
-        },
-        {
-          "right": "{mf}<1 3> <7, 2>",
-          "left": "[Am9]<1 5 7> [D7]<1' 3' 7'>",
-          "note": "Two chords in thirds, A minor nine and D7, leave the ear waiting for G."
-        }
-      ]
-    }
+    "written": [
+      {
+        "id": "flowing",
+        "name": "Flowing lead-in",
+        "style": "Ballad",
+        "summary": "Four measures that echo the shape of the tune, pass through a diminished chord, and pause on D7 before the first note.",
+        "measures": [
+          {
+            "right": "{mp}5 (. 6) (5 3)",
+            "left": "[G](1 5) (1' 3') 5'",
+            "note": "A small turn around the note D over a rising G arpeggio."
+          },
+          {
+            "right": "1' . (6 5)",
+            "left": "[C](1 5) (1' 3') [C#dim7]<1 7>",
+            "note": "The line reaches the high G over C; the bass then rises a half step to C sharp diminished."
+          },
+          {
+            "right": "{<}5 (3 2) (1 2)",
+            "left": "[G/D]<5, 5> (1' 3') [Em7](1 7)",
+            "note": "The diminished chord resolves to G over D, and the line walks down to G."
+          },
+          {
+            "right": "{mf}<1 3> <7, 2>",
+            "left": "[Am9]<1 5 7> [D7]<1' 3' 7'>",
+            "note": "Two chords in thirds, A minor nine and D7, leave the ear waiting for G."
+          }
+        ]
+      }
+    ]
   },
   "arrangements": [
     {
@@ -543,7 +548,7 @@
       "name": "Grand octaves",
       "level": "advanced",
       "style": "Majestic",
-      "summary": "A broad, festive accompaniment: an octave in the bass on the first beat and full chords on the other two.",
+      "summary": "A broad, festive accompaniment: an octave in the bass on the first beat and full chords on the other two, with an octave walk-up where the melody waits.",
       "tips": [
         "The leap from the octave to the chord is the whole difficulty; practise it slowly and without looking.",
         "Change the pedal on every first beat.",
@@ -554,6 +559,11 @@
           "name": "Octave and chords",
           "notation": "<1 1'> <5 1' 3'> <5 1' 3'>",
           "description": "The root in octaves, then the full chord twice. The foundation of a grand hymn accompaniment in three."
+        },
+        {
+          "name": "Octave walk-up fill",
+          "notation": "[D7]<1 1'> (<7 1' 3'> <7 1' 3'>) (<2 2'> <3 3'>)",
+          "description": "While the melody holds, repeat the chord in eighths and let octaves climb step by step into the next chord."
         },
         {
           "name": "Four-note final chord",
@@ -592,12 +602,13 @@
         },
         {
           "measure": 7,
-          "left": "[D]<1 1'> <5 1' 3'> <5 1' 3'>"
+          "left": "[D]<1 1'> <5 1' 3'> (<5 1' 3'> <5 1' 3'>)",
+          "note": "Fill: the melody holds for five beats, so the chord repeats in eighths on the last beat to drive forward."
         },
         {
           "measure": 8,
-          "left": "[D7]<1 1'> <7 1' 3'> <7 1' 3'>",
-          "note": "The chord C, D, F sharp adds the seventh; it builds towards the loudest measure."
+          "left": "[D7]<1 1'> (<7 1' 3'> <7 1' 3'>) (<2 2'> <3 3'>)",
+          "note": "Fill: the chord with the seventh in eighths, then octaves E and F sharp that walk up to G."
         },
         {
           "measure": 9,
@@ -698,8 +709,8 @@
         },
         {
           "measure": 7,
-          "left": "[Am7]1 <7 3'> .",
-          "note": "A minor seven delays D7 by a measure and makes a two-five."
+          "left": "[Am7]1 <7 3'> (5 7)",
+          "note": "Fill: A minor seven delays D7 by a measure; on the last beat the fifth and seventh are played one after the other to keep the pulse under the held note."
         },
         {
           "measure": 8,

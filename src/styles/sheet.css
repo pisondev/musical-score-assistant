@@ -453,6 +453,59 @@
   }
 }
 
+/* Staff notation, engraved as SVG. */
+
+.staff-view__music svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--ink);
+}
+
+.staff-view__status {
+  padding: 28px 22px;
+  color: var(--muted);
+}
+
+.staff-view .sheet__heading {
+  margin-bottom: 0;
+}
+
+/* The engraver uses some class names of the numbered sheet; undo what would leak in. */
+.staff-view g.chord,
+.staff-view g.tuplet {
+  color: inherit;
+}
+
+.staff-view g.measure {
+  cursor: pointer;
+}
+
+.staff-view g.harm {
+  color: var(--primary-strong);
+  fill: var(--primary-strong);
+}
+
+.staff-view g.verse {
+  color: var(--muted);
+  fill: var(--muted);
+}
+
+/* The measure under the playhead: its staff lines turn blue. */
+.staff-view g.measure.is-current g.staff > path {
+  stroke: var(--primary);
+}
+
+.staff-view g.is-active {
+  color: var(--right-hand);
+  fill: var(--right-hand);
+}
+
+.staff-view g.left.is-active {
+  color: var(--left-hand);
+  fill: var(--left-hand);
+}
+
 /* Paper: smaller symbols so four measures fit across an A4 page. */
 .sheet--print {
   --note-size: 15px;
@@ -530,6 +583,13 @@
 
   .hairpin line {
     stroke: #000;
+  }
+
+  .staff-view__music svg,
+  .staff-view g.harm,
+  .staff-view g.verse {
+    color: #000;
+    fill: #000;
   }
 
   .glyph--hold::after {

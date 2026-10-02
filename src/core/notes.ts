@@ -138,11 +138,12 @@ export function describeMidi(
     const degree = mod(name.letter - key.letter, 7) + 1;
     const diatonic = mod(pitchClass(key) + MAJOR_SCALE[degree - 1], 12);
     const accidental = mod(midi - diatonic + 6, 12) - 6;
-    // "b1", "b4", "#3" and "#7" name plain scale notes (7, 3, 4 and 1); write those instead.
-    const namesScaleNote =
-      (accidental === -1 && (degree === 1 || degree === 4)) ||
+    // "b1", "b4", "#3" and "#7" name plain scale notes (7, 3, 4 and 1), and the
+    // raised fourth reads more easily than a lowered fifth; use the usual spelling for those.
+    const unusual =
+      (accidental === -1 && (degree === 1 || degree === 4 || degree === 5)) ||
       (accidental === 1 && (degree === 3 || degree === 7));
-    if (Math.abs(accidental) <= 1 && !namesScaleNote) {
+    if (Math.abs(accidental) <= 1 && !unusual) {
       const octave = Math.floor((midi - accidental - referenceDo) / 12);
       return { degree, accidental, octave };
     }

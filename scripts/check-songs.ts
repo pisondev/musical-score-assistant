@@ -9,8 +9,15 @@
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { createSongBundle, formatNoteName, midiToText, toneToText } from '../src/core';
-import type { Arrangement, ImprovisedIntro, Issue, Slot, Song } from '../src/core';
+import {
+  beatTicks,
+  createSongBundle,
+  findGaps,
+  formatNoteName,
+  midiToText,
+  toneToText,
+} from '../src/core';
+import type { Arrangement, Issue, Slot, Song, WrittenIntro } from '../src/core';
 
 const SONG_FILE = 'song.txt';
 const ARRANGEMENT_FILE = 'arrangements.json';
@@ -60,7 +67,7 @@ function dumpArrangement(song: Song, arrangement: Arrangement): void {
   });
 }
 
-function dumpIntro(intro: ImprovisedIntro): void {
+function dumpIntro(intro: WrittenIntro): void {
   intro.measures.forEach((measure, index) => {
     const part = intro.parts[index];
     const chords = part.chords.map((chord) => chord.symbol).join(' ');
@@ -68,6 +75,22 @@ function dumpIntro(intro: ImprovisedIntro): void {
     console.log(`      ${label.padEnd(6)} ${''.padEnd(18)} R: ${describeSlots(measure.slots)}`);
     console.log(`      ${''.padEnd(6)} ${chords.padEnd(18)} L: ${describeSlots(part.slots)}`);
   });
+}
+
+/** Lists the places where the melody waits for more than two beats. */
+function describeGaps(song: Song): string {
+  const beat = beatTicks(song.meta.time);
+  const gaps = findGaps(song).map((gap) => {
+    const position = (tick: number) => {
+      const measure = [...song.measures]
+        .reverse()
+        .find((candidate) => tick >= candidate.startTick)!;
+      const label = measure.number === null ? 'pickup' : `m.${measure.number}`;
+      return `${label} beat ${(tick - measure.startTick) / beat + 1}`;
+    };
+    return `${position(gap.start)} to ${position(gap.end)}`;
+  });
+  return gaps.length > 0 ? gaps.join('; ') : 'none';
 }
 
 function summarize(issues: Issue[]): string {
@@ -110,6 +133,7 @@ function checkFolder(folder: string, dump: boolean): boolean {
       `- ${summarize(song.issues)}`,
   );
   reportable(song.issues).forEach((issue) => console.log(describeIssue(issue, song)));
+  console.log(`  gaps to fill: ${describeGaps(song)}`);
   [...fileIssues, ...issues].forEach((issue) => console.log(describeIssue(issue, song)));
 
   for (const arrangement of arrangements) {
@@ -121,18 +145,19 @@ function checkFolder(folder: string, dump: boolean): boolean {
 
   const firstOfPhrase = song.measures[intro.lastPhraseStart]?.number ?? 0;
   console.log(`  intro "Last phrase": from measure ${firstOfPhrase}`);
-  const introIssues = intro.improvised?.issues ?? [];
-  if (intro.improvised) {
+  const introIssues = intro.written.flatMap((written) => written.issues);
+  for (const written of intro.written) {
+    const kind = written.style ? ` (${written.style})` : '';
     console.log(
-      `  intro "Improvised": ${intro.improvised.measures.length} measures - ${summarize(introIssues)}`,
+      `  intro "${written.name}"${kind}: ${written.measures.length} measures - ${summarize(written.issues)}`,
     );
-    reportable(introIssues).forEach((issue) => {
+    reportable(written.issues).forEach((issue) => {
       const hand = issue.hand === 'right' ? 'right hand' : 'left hand';
       const where =
         issue.measure === undefined ? '' : ` (intro measure ${issue.measure + 1}, ${hand})`;
       console.log(`    ${issue.severity.toUpperCase()}${where}: ${issue.message}`);
     });
-    if (dump) dumpIntro(intro.improvised);
+    if (dump) dumpIntro(written);
   }
 
   const all = [

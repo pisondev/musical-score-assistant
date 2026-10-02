@@ -48,6 +48,10 @@ in the command-line checker.
 | `arrangement.ts` | Builds the baseline and the stored arrangements                              |
 | `intro.ts`       | Builds the written introduction and locates the last phrase                  |
 | `dynamics.ts`    | Dynamic levels and hairpins on one timeline; loudness at any tick            |
+| `gaps.ts`        | Finds the places where the melody waits and the left hand must fill          |
+| `keyboard.ts`    | Range of the target instrument, a 61-key keyboard                            |
+| `staff.ts`       | Staff notation for a row of slots: note values, ties, beams, accidentals     |
+| `mei.ts`         | Serializes a performance as MEI for the staff-notation engraver              |
 | `transpose.ts`   | Moves a song and an arrangement to another key                               |
 | `performance.ts` | Combines song, arrangement, introduction, and transposition                  |
 | `validate.ts`    | Playability and harmony checks                                               |
@@ -113,7 +117,9 @@ The selected arrangement and the transposition live in `App` and reset when the 
 | ----------------- | ----------------------------------------------------------------------- |
 | `Toolbar`         | Left-hand menu by level, intro menu, transposition, visible rows, print |
 | `Popover`         | Generic drop-down panel used by the toolbar                             |
-| `Sheet`           | The score: introduction and song sections, systems, measures, rows      |
+| `Sheet`           | The numbered score: introduction and song sections, systems, measures   |
+| `StaffSheet`      | The same score in staff notation, engraved by Verovio as SVG            |
+| `useVerovio`      | Loads the engraver on demand                                            |
 | `sheet-layout.ts` | Measure widths and system breaks                                        |
 | `usePlayhead`     | Follows the audio clock and highlights the slots being played           |
 | `Guide`           | New patterns, practice tips, and per-measure explanations               |
@@ -131,6 +137,10 @@ Layout notes:
   starts on a new system.
 - The playhead toggles a CSS class directly on the slot elements instead of re-rendering React
   components on every animation frame.
+- Staff notation: `mei.ts` gives every note the id of the slot it stands for and every measure
+  the id of its index. Verovio keeps those ids in the SVG, so the playhead, the highlight of the
+  current measure, and click-to-seek work exactly as on the numbered sheet. The introduction and
+  the song are engraved separately, so each starts on its own system.
 - Printing: on `beforeprint` the sheet switches to a fixed paper width with smaller symbols, so
   four measures fit across an A4 page; `afterprint` restores the screen layout. Print styles hide
   the controls. Saving as PDF is the browser's print-to-PDF.
@@ -153,6 +163,8 @@ before opening the app.
 - notation, chord, and song parsing;
 - left-hand resolution, the baseline, validation, and playback events;
 - dynamics, transposition, introductions, and chord extensions;
+- staff notation (note values, ties, beams, accidentals, MEI output, and a render through the
+  engraver), gap detection, and the keyboard range;
 - sheet layout;
 - every committed song must load without errors or warnings.
 

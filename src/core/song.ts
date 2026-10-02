@@ -1,11 +1,15 @@
 import { parseChord } from './chord';
+import { KEYBOARD_LOWEST } from './keyboard';
 import { parseNotationLine, type RawMeasure } from './notation';
 import { lowestAtOrAbove, MAJOR_SCALE, parseNoteName, pitchClass } from './notes';
 import { beatTicks, measureTicks } from './time';
 import type { Issue, Measure, NoteName, Slot, Song, SongMeta, TimeSignature } from './types';
 
-/** Lowest pitch a left-hand root may take: C2. Every chord root sits in the octave above it. */
-export const BASS_FLOOR = 36;
+/**
+ * Lowest pitch a left-hand root may take: the bottom key of the keyboard.
+ * Every chord root sits in the octave above it.
+ */
+export const BASS_FLOOR = KEYBOARD_LOWEST;
 
 /** Pitch the melody is centred on when its octave is chosen automatically: G4. */
 const MELODY_CENTRE = 67;

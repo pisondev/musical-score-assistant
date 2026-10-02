@@ -1,12 +1,6 @@
 import { useEffect } from 'react';
 import { engine } from '../audio/engine';
-import {
-  buildSlotSpans,
-  measureIndexAt,
-  type Arrangement,
-  type SlotSpan,
-  type Song,
-} from '../core';
+import { measureIndexAt, type SlotSpan, type Song } from '../core';
 import { usePlayer } from '../store/player';
 
 const ACTIVE_CLASS = 'is-active';
@@ -16,14 +10,15 @@ export function slotElementId(slotId: string): string {
 }
 
 /**
- * Follows the audio clock on every animation frame and marks the slots under
- * the playhead. Classes are toggled directly on the DOM so the sheet does not
- * re-render sixty times a second.
+ * Follows the audio clock on every animation frame and marks the symbols
+ * under the playhead. `spans` says when each symbol sounds; the symbol is the
+ * element whose id is `slotElementId(span.id)`. Classes are toggled directly
+ * on the DOM so the sheet does not re-render sixty times a second.
  */
-export function usePlayhead(song: Song, arrangement: Arrangement): void {
+export function usePlayhead(song: Song, spans: SlotSpan[]): void {
   useEffect(() => {
     const spansByMeasure: SlotSpan[][] = song.measures.map(() => []);
-    for (const span of buildSlotSpans(song, arrangement)) {
+    for (const span of spans) {
       spansByMeasure[measureIndexAt(song, span.start)].push(span);
     }
 
@@ -70,5 +65,5 @@ export function usePlayhead(song: Song, arrangement: Arrangement): void {
       cancelAnimationFrame(frame);
       show(new Set());
     };
-  }, [song, arrangement]);
+  }, [song, spans]);
 }

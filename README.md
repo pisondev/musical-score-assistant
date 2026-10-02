@@ -6,6 +6,8 @@ back so each idea can be heard before it is practised.
 
 ![The score of Amazing Grace with an improvised introduction and a gospel left hand during playback](docs/images/screenshot.png)
 
+![The same score in staff notation](docs/images/staff-notation.png)
+
 ## What it does
 
 - **Numbered score for both hands.** The melody is on the upper row and the left hand on the
@@ -15,8 +17,13 @@ back so each idea can be heard before it is practised.
   root-fifth-octave pattern on the printed chords. Further arrangements are grouped as easy,
   intermediate, and advanced, and each teaches a style: ballad, hymn, classical, gospel,
   majestic, jazz. A guide explains the new patterns and every changed measure.
-- **An introduction.** An optional intro plays before the song: either the last phrase of the
-  song or a newly written one. It has its own block at the top of the sheet.
+- **An introduction.** An optional intro plays before the song: the last phrase of the song, or
+  one of several newly written ones in different styles. It has its own block at the top of the
+  sheet.
+- **Fills where the melody waits.** Every arrangement fills the long notes and rests of the
+  melody with a figure that keeps the beat audible and leads into the next phrase.
+- **Numbers or staff.** One switch turns the numbered score into staff notation on a grand
+  staff, with the same playhead, chords, lyrics, and dynamics.
 - **Transposition.** Move the song up or down by half steps. The digits stay the same; the key,
   the chord symbols, and the sound change.
 - **Dynamics.** Marks from _pp_ to _ff_ and crescendo or diminuendo hairpins are shown on the
@@ -50,14 +57,15 @@ git at the versioned hooks in `.githooks/`.
 
 The toolbar above the sheet decides what is shown; the bar at the bottom controls playback.
 
-| Control         | What it does                                                                 |
-| --------------- | ---------------------------------------------------------------------------- |
-| **Left hand**   | Opens the arrangements, grouped by level, each tagged with its style         |
-| **Intro**       | Off, _Last phrase_, or _Improvised_; when on, playback starts with the intro |
-| **Key**         | Transposes by half steps; click the key to return to the original            |
-| **Show**        | Shows or hides lyrics and dynamics                                           |
-| **Guide**       | Opens the panel that explains the arrangement: patterns, tips, measure notes |
-| **Print / PDF** | Opens the print dialog; choose "Save as PDF" as the destination for a file   |
+| Control           | What it does                                                                    |
+| ----------------- | ------------------------------------------------------------------------------- |
+| **Left hand**     | Opens the arrangements, grouped by level, each tagged with its style            |
+| **Intro**         | Off, _Last phrase_, or a written intro; when on, playback starts with the intro |
+| **Key**           | Transposes by half steps; click the key to return to the original               |
+| **Show**          | Shows or hides lyrics and dynamics                                              |
+| **1 2 3 / Staff** | Switches between numbered notation and staff notation                           |
+| **Guide**         | Opens the panel that explains the arrangement: patterns, tips, measure notes    |
+| **Print / PDF**   | Opens the print dialog; choose "Save as PDF" as the destination for a file      |
 
 | Playback action           | Mouse                  | Keyboard                     |
 | ------------------------- | ---------------------- | ---------------------------- |
@@ -77,6 +85,8 @@ between visits.
 2. Write `song.txt`: header, melody, chords, lyrics, dynamics.
 3. Optionally write `arrangements.json` with left-hand arrangements and an introduction.
 4. Run `npm run check` and fix what it reports.
+
+Arrangements are written for a 61-key keyboard (C2 to C7), so the left hand never goes below C2.
 
 The formats are described in [docs/song-format.md](docs/song-format.md). With the development
 server running, the app reloads as soon as a file changes.
@@ -129,4 +139,5 @@ point. Run `npm run verify` before committing.
   [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). See
   [public/samples/piano/README.md](public/samples/piano/README.md).
 - Audio scheduling: [Tone.js](https://tonejs.github.io/).
+- Staff-notation engraving: [Verovio](https://www.verovio.org/) (LGPL-3.0).
 - Demo song: "Amazing Grace" (John Newton, 1779; tune "New Britain"), public domain.

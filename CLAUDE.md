@@ -41,6 +41,12 @@ Things to keep in mind:
 - `src/core` must stay free of browser and React code; the checker and the tests run it in Node.
 - `songs/private/` is git-ignored. Copyrighted songs and scans of scores go there and are never
   committed, because the repository is public.
+- **Fill the gaps.** This is the player's first criterion for every arrangement. Wherever the
+  melody holds a long note or rests, the left hand must keep the beat audible and, from the
+  intermediate level on, play a fill that suits the style and leads into the next phrase. A
+  static arpeggio through those places is what the tool exists to replace: the congregation
+  loses the beat. Use a different fill in each gap.
+- **Write for a 61-key keyboard** (C2 to C7), not a full piano: no left-hand note below C2.
 - After writing or changing any song file, run `npm run check -- <folder> --dump` and resolve every
   error and warning before handing the song over.
 - The player this tool serves reads numbered notation, plays as a hobby, and has so far used one

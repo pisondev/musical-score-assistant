@@ -510,6 +510,40 @@ code {
   text-align: left;
 }
 
+.menu--scroll {
+  max-height: min(62vh, 520px);
+  overflow-y: auto;
+}
+
+/* Two-way switch between numbered and staff notation. */
+.switch {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  height: 50px;
+  padding: 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.switch button {
+  min-width: 62px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink-soft);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.switch button.is-selected {
+  color: #fff;
+  background: var(--primary);
+}
+
 /* Buttons */
 
 .button {

@@ -1,13 +1,16 @@
 import {
   formatNoteName,
+  INTRO_LAST_PHRASE,
+  INTRO_OFF,
   type Arrangement,
   type IntroChoice,
   type Level,
   type NoteName,
   type SongBundle,
 } from '../core';
-import { useSettings } from '../store/settings';
+import { useSettings, type Notation } from '../store/settings';
 import { cx } from './classnames';
+import { introName } from './intro-name';
 import { BookIcon, CheckIcon, MinusIcon, PlusIcon, PrinterIcon } from './icons';
 import { Popover } from './Popover';
 
@@ -24,6 +27,11 @@ const LEVEL_LABEL: Record<Level, string> = {
   intermediate: 'Intermediate',
   advanced: 'Advanced',
 };
+
+const NOTATIONS: { notation: Notation; label: string; hint: string }[] = [
+  { notation: 'numbers', label: '1 2 3', hint: 'Numbered notation' },
+  { notation: 'staff', label: 'Staff', hint: 'Staff notation on a grand staff' },
+];
 
 interface ToolbarProps {
   bundle: SongBundle;
@@ -99,48 +107,43 @@ function LeftHandMenu({
   );
 }
 
-const INTRO_LABEL: Record<IntroChoice, string> = {
-  off: 'Off',
-  'last-phrase': 'Last phrase',
-  improvised: 'Improvised',
-};
-
 function IntroMenu({ bundle, intro }: Pick<ToolbarProps, 'bundle' | 'intro'>) {
   const setIntro = useSettings((state) => state.setIntro);
-  const improvised = bundle.intro.improvised;
-  const options: { choice: IntroChoice; description: string; disabled?: boolean }[] = [
-    { choice: 'off', description: 'Start directly with the song.' },
+  const options: { choice: IntroChoice; name: string; style?: string; description: string }[] = [
+    { choice: INTRO_OFF, name: 'Off', description: 'Start directly with the song.' },
     {
-      choice: 'last-phrase',
+      choice: INTRO_LAST_PHRASE,
+      name: 'Last phrase',
       description: 'The closing phrase of the song, played with the selected left hand.',
     },
-    {
-      choice: 'improvised',
-      description: improvised
-        ? improvised.summary || 'A newly written introduction for this song.'
-        : 'No improvised introduction has been written for this song yet.',
-      disabled: !improvised,
-    },
+    ...bundle.intro.written.map((written) => ({
+      choice: written.id,
+      name: written.name,
+      style: written.style,
+      description: written.summary,
+    })),
   ];
 
   return (
-    <Popover label="Intro" value={INTRO_LABEL[intro]}>
+    <Popover label="Intro" value={introName(bundle, intro)}>
       {(close) => (
-        <div className="menu" role="radiogroup" aria-label="Introduction">
-          {options.map(({ choice, description, disabled }) => (
+        <div className="menu menu--scroll" role="radiogroup" aria-label="Introduction">
+          {options.map(({ choice, name, style, description }) => (
             <button
               key={choice}
               type="button"
               role="radio"
               aria-checked={intro === choice}
-              disabled={disabled}
               className={cx('option', intro === choice && 'is-selected')}
               onClick={() => {
                 setIntro(choice);
                 close();
               }}
             >
-              <span className="option__title">{INTRO_LABEL[choice]}</span>
+              <span className="option__title">
+                {name}
+                {style && <span className="tag">{style}</span>}
+              </span>
               <span className="option__summary">{description}</span>
             </button>
           ))}
@@ -229,7 +232,29 @@ function TransposeControl({
   );
 }
 
-/** The controls that decide what is on the sheet: left hand, intro, key, and visible rows. */
+function NotationSwitch() {
+  const notation = useSettings((state) => state.notation);
+  const setNotation = useSettings((state) => state.setNotation);
+  return (
+    <div className="switch" role="radiogroup" aria-label="Notation">
+      {NOTATIONS.map((option) => (
+        <button
+          key={option.notation}
+          type="button"
+          role="radio"
+          aria-checked={notation === option.notation}
+          className={cx(notation === option.notation && 'is-selected')}
+          onClick={() => setNotation(option.notation)}
+          title={option.hint}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** The controls that decide what is on the sheet: left hand, intro, key, notation, and rows. */
 export function Toolbar(props: ToolbarProps) {
   const guideOpen = useSettings((state) => state.guideOpen);
   const toggleGuide = useSettings((state) => state.toggleGuide);
@@ -248,6 +273,7 @@ export function Toolbar(props: ToolbarProps) {
         soundingKey={props.soundingKey}
       />
       <ViewMenu />
+      <NotationSwitch />
       <div className="toolbar__spacer" />
       <button
         type="button"
