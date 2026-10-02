@@ -14,8 +14,9 @@
   --sky-strong: #0369a1;
   --sky-soft: #e0f2fe;
 
-  --right-hand: #1d4ed8;
-  --left-hand: #0284c7;
+  /* The two hands: neighbours on the colour wheel, far enough apart to be told at a glance. */
+  --right-hand: #2563eb;
+  --left-hand: #0d9488;
   --voice: #6366f1;
 
   --warning: #b45309;
@@ -1399,14 +1400,45 @@ a.button {
     box-shadow 0.15s;
 }
 
+/* Each choice wears the colour of its hand; both hands wear the two, side by side. */
+.segmented button::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: linear-gradient(90deg, var(--left-hand) 50%, var(--right-hand) 50%);
+  transition: background 0.15s;
+}
+
+.segmented button.segmented--left::before {
+  background: var(--left-hand);
+}
+
+.segmented button.segmented--right::before {
+  background: var(--right-hand);
+}
+
 .segmented button.is-selected {
   color: #fff;
-  background: var(--primary);
-  box-shadow: 0 4px 10px -4px rgb(37 99 235 / 70%);
+  background: linear-gradient(90deg, var(--left-hand), var(--right-hand));
+  box-shadow: 0 4px 10px -4px rgb(13 100 160 / 70%);
+}
+
+.segmented button.is-selected::before {
+  background: rgb(255 255 255 / 85%);
 }
 
 .segmented button.segmented--left.is-selected {
   background: var(--left-hand);
+  box-shadow: 0 4px 10px -4px rgb(13 148 136 / 75%);
+}
+
+.segmented button.segmented--right.is-selected {
+  background: var(--right-hand);
+  box-shadow: 0 4px 10px -4px rgb(37 99 235 / 75%);
 }
 
 .tempo {

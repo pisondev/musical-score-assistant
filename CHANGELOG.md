@@ -207,6 +207,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The hand control in the playback bar reads **Both**, **Left**, **Right**, in the order of the
+  hands on the keyboard, and the keys follow: `2` is the left hand and `3` the right. Each
+  choice has a colour of its own: teal for the left hand, blue for the right, and the two side
+  by side for both. The playhead on the sheet uses the same two colours.
+
 - Switching between **Both**, **Right**, and **Left** during playback, and switching the voice
   guide, no longer cuts a track off at once, which could be heard as a click. The track fades
   out in seven hundredths of a second and comes back in four.

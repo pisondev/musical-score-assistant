@@ -14,9 +14,10 @@ import {
 } from './icons';
 
 const HAND_MODES: { mode: HandMode; label: string; hint: string }[] = [
+  // In the order of the hands on the keyboard: the left hand on the left.
   { mode: 'both', label: 'Both', hint: 'Both hands (1)' },
-  { mode: 'right', label: 'Right', hint: 'Right hand only (2)' },
-  { mode: 'left', label: 'Left', hint: 'Left hand only (3)' },
+  { mode: 'left', label: 'Left', hint: 'Left hand only (2)' },
+  { mode: 'right', label: 'Right', hint: 'Right hand only (3)' },
 ];
 
 /** How far Shift with an arrow key moves the tempo. */

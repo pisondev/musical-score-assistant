@@ -157,7 +157,7 @@ choices scroll, so it is always clear which setting they belong to.
 | ------------------------- | --------------------------------------------- | ------------------------------------------------------------------------ |
 | Play or pause             | Round button                                  | `Space`                                                                  |
 | Stop and return to start  | Square button                                 | `Home`                                                                   |
-| Both hands / right / left | Segmented control                             | `1` `2` `3`                                                              |
+| Both hands / left / right | Segmented control                             | `1` `2` `3`                                                              |
 | Voice guide on or off     | **Voice** button                              | `V`                                                                      |
 | Move the playhead         | Click a measure                               | `Enter` on a focused measure                                             |
 | Set the tempo             | Drag the slider, or click the number and type | `Enter` applies, `Esc` cancels, `↑` `↓` step by one, with `Shift` by ten |

@@ -171,8 +171,8 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
         event.preventDefault();
         void player.toggle();
       } else if (event.key === '1') player.setHandMode('both');
-      else if (event.key === '2') player.setHandMode('right');
-      else if (event.key === '3') player.setHandMode('left');
+      else if (event.key === '2') player.setHandMode('left');
+      else if (event.key === '3') player.setHandMode('right');
       else if (event.key === 'v' || event.key === 'V') player.toggleVoiceGuide();
       else if (event.key === 'Home') player.stop();
       else if (event.key === 'Escape') deselectMeasure.current();
