@@ -207,6 +207,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- In the **Options** panel the setting that is open is one block with a slightly darker
+  background, its line a shade darker again, so its choices stand apart from the settings
+  around it.
+
 - In staff notation a measure now has a background like a measure of the numbered sheet: it
   is tinted under the pointer, while it is being played, and while it belongs to a loop, and
   the whole area between its barlines answers a click, not only its notes.
