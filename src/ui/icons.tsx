@@ -175,6 +175,16 @@ export function MinusIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function MoreIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon fill="currentColor" stroke="none" {...props}>
+      <circle cx="5" cy="12" r="2" />
+      <circle cx="12" cy="12" r="2" />
+      <circle cx="19" cy="12" r="2" />
+    </Icon>
+  );
+}
+
 export function PlusIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon strokeWidth="2.5" {...props}>

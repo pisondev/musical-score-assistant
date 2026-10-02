@@ -165,8 +165,10 @@ choices scroll, so it is always clear which setting they belong to.
 The tempo ranges from 40 to 160 beats per minute; a typed number outside that range is brought
 to the nearest limit.
 
-**Every measure has a menu.** Right-click a measure, or press and hold it on a phone, to work
-on that spot:
+**Every measure has a menu.** Click a measure: besides moving the playhead there, the click
+puts a button with three dots at the top right corner of the measure, and that button opens
+the menu. A right click on a measure, or a long press on a phone, opens the same menu
+directly. `Esc` or a click beside the measures takes the button away again.
 
 | In the menu of a measure    | What it does                                                            |
 | --------------------------- | ----------------------------------------------------------------------- |

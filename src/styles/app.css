@@ -986,8 +986,52 @@ a.button {
 }
 
 .card--sheet {
+  position: relative;
   padding: 16px 20px 12px 8px;
   min-width: 0;
+}
+
+/*
+ * Controls at the top right corner of a measure, laid over the sheet: on the line of the
+ * measure number in numbered notation, and above the staff in staff notation.
+ */
+.measure-corner {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: -4px 0 0 -6px;
+  transform: translateX(-100%);
+}
+
+.measure-corner--above {
+  margin-top: -24px;
+}
+
+.measure-corner[hidden] {
+  display: none;
+}
+
+/* Three dots: the menu of the measure that was clicked. */
+.measure-more {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(16 32 58 / 12%);
+  animation: fade-in 0.12s ease-out;
+}
+
+.measure-more:hover {
+  border-color: var(--primary);
+  color: var(--primary-strong);
+  background: var(--primary-soft);
 }
 
 .card--guide {
@@ -2539,6 +2583,7 @@ a.button {
 @media print {
   .topbar,
   .transport,
+  .measure-corner,
   .toolbar,
   .card--guide,
   .issues,

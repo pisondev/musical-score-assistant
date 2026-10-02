@@ -191,7 +191,9 @@ for every song, starting from the left hand remembered for it.
 | `sheet-layout.ts`  | Measure widths and system breaks                                          |
 | `usePlayhead`      | Follows the audio clock and highlights the slots being played             |
 | `MeasureMenu`      | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
-| `useMeasureMenu`   | Opens that menu on a right click or a long press, on either notation      |
+| `useMeasureMenu`   | Opens that menu on a right click or a long press; a click selects         |
+| `MeasureCorner`    | Controls at the top right corner of a measure, laid over either notation  |
+| `measure-box.ts`   | The box of a measure on the page, and the measure at a point              |
 | `Dialog`           | The frame of a dialog: centred, or a bottom sheet on a phone              |
 | `NoteDialog`       | The notes on one measure: read, write, change, delete                     |
 | `DownloadDialog`   | Lists what a file will hold and asks before it is made                    |

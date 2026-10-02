@@ -299,7 +299,8 @@ Tell the user:
   second time a half or whole step higher;
 - that the dynamics, the written introductions, the bridge, the key lift, the endings, and the
   right-hand parts are your own suggestions;
-- that a right click on a measure (a long press on a phone) takes a note on it, and that those
+- that the three dots on a measure that was clicked (or a right click, or a long press on a
+  phone) take a note on it, and that those
   notes are read when the song is revised.
 
 When the song is revised later, read `analysis.md` and `notes.json` in its folder first. Each

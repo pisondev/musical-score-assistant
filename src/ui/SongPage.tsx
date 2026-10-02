@@ -25,9 +25,10 @@ import { useSettings } from '../store/settings';
 import { cx } from './classnames';
 import { DownloadDialog } from './DownloadDialog';
 import { Guide } from './Guide';
-import { LoopIcon, PencilIcon, PlayIcon, PlusIcon } from './icons';
+import { LoopIcon, MoreIcon, PencilIcon, PlayIcon, PlusIcon } from './icons';
 import { FormProgress } from './FormProgress';
 import { IssueList } from './IssueList';
+import { MeasureCorner } from './MeasureCorner';
 import { MeasureMenu, type MeasureMenuItem } from './MeasureMenu';
 import { NoteDialog } from './NoteDialog';
 import { RIGHT_HAND_NAME } from './right-hand-name';
@@ -174,10 +175,14 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
       else if (event.key === '3') player.setHandMode('left');
       else if (event.key === 'v' || event.key === 'V') player.toggleVoiceGuide();
       else if (event.key === 'Home') player.stop();
+      else if (event.key === 'Escape') deselectMeasure.current();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  // Escape takes the button at the corner of the selected measure away again.
+  const deselectMeasure = useRef<() => void>(() => undefined);
 
   // Lay the score out for paper just before the browser prints, including
   // when the player uses the browser's own print command.
@@ -272,8 +277,14 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
     );
   };
 
-  // A right click or a long press on a measure opens its menu.
+  // A right click or a long press on a measure opens its menu; a plain click selects the
+  // measure, and the button at its corner opens the same menu.
   const measureMenu = useMeasureMenu();
+  const selectedMeasure =
+    measureMenu.selected !== null && names[measureMenu.selected] ? measureMenu.selected : null;
+  useEffect(() => {
+    deselectMeasure.current = measureMenu.deselect;
+  }, [measureMenu.deselect]);
   const loop = usePlayer((state) => state.loop);
   const menuTarget = measureMenu.target;
   const menuItems = useMemo((): MeasureMenuItem[] => {
@@ -392,6 +403,27 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
                 noted={noted}
                 onOpenNotes={openNotes}
               />
+            )}
+            {selectedMeasure !== null && !printing && (
+              <MeasureCorner
+                index={selectedMeasure}
+                above={notation === 'staff'}
+                layout={performance}
+              >
+                <button
+                  type="button"
+                  className="measure-more"
+                  aria-haspopup="menu"
+                  aria-label={`Options for ${names[selectedMeasure].long}`}
+                  title="Loop this measure, write a note, and more"
+                  onClick={(event) => {
+                    const box = event.currentTarget.getBoundingClientRect();
+                    measureMenu.open(selectedMeasure, box.left, box.bottom + 6);
+                  }}
+                >
+                  <MoreIcon width={18} height={18} />
+                </button>
+              </MeasureCorner>
             )}
           </section>
           {guideOpen && (

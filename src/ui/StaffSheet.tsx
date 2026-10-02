@@ -5,6 +5,7 @@ import { usePlayer } from '../store/player';
 import { cx } from './classnames';
 import { PencilIcon } from './icons';
 import { keepInView } from './keep-in-view';
+import { measureAtPoint } from './measure-box';
 import { SectionHeading } from './SectionHeading';
 import { useElementWidth } from './useElementWidth';
 import { usePlayhead } from './usePlayhead';
@@ -19,7 +20,6 @@ const NARROW_WIDTH = 640;
 const PRINT_WIDTH = 700;
 
 const CURRENT_CLASS = 'is-current';
-const MEASURE_ID = /^measure-(\d+)$/;
 
 interface StaffSheetProps {
   performance: Performance;
@@ -132,10 +132,10 @@ export function StaffSheet({
     }
   }, [sections, noted]);
 
+  // A click between the notes belongs to no element of the engraving; the staves decide.
   const seek = (event: MouseEvent<HTMLDivElement>) => {
-    const measure = (event.target as Element).closest('g.measure');
-    const match = measure ? MEASURE_ID.exec(measure.id) : null;
-    if (match) seekToMeasure(Number(match[1]));
+    const index = measureAtPoint(event.target, event.currentTarget, event.clientX, event.clientY);
+    if (index !== null) seekToMeasure(index);
   };
 
   return (

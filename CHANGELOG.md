@@ -128,6 +128,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A menu for every measure, opened with a right click, or with a long press on a phone, on
   the numbered sheet and on the staff alike: play from here, loop this measure, extend the
   loop to here, and switch the loop off.
+- A button with three dots at the top right corner of the measure that was clicked. It opens
+  the menu of that measure, the same one as a right click or a long press, so the menu can be
+  found without knowing either gesture. It works on the numbered sheet and on the staff.
 - File sizes in the download menu: exact for MIDI, and for MP3 an estimate from the length of
   the piece that is within a frame or two of the file. They follow the tempo and the hands
   that are switched on.
@@ -172,6 +175,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Other codes get a section of their own; songs without a hymnal are listed under "Other songs".
 
 ### Fixed
+
+- In staff notation a click between the notes of a measure did not move the playhead, because
+  the empty space belongs to no symbol. The measure is now found from its staves. A tie or a
+  hairpin that reaches into the next measure no longer makes a right click there open the
+  menu of the measure before it.
 
 - Printed scores and PDFs lost every octave dot, beam, accidental stroke, and hold unless
   "Background graphics" was switched on in the print dialog, because those marks were filled

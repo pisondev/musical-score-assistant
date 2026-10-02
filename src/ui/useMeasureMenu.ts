@@ -6,13 +6,12 @@ import {
   type PointerEvent,
   type SyntheticEvent,
 } from 'react';
+import { measureAtPoint } from './measure-box';
 
 /** How long a finger has to rest on a measure before its menu opens, in milliseconds. */
 const LONG_PRESS = 550;
 /** How far the finger may drift during that time; further, and it is a scroll. */
 const DRIFT = 10;
-
-const MEASURE_ID = /^measure-(\d+)$/;
 
 /** The measure a menu was asked for, and where on the screen. */
 export interface MeasureTarget {
@@ -21,41 +20,33 @@ export interface MeasureTarget {
   y: number;
 }
 
-/**
- * The measure at a point of the score. Usually the element under the pointer
- * lies inside it. In staff notation the empty space between the notes belongs
- * to no measure, so there the measure is the one whose box contains the point.
- */
+/** Controls laid over a measure (its corner) are not the measure itself. */
+function onControl(event: { target: EventTarget }): boolean {
+  return event.target instanceof Element && event.target.closest('.measure-corner') !== null;
+}
+
+/** The measure under the pointer of an event on the score. */
 function measureAt(
   event: { target: EventTarget; currentTarget: EventTarget },
   x: number,
   y: number,
 ) {
-  const inside = event.target instanceof Element ? event.target.closest('[id^="measure-"]') : null;
-  const direct = inside ? MEASURE_ID.exec(inside.id) : null;
-  if (direct) return Number(direct[1]);
-  if (!(event.currentTarget instanceof Element)) return null;
-
-  for (const element of event.currentTarget.querySelectorAll('[id^="measure-"]')) {
-    const match = MEASURE_ID.exec(element.id);
-    const box = element.getBoundingClientRect();
-    if (match && x >= box.left && x <= box.right && y >= box.top && y <= box.bottom) {
-      return Number(match[1]);
-    }
-  }
-  return null;
+  return measureAtPoint(event.target, event.currentTarget, x, y);
 }
 
 /**
  * Opens a menu for the measure under the pointer: on a right click with a
- * mouse, and on a long press with a finger. It works on whatever draws the
- * measures, the numbered sheet or the staff, because it only looks for the
- * element that carries the measure's id.
+ * mouse, and on a long press with a finger. A plain click selects the measure
+ * instead, so the page can offer the same menu from a button at its corner.
+ * It works on whatever draws the measures, the numbered sheet or the staff,
+ * because it only looks for the element that carries the measure's id.
  *
  * Spread `handlers` on the element that contains the score.
  */
 export function useMeasureMenu() {
   const [target, setTarget] = useState<MeasureTarget | null>(null);
+  // The measure that was clicked last; null after a click beside the measures.
+  const [selected, setSelected] = useState<number | null>(null);
   const press = useRef<{ timer: number; x: number; y: number } | null>(null);
   // A long press ends with a click on the same measure; that click must not seek.
   const swallowClick = useRef(false);
@@ -67,10 +58,12 @@ export function useMeasureMenu() {
 
   const onContextMenu = useCallback(
     (event: MouseEvent) => {
+      if (onControl(event)) return;
       const index = measureAt(event, event.clientX, event.clientY);
       if (index === null) return;
       event.preventDefault();
       cancelPress();
+      setSelected(index);
       setTarget({ index, x: event.clientX, y: event.clientY });
     },
     [cancelPress],
@@ -78,7 +71,7 @@ export function useMeasureMenu() {
 
   const onPointerDown = useCallback(
     (event: PointerEvent) => {
-      if (event.pointerType === 'mouse') return;
+      if (event.pointerType === 'mouse' || onControl(event)) return;
       const index = measureAt(event, event.clientX, event.clientY);
       if (index === null) return;
       cancelPress();
@@ -86,6 +79,7 @@ export function useMeasureMenu() {
       const timer = window.setTimeout(() => {
         press.current = null;
         swallowClick.current = true;
+        setSelected(index);
         setTarget({ index, x, y });
       }, LONG_PRESS);
       press.current = { timer, x, y };
@@ -109,6 +103,19 @@ export function useMeasureMenu() {
     event.preventDefault();
   }, []);
 
+  // A click that reaches the score selects the measure it fell on.
+  const onClick = useCallback((event: MouseEvent) => {
+    if (onControl(event)) return;
+    setSelected(measureAt(event, event.clientX, event.clientY));
+  }, []);
+
+  /** Opens the menu of a measure at a point of the window, for a button that stands for it. */
+  const open = useCallback((index: number, x: number, y: number) => {
+    setTarget({ index, x, y });
+  }, []);
+
+  const deselect = useCallback(() => setSelected(null), []);
+
   const close = useCallback(() => {
     setTarget(null);
     // Without a click to swallow (the finger left the measure), the flag must not linger.
@@ -119,8 +126,12 @@ export function useMeasureMenu() {
 
   return {
     target,
+    selected,
+    open,
+    deselect,
     close,
     handlers: {
+      onClick,
       onContextMenu,
       onPointerDown,
       onPointerMove,
