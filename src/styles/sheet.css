@@ -15,7 +15,7 @@
   --beam-zone: 11px;
   --chord-size: 12.5px;
   --lyric-size: 11px;
-  --bar: #9fb4d3;
+  --bar: #9cb7c4;
 
   display: grid;
   gap: 18px;
@@ -29,13 +29,36 @@
   gap: 22px;
 }
 
-/* What is played around the song (introduction, interlude, ending) sits in a tinted block. */
+/*
+ * What is played around the song (introduction, interlude, ending) sits in a block of its
+ * own, tinted and finely striped, so that it is told from the song at a glance. Each kind has
+ * its colour: cyan for what leads in, emerald for what leads on, ocean blue for what closes.
+ */
 .sheet__section--aside {
+  --aside: 6 165 201;
+  --aside-ink: var(--sky-strong);
+
   margin: -4px -8px 0 4px;
   padding: 12px 8px 14px 0;
-  border: 1px dashed #bcd7f5;
+  border: 1px dashed rgb(var(--aside) / 45%);
   border-radius: 12px;
-  background: #f7fbff;
+  background:
+    repeating-linear-gradient(135deg, rgb(var(--aside) / 5%) 0 1px, transparent 1px 9px),
+    linear-gradient(180deg, rgb(var(--aside) / 7%), rgb(var(--aside) / 3%));
+}
+
+.sheet__section--interlude {
+  --aside: 16 185 129;
+  --aside-ink: var(--emerald-strong);
+}
+
+.sheet__section--ending {
+  --aside: 11 111 184;
+  --aside-ink: var(--primary-strong);
+}
+
+.sheet__section--aside .sheet__heading {
+  color: var(--aside-ink);
 }
 
 .sheet__heading {
@@ -82,7 +105,7 @@
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #9aabc6;
+  color: #93adba;
 }
 
 .measure {
@@ -102,7 +125,7 @@
   padding-left: 10px;
   font-size: 10.5px;
   line-height: 1;
-  color: #9aabc6;
+  color: #93adba;
   font-variant-numeric: tabular-nums;
 }
 
@@ -113,8 +136,8 @@
   font-weight: 650;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--primary-strong);
-  background: var(--primary-soft);
+  color: var(--emerald-strong);
+  background: var(--emerald-soft);
 }
 
 /* Marks a measure that carries an explanation in the side panel. */
@@ -168,11 +191,11 @@
 }
 
 .measure:hover .measure__staff {
-  background: #f6f9ff;
+  background: #f0f8fa;
 }
 
 .measure.in-loop .measure__staff {
-  background: #f1f9ff;
+  background: #e8f7fa;
   box-shadow: inset 0 -3px 0 var(--sky);
 }
 
@@ -317,7 +340,7 @@
   border-radius: 5px;
   color: var(--sky-strong);
   background: var(--sky-soft);
-  box-shadow: inset 0 0 0 1px #bae6fd;
+  box-shadow: inset 0 0 0 1px #a8e0ec;
 }
 
 .chord--unknown {
@@ -427,7 +450,7 @@
 }
 
 .slot--rest .glyph {
-  color: #8fa1bd;
+  color: #8aa3b0;
   font-weight: 500;
 }
 
@@ -440,7 +463,7 @@
   width: 0;
   height: 0;
   margin-left: -2px;
-  border: 2px solid #7f93b3;
+  border: 2px solid #7b97a6;
   border-radius: 50%;
 }
 
@@ -688,15 +711,15 @@
 }
 
 .staff-view g.measure:hover > rect.measure-bg {
-  fill: rgb(37 99 235 / 6%);
+  fill: rgb(11 111 184 / 6%);
 }
 
 .staff-view g.measure.in-loop > rect.measure-bg {
-  fill: rgb(14 165 233 / 9%);
+  fill: rgb(6 165 201 / 10%);
 }
 
 .staff-view g.measure.is-current > rect.measure-bg {
-  fill: rgb(37 99 235 / 12%);
+  fill: rgb(11 111 184 / 12%);
 }
 
 .staff-view.sheet--print rect.measure-bg {
@@ -815,6 +838,7 @@
   }
 
   .sheet__heading,
+  .sheet__section--aside .sheet__heading,
   .sheet__heading span,
   .chord,
   .chord--changed,

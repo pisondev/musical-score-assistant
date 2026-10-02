@@ -720,7 +720,10 @@ export function Sheet({
         sections.map(({ section, systems }) => (
           <section
             key={section.start}
-            className={cx('sheet__section', section.kind !== 'song' && 'sheet__section--aside')}
+            className={cx(
+              'sheet__section',
+              section.kind !== 'song' && `sheet__section--aside sheet__section--${section.kind}`,
+            )}
             aria-label={section.title}
           >
             {sections.length > 1 && <SectionHeading section={section} />}

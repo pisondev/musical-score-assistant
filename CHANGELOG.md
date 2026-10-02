@@ -207,6 +207,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- A new look in one family of colours instead of plain blue: ocean blue for what can be
+  pressed, cyan for loops and tags, emerald for section names and hymnal badges, navy for the
+  dark end, and a sweep from emerald through cyan to blue on the mark of the app, the Play and
+  Continue buttons, and the progress bar. Added without moving anything: a wash of the three
+  colours under a grid of fine dots across the top of the page, hairlines in the same sweep
+  along the top bar and the playback bar, staff lines across the "continue practising" card,
+  a coloured bar on each count of the home page, a line along the top of a song card under
+  the pointer, and finely striped blocks around the song, cyan for an introduction, emerald
+  for an interlude, blue for an ending. Printed pages stay black on white.
+- On phones narrower than 430 pixels the controls of the top bar sit closer together, and the
+  name of the Options button is cut instead of run over when the row is still too narrow.
+
 - Scrollbars are drawn by the app, on the page and in every panel that scrolls (the options,
   the guide, the dialogs): a slim, rounded thumb without a track that darkens under the
   pointer. Browsers without the WebKit scrollbar parts get a thin scrollbar in the same colour.

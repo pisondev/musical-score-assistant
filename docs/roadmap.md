@@ -60,6 +60,7 @@ The web app itself never generates music; it displays, plays, and explains.
   and a compact playback bar.
 - The settings of the score behind one Options button in the top bar.
 - A progress bar that names the part of the piece in view and leads to the other parts.
+- A look in one family of colours, from emerald through cyan and ocean blue to navy.
 - A menu on every measure for looping that spot, with a counted rest between the rounds.
 - Notes on measures, saved in the folder of the song for the next revision.
 - A written reading of each song (text, tune, mood) that its arrangements follow.

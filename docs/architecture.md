@@ -294,6 +294,34 @@ Layout notes:
   other (`labelRowWidth`). The widths of the text are estimated from the font sizes of
   `sheet.css`; the two have to be kept in step.
 
+### `src/styles`: the look
+
+Two style sheets: `app.css` for the interface and `sheet.css` for the score. Colours are
+custom properties on `:root`, and components use those, not literals, so the look can be moved
+as a whole.
+
+| Token                              | Used for                                                       |
+| ---------------------------------- | -------------------------------------------------------------- |
+| `--primary` (ocean blue)           | What can be pressed and what is selected, links, chord symbols |
+| `--sky` (cyan)                     | Loops, tags, hints, the block of an introduction               |
+| `--emerald`                        | Section names, hymnal badges, the block of an interlude        |
+| `--navy`                           | The dark end: the selected hymnal, headings                    |
+| `--right-hand`, `--left-hand`      | Blue and teal: the playhead and the hand control               |
+| `--brand`                          | Emerald through cyan to ocean blue, in one sweep               |
+| `--warning`, `--danger` and `soft` | Notes of the player, warnings, errors                          |
+
+The colours are one family, from green-blue to dark blue, so nothing clashes; the amber of
+the player's notes is the one colour from outside it, because a note has to stand out.
+
+The sweep `--brand` marks what starts or measures something: the mark of the app, the Play
+and Continue buttons, the progress bar, and a hairline along the top bar and the playback
+bar. Patterns are backgrounds only and change no layout: fine dots and a wash of the three
+colours across the top of the page, staff lines across the "continue practising" card, and
+fine diagonal stripes in the blocks around the song (introduction, interlude, ending), each
+tinted in its own colour. On paper all of it gives way to black on white.
+
+Scrollbars are styled once, for the page and every panel, from `--scroll-thumb`.
+
 ### `src/library.ts`
 
 Collects every `songs/**/song.txt` and its `arrangements.json` at build time through Vite's
