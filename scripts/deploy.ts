@@ -98,14 +98,14 @@ function stage(): void {
  */
 function setup(): void {
   const local = readEnvFile(ENV_FILE);
-  const required = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'PUBLIC_ORIGIN', 'ALLOWED_EMAILS'];
+  const required = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'PUBLIC_ORIGIN', 'OWNER_EMAILS'];
   const missing = required.filter((key) => !local[key]);
   if (missing.length > 0) throw new Error(`${ENV_FILE} lacks ${missing.join(', ')}.`);
 
   const ids = remote('printf "%s:%s" "$(id -u)" "$(id -g)"').trim().split(':');
   const wanted: Record<string, string | undefined> = {
     PUBLIC_ORIGIN: local.PUBLIC_ORIGIN,
-    ALLOWED_EMAILS: local.ALLOWED_EMAILS,
+    OWNER_EMAILS: local.OWNER_EMAILS,
     GOOGLE_CLIENT_ID: local.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: local.GOOGLE_CLIENT_SECRET,
     R2_ACCOUNT_ID: local.R2_ACCOUNT_ID,

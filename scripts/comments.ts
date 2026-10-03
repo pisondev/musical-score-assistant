@@ -59,7 +59,10 @@ export function runAdmin(
   { local = false, input }: { local?: boolean; input?: string } = {},
 ): string {
   if (!local) {
-    return remote(`docker exec -i ${CONTAINER} node dist-server/admin.js ${args.join(' ')}`, input);
+    return remote(
+      `docker exec -i ${CONTAINER} node --disable-warning=ExperimentalWarning dist-server/admin.js ${args.join(' ')}`,
+      input,
+    );
   }
   const flags = isBuiltin('node:sqlite') ? [] : ['--experimental-sqlite'];
   const result = spawnSync(

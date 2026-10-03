@@ -279,7 +279,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The state of accounts moved from `users/<address>.json` in the bucket into the database; an
   earlier document is moved over the first time its account asks for it. `ALLOWED_EMAILS` is
-  now `OWNER_EMAILS`; the earlier name is still read, with a warning.
+  now `OWNER_EMAILS`, in the server's `.env`, in `.env.production`, and in
+  `npm run deploy -- --setup-only`; the earlier name is still read, with a warning.
 - `npm run dev`, `npm run preview`, and `npm start` run through `scripts/node-with-sqlite.mjs`,
   which gives Node 22.5 to 22.12 the flag for `node:sqlite`.
 - The library loads a song only when it is opened. The home page works from an index of the
