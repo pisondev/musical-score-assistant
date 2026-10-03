@@ -1,10 +1,11 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
-import { notesPlugin } from './scripts/notes-plugin.ts';
+import { devApiPlugin } from './scripts/dev-api-plugin.ts';
 
 export default defineConfig({
-  // The notes plugin lets the app save the player's notes on measures into the song folders.
-  plugins: [react(), notesPlugin()],
+  // The API of the app (private songs, notes, the state of the account), with this computer as
+  // the owner; the production server mounts the same API behind a Google sign-in.
+  plugins: [react(), devApiPlugin()],
   // Relative asset paths let the static build be served from any sub-path.
   base: './',
   build: {

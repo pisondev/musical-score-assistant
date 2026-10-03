@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { formatNoteName, hymnalName, songReference } from '../core';
-import { library, type SongEntry } from '../library';
+import { signInUrl, useAccount } from '../account';
+import { PRIVATE_HINT, useLibrary, type SongEntry } from '../library';
 import { useHistory } from '../store/history';
 import { cx } from './classnames';
 import { AlertIcon, ArrowRightIcon, LockIcon, PlusIcon, SearchIcon, StarIcon } from './icons';
@@ -54,9 +55,9 @@ function SongCard({ entry, favourite, openedAt, now, onToggleFavourite }: SongCa
           </span>
         )}
         {entry.isPrivate && (
-          <span className="badge badge--private" title="Stored in songs/private; never committed">
+          <span className="badge badge--private" title={PRIVATE_HINT}>
             <LockIcon width={12} height={12} />
-            Local only
+            Private
           </span>
         )}
         <button
@@ -126,6 +127,9 @@ export function Home() {
   const opened = useHistory((state) => state.opened);
   const favourites = useHistory((state) => state.favourites);
   const toggleFavourite = useHistory((state) => state.toggleFavourite);
+  const library = useLibrary((state) => state.entries);
+  const account = useAccount((state) => state.account);
+  const signIn = useAccount((state) => state.signIn);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<SongFilter>('all');
   const [book, setBook] = useState<string | null>(null);
@@ -134,16 +138,16 @@ export function Home() {
   const [now] = useState(() => Date.now());
 
   // The chips count every song of a hymnal; the sections show what the search leaves of it.
-  const hymnals = useMemo(() => groupByHymnal(library), []);
+  const hymnals = useMemo(() => groupByHymnal(library), [library]);
   const songs = useMemo(
     () => selectSongs(library, { query, filter, book, sort, favourites, opened }),
-    [query, filter, book, sort, favourites, opened],
+    [library, query, filter, book, sort, favourites, opened],
   );
   const sections = useMemo(
     () => groupByHymnal(songs).filter((group) => group.songs.length > 0),
     [songs],
   );
-  const resume = useMemo(() => lastOpened(library, opened), [opened]);
+  const resume = useMemo(() => lastOpened(library, opened), [library, opened]);
   const resumeArrangement = resume?.bundle.arrangements.find(
     (arrangement) => arrangement.id === opened[resume.id].arrangementId,
   );
@@ -157,7 +161,7 @@ export function Home() {
       { label: 'Right-hand parts', value: sum((entry) => entry.summary.rightHandParts) },
       { label: 'Introductions', value: sum((entry) => entry.summary.intros) },
     ];
-  }, []);
+  }, [library]);
 
   const empty = library.length === 0;
   const selected = hymnals.find((group) => group.code === book);
@@ -180,6 +184,12 @@ export function Home() {
               ? 'The library is empty. Add the first song to start practising.'
               : 'Open a song to see its score, compare left hands, and play along.'}
           </p>
+          {signIn === 'google' && !account && (
+            <p className="home__signin">
+              Your own songs, notes, and favourites appear after you{' '}
+              <a href={signInUrl()}>sign in with Google</a>.
+            </p>
+          )}
         </div>
         {!empty && (
           <dl className="stats">

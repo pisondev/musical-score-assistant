@@ -11,8 +11,6 @@ interface NoteDialogProps {
   notes: MeasureNote[];
   /** Where notes are kept, so the dialog can say so. */
   home: NotesHome;
-  /** Folder of the song, shown as the place of the file. */
-  songId: string;
   /** Saves a new note, or new text for the note with the given id. */
   onSave: (text: string, id?: string) => void;
   onDelete: (id: string) => void;
@@ -23,15 +21,7 @@ interface NoteDialogProps {
  * The notes on one measure: what is written already, and a field for a new
  * note or for changing an old one. Ctrl+Enter saves, Escape closes.
  */
-export function NoteDialog({
-  target,
-  notes,
-  home,
-  songId,
-  onSave,
-  onDelete,
-  onClose,
-}: NoteDialogProps) {
+export function NoteDialog({ target, notes, home, onSave, onDelete, onClose }: NoteDialogProps) {
   const [text, setText] = useState('');
   const [editing, setEditing] = useState<string | null>(null);
   const field = useRef<HTMLTextAreaElement>(null);
@@ -109,14 +99,9 @@ export function NoteDialog({
 
         <footer className="dialog__foot">
           <p>
-            {home === 'file' ? (
-              <>
-                Saved in <code>songs/{songId}/notes.json</code>, with the left hand and the
-                right-hand mode that are on the sheet now.
-              </>
-            ) : (
-              'Saved in this browser only: the app is not running from the development server, which writes notes into the song folder.'
-            )}
+            {home === 'file'
+              ? 'Saved with the song, together with the left hand and the right-hand mode that are on the sheet now.'
+              : 'Saved in this browser only. Sign in to keep your notes with your account, on every device.'}
           </p>
           <div className="dialog__buttons">
             {editing && (

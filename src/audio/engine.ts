@@ -68,8 +68,14 @@ const RECORDING_SAMPLE_RATE = 44100;
 const CLICK_ACCENT = 'C6';
 const CLICK_BEAT = 'G5';
 
+/**
+ * The samples have no hash in their names, and browsers and Cloudflare keep them for a month.
+ * Raising the version makes every one of them fetch the files afresh.
+ */
+const SAMPLE_VERSION = 1;
+
 function sampleFile(note: string): string {
-  return `${note.replace('#', 's')}.mp3`;
+  return `${note.replace('#', 's')}.mp3?v=${SAMPLE_VERSION}`;
 }
 
 /**

@@ -2,7 +2,9 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
-import { loadNotes, NOTES_FILE, notesPath, storeNotes } from '../scripts/notes-plugin';
+import { isSongId, loadNotes, NOTES_FILE, notesKey, storeNotes } from '../server/notes-store';
+import { FileStore } from '../server/object-store';
+import { folderCatalog } from '../server/song-catalog';
 import { createSongBundle } from '../src/core/bundle';
 import { noteContext, notesAt, noteTarget } from '../src/core/measure-notes';
 import { readNotes, sortNotes, type MeasureNote } from '../src/core/notes-file';
@@ -157,37 +159,40 @@ describe('the notes file of a song', () => {
   writeFileSync(join(root, 'private', 'kj-1-song', 'song.txt'), SONG);
   mkdirSync(join(root, 'empty'));
   afterAll(() => rmSync(root, { recursive: true, force: true }));
+  const store = new FileStore(root);
+  const catalog = folderCatalog(root);
   const id = 'private/kj-1-song';
   const file = join(root, 'private', 'kj-1-song', NOTES_FILE);
 
-  it('belongs to a folder that holds a song, and to nothing else', () => {
-    expect(notesPath(root, id)).toBe(file);
-    expect(notesPath(root, 'empty')).toBeNull();
-    expect(notesPath(root, 'missing')).toBeNull();
+  it('belongs to a folder that holds a song, and to nothing else', async () => {
+    expect(notesKey(id)).toBe('private/kj-1-song/notes.json');
+    expect(isSongId(root, id)).toBe(true);
+    expect(isSongId(root, 'empty')).toBe(false);
+    expect(isSongId(root, 'missing')).toBe(false);
     for (const unsafe of ['../private/kj-1-song', 'private/../private/kj-1-song', '/etc', '']) {
-      expect(notesPath(root, unsafe)).toBeNull();
+      expect(isSongId(root, unsafe)).toBe(false);
+      expect(await loadNotes(store, catalog, unsafe)).toBeNull();
     }
-    expect(loadNotes(root, 'missing')).toBeNull();
-    expect(storeNotes(root, '../outside', [note({})])).toBe(false);
+    expect(await loadNotes(store, catalog, 'missing')).toBeNull();
+    expect(await storeNotes(store, catalog, '../outside', [note({})])).toBe(false);
   });
 
-  it('is written, read back, and removed when the last note goes', () => {
-    expect(loadNotes(root, id)).toEqual([]);
-    expect(
-      storeNotes(root, id, { notes: [note({ id: 'b', measure: 9 }), note({ id: 'a' })] }),
-    ).toBe(true);
+  it('is written next to the song, read back, and removed when the last note goes', async () => {
+    expect(await loadNotes(store, catalog, id)).toEqual([]);
+    const written = { notes: [note({ id: 'b', measure: 9 }), note({ id: 'a' })] };
+    expect(await storeNotes(store, catalog, id, written)).toBe(true);
     expect(
       JSON.parse(readFileSync(file, 'utf8')).notes.map((found: MeasureNote) => found.id),
     ).toEqual(['a', 'b']);
-    expect(loadNotes(root, id)?.map((found) => found.measure)).toEqual([1, 9]);
+    expect((await loadNotes(store, catalog, id))?.map((found) => found.measure)).toEqual([1, 9]);
 
-    expect(storeNotes(root, id, { notes: [] })).toBe(true);
+    expect(await storeNotes(store, catalog, id, { notes: [] })).toBe(true);
     expect(existsSync(file)).toBe(false);
   });
 
-  it('is read as empty when it was damaged by hand', () => {
+  it('is read as empty when it was damaged by hand', async () => {
     writeFileSync(file, '{ not json');
-    expect(loadNotes(root, id)).toEqual([]);
+    expect(await loadNotes(store, catalog, id)).toEqual([]);
     rmSync(file);
   });
 });

@@ -225,10 +225,125 @@ code {
 
 /* The name of the app and the choice of song. */
 .topbar__main {
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   gap: 16px;
   min-width: 0;
+}
+
+/* Signing in and out: at the right end of the first row, next to the controls of a song. */
+.topbar__account {
+  flex: none;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.topbar__account:empty {
+  display: none;
+}
+
+.account-signin {
+  height: 40px;
+  padding: 0 14px 0 12px;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* A picture, or the first letter of the name where Google gives none. */
+.avatar {
+  display: block;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--primary-soft);
+}
+
+.avatar--letter {
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+  color: #fff;
+  background: var(--brand);
+}
+
+/* The account button is the picture itself, in a ring that turns blue under the pointer. */
+.account .popover--compact .popover__button {
+  display: grid;
+  grid-template: 1fr / 1fr;
+  gap: 0;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.account .popover__value {
+  display: grid;
+  place-items: center;
+}
+
+.account .popover__chevron {
+  display: none;
+}
+
+@media (min-width: 721px) {
+  .account .popover__panel {
+    width: 280px;
+  }
+}
+
+.account-menu {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 14px 10px 8px;
+  text-align: center;
+}
+
+.account-menu .avatar {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 6px;
+  font-size: 22px;
+}
+
+.account-menu__name {
+  font-weight: 650;
+}
+
+.account-menu__email {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.account-menu .menu__note {
+  margin-top: 8px;
+  text-align: left;
+}
+
+.account-menu .button {
+  justify-self: stretch;
+  margin-top: 4px;
+}
+
+/* A short line under the heading of the home page, for a guest who could sign in. */
+.home__signin {
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.home__signin a {
+  font-weight: 600;
+  color: var(--primary-strong);
 }
 
 /* The controls of the song that is open; they move to a second row when the bar is narrow. */
@@ -390,6 +505,26 @@ code {
   text-align: center;
   padding-top: 96px;
   color: var(--ink-soft);
+}
+
+/* A message in the middle of the page, with what can be done about it. */
+.page--empty.notice {
+  justify-items: center;
+  align-content: start;
+  gap: 10px;
+}
+
+.notice h1 {
+  font-size: 22px;
+  color: var(--ink);
+}
+
+.notice svg {
+  color: var(--muted);
+}
+
+.notice .button {
+  margin-top: 8px;
 }
 
 /* Song header */
@@ -1941,6 +2076,31 @@ a.button {
 
   .brand__name {
     display: none;
+  }
+
+  /* On a phone the sign-in button is the G alone, and the picture a little smaller. */
+  .account-signin {
+    width: 40px;
+    padding: 0;
+  }
+
+  .account-signin span {
+    display: none;
+  }
+
+  .account .popover--compact .popover__button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .account .avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .account-menu .avatar {
+    width: 56px;
+    height: 56px;
   }
 
   /* Typing in a field smaller than 16px makes a phone zoom in. */

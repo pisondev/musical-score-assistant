@@ -490,7 +490,6 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
           target={noteTargetOpen}
           notes={notesAt(playerNotes.notes, noteTargetOpen)}
           home={playerNotes.home}
-          songId={songId}
           onSave={saveNote}
           onDelete={(id) => void playerNotes.remove(id)}
           onClose={() => setNoteTargetOpen(null)}

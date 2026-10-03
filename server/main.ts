@@ -1,0 +1,56 @@
+import { createServer } from 'node:http';
+import { join } from 'node:path';
+import { createApi } from './api.ts';
+import { readServerConfig } from './config.ts';
+import { FileStore, scopedStore, type ObjectStore } from './object-store.ts';
+import { R2Store } from './r2-store.ts';
+import { folderCatalog, storeCatalog, type SongCatalog } from './song-catalog.ts';
+import { serveStatic } from './static-files.ts';
+
+/**
+ * The production server: the API under `/api` and the built site for
+ * everything else. It sits behind nginx and Cloudflare, which handle HTTPS.
+ *
+ * With R2 configured, everything that is not part of a deploy lives in the
+ * bucket: private songs under `songs/`, notes under `notes/`, and the state of
+ * accounts under `users/`. Without it, the same is kept on disk below the data
+ * folder, and private songs are read from the songs folder.
+ */
+
+const config = readServerConfig();
+for (const warning of config.warnings) console.warn(`Warning: ${warning}`);
+
+let catalog: SongCatalog;
+let notes: ObjectStore;
+let state: ObjectStore;
+if (config.r2) {
+  const bucket = new R2Store(config.r2);
+  catalog = storeCatalog(config.songsDir, scopedStore(bucket, 'songs'));
+  notes = scopedStore(bucket, 'notes');
+  state = bucket;
+} else {
+  catalog = folderCatalog(config.songsDir);
+  notes = new FileStore(join(config.dataDir, 'notes'));
+  state = new FileStore(config.dataDir);
+}
+
+const api = createApi({ catalog, notes, state, google: config.google ?? undefined });
+
+const server = createServer((request, response) => {
+  response.setHeader('X-Content-Type-Options', 'nosniff');
+  response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.setHeader('X-Frame-Options', 'DENY');
+  api(request, response, () => serveStatic(config.staticDir, request, response));
+});
+
+server.listen(config.port, config.host, () => {
+  const storage = config.r2 ? `R2 bucket ${config.r2.bucket}` : `disk (${config.dataDir})`;
+  console.log(
+    `Musical Score Assistant listening on http://${config.host}:${config.port}, storage: ${storage}`,
+  );
+});
+
+// Docker stops a container with SIGTERM; finish the requests in flight, then leave.
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  process.on(signal, () => server.close(() => process.exit(0)));
+}

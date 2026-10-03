@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAccount } from '../account';
 import { readNotes, sortNotes, type MeasureNote } from '../core';
 
 /** Where the notes of a song are kept: in its folder, or in this browser only. */
@@ -41,28 +42,32 @@ async function request(songId: string, notes?: MeasureNote[]): Promise<MeasureNo
 }
 
 /**
- * The player's notes on the measures of one song. They are saved in the song
- * folder through the development server; when the app runs without it, they
- * stay in the browser, and move to the folder the next time the server is
- * there.
+ * The player's notes on the measures of one song. For the owner they are kept
+ * by the server: in the song folder on a development machine, with the account
+ * on the public site. A guest, or a build without a server, keeps them in the
+ * browser; they move to the server the next time the owner is there.
  */
 export function useMeasureNotes(songId: string) {
   const [notes, setNotes] = useState<MeasureNote[]>([]);
   const [home, setHome] = useState<NotesHome>('browser');
   // The latest list, for saves that follow each other quickly.
   const current = useRef<MeasureNote[]>([]);
+  // Only the owner may ask the server; until it is known who that is, nothing is loaded.
+  const known = useAccount((state) => state.status === 'ready');
+  const owner = useAccount((state) => state.account !== null);
 
   useEffect(() => {
+    if (!known) return;
     let cancelled = false;
     void (async () => {
       const local = readBrowser(songId);
-      const stored = await request(songId);
+      const stored = owner ? await request(songId) : null;
       if (cancelled) return;
       let list = stored ?? local;
       if (stored && local.length > 0) {
         // Notes written while the server was away join the file now.
-        const known = new Set(stored.map((note) => note.id));
-        list = [...stored, ...local.filter((note) => !known.has(note.id))];
+        const ids = new Set(stored.map((note) => note.id));
+        list = [...stored, ...local.filter((note) => !ids.has(note.id))];
         const merged = await request(songId, list);
         if (cancelled) return;
         if (merged) {
@@ -77,13 +82,13 @@ export function useMeasureNotes(songId: string) {
     return () => {
       cancelled = true;
     };
-  }, [songId]);
+  }, [songId, known, owner]);
 
   const replace = useCallback(
     async (next: MeasureNote[]) => {
       current.current = sortNotes(next);
       setNotes(current.current);
-      const saved = await request(songId, current.current);
+      const saved = owner ? await request(songId, current.current) : null;
       if (saved) {
         setHome('file');
       } else {
@@ -91,7 +96,7 @@ export function useMeasureNotes(songId: string) {
         setHome('browser');
       }
     },
-    [songId],
+    [songId, owner],
   );
 
   /** Adds a note, or replaces the one with the same id. */

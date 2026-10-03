@@ -1,9 +1,12 @@
 # Architecture
 
-The app is a static site. There is no database: songs are files in the repository, parsed in
-the browser. The one thing a page cannot do is write a file, so the development server offers
-a single endpoint that saves the player's notes into the song folders (see
-[`scripts/notes-plugin.ts`](#scriptsnotes-plugints)).
+The app is a site that runs in the browser, with a small server beside it. There is no
+database: songs are files in the repository, parsed in the browser, and what belongs to an
+account is kept by the server as JSON files. The server signs the owner in with Google, hands
+out the private songs, and keeps notes, favourites, recent songs, and settings (see
+[`server/`](#server-the-api-and-the-production-server)). The same API runs inside the
+development server, where this computer is the owner. How it is deployed is described in
+[deployment.md](deployment.md).
 
 ```
 songs/<song>/song.txt ──────────┐
@@ -183,6 +186,17 @@ Three small Zustand stores:
 - `history.ts` holds what the home page needs: when each song was last opened and with which
   left hand, and the favourites. It is persisted as well.
 
+Two more modules handle the account:
+
+- `account.ts` asks the server who is signed in (`/api/me`): an owner, a guest, or nobody at
+  all when the site is served without the server. It builds the sign-in address, which brings
+  the browser back to the same song.
+- `account-sync.ts` keeps the settings and the history with the account once the owner is
+  known. It fetches the stored document and merges it with the browser's (the account's
+  settings win, favourites are joined, of two visits to a song the later counts), then sends
+  the whole document back a moment after every change. The stores themselves know nothing of
+  it; the browser stays their first home.
+
 The selected arrangement and the transposition live in `SongPage`. The page is mounted afresh
 for every song, starting from the left hand remembered for it.
 
@@ -216,6 +230,7 @@ for every song, starting from the left hand remembered for it.
 | `TransportBar`     | Play, stop, hand mode, tempo, metronome, loop                             |
 | `SongHeader`       | Title, key, time signature, tempo; credits and legend on request          |
 | `IssueList`        | Errors and warnings for the song and the selected arrangement             |
+| `AccountButton`    | Sign in with Google, or the account with its sign-out, in the top bar     |
 
 Navigation uses the address: `#song=<id>` names a song, and an address without one shows the
 home page. Song cards are ordinary links, so the Back button, bookmarks, and opening a song in a
@@ -324,9 +339,13 @@ Scrollbars are styled once, for the page and every panel, from `--scroll-thumb`.
 
 ### `src/library.ts`
 
-Collects every `songs/**/song.txt` and its `arrangements.json` at build time through Vite's
-`import.meta.glob`, and summarizes each song for the home page. With the development server
-running, editing a song file reloads the page.
+Collects every `song.txt` and `arrangements.json` outside `songs/private` at build time
+through Vite's `import.meta.glob`, and summarizes each song for the home page. Private songs
+are left out of the build on purpose, because they may be copyrighted and the built site can be
+downloaded by anybody: `useLibrary` fetches them from `/api/private-songs` once the owner is
+known and adds them to the list. A song address that names a private song waits for them, or
+asks a guest to sign in. With the development server running, editing a song file reloads the
+page; for private songs the development API triggers the reload.
 
 ### `scripts/check-songs.ts`
 
@@ -336,26 +355,71 @@ quickest way to verify a transcription or an arrangement before opening the app.
 says whether the reading of a song (`analysis.md`) is written and whether the player has left
 notes on it, the two things to read before a song is arranged or revised.
 
-### `scripts/notes-plugin.ts`
+### `server/`: the API and the production server
 
-A Vite plugin for the development and the preview server. It answers `GET` and `PUT` on
-`/api/notes?song=<id>` by reading and writing `notes.json` next to the `song.txt` of that song,
-which is how notes written in the browser end up as files in the repository folder.
+Plain Node, without a framework or any package at run time; `npm run build:server` bundles it
+into `dist-server/main.js`.
 
-- The id must be the path of a folder that holds a `song.txt`, made of plain names; anything
-  else is answered with 404, so the endpoint cannot write outside the song folders.
-- Whatever arrives is passed through `readNotes`, which keeps well-formed notes only. The file
-  is written in the order of the piece and removed when the last note is deleted.
-- The build has no such endpoint. `useMeasureNotes` notices (the answer is not JSON), keeps the
-  notes in `localStorage`, and hands them to the endpoint the next time it is there.
+| File               | Responsibility                                                              |
+| ------------------ | --------------------------------------------------------------------------- |
+| `api.ts`           | The routes under `/api`, who may use them, and the sign-in pages            |
+| `google.ts`        | Sign-in with Google: authorization code flow with PKCE, checks on the token |
+| `session.ts`       | Signed cookies and the session they carry                                   |
+| `object-store.ts`  | Text objects by key: the interface, and a store in a folder on disk         |
+| `r2-store.ts`      | The same interface on the R2 bucket, through its S3 API                     |
+| `song-catalog.ts`  | Which songs exist; private songs from a folder or from the bucket           |
+| `notes-store.ts`   | `notes.json` per song, under `<song id>/notes.json` in a store              |
+| `private-songs.ts` | Reads the songs under `songs/private` on disk                               |
+| `user-state.ts`    | The state document of each account, under `users/<address>.json`            |
+| `static-files.ts`  | Serves the built site, with long caching for hashed assets                  |
+| `config.ts`        | Reads the settings of the server from its environment                       |
+| `main.ts`          | The production server: the API, then the site                               |
 
-The notes are not part of the bundle: the app asks for them when a song is opened, so writing
-one never reloads the page.
+`createApi` returns one handler that works in two settings:
 
-The plugin is loaded by `vite.config.ts`, so everything it imports becomes part of the
-configuration. That is why the file format lives in `notes-file.ts`, a module that depends on
-nothing but the types, apart from the rest of the engine, and why that chain of imports names
-its files with their extension.
+- **On the public server** an owner signs in with Google. The browser is sent to Google with a
+  random state, a nonce, and the hash of a PKCE verifier, all kept in a signed cookie for ten
+  minutes; the server trades the returned code for an ID token, checks issuer, audience,
+  expiry, nonce, and that the address is verified, and gives a session only to the addresses in
+  `ALLOWED_EMAILS`. A session is a signed cookie (`HttpOnly`, `Secure`, `SameSite=Lax`) that
+  names the account and lasts 30 days; there is no table of sessions. Every request checks the
+  address against the list again, so taking an address off it shuts it out at once. Changes
+  (`PUT`, `POST`) must come from the site's own origin.
+- **On a development machine** (`scripts/dev-api-plugin.ts`, mounted by `vite.config.ts` in the
+  development and the preview server) the computer is the owner and nobody signs in. Notes are
+  written next to `song.txt`, where they are read in the editor; the state goes to
+  `.local/data`.
+
+What is not code is kept in an `ObjectStore`: text by key, with `get`, `put`, `delete`, and
+`list`. The API takes three of them, or parts of one:
+
+| Setting             | Private songs (`SongCatalog`) | Notes                           | State                |
+| ------------------- | ----------------------------- | ------------------------------- | -------------------- |
+| Development machine | `songs/private` on disk       | `songs/<id>/notes.json`         | `.local/data/users/` |
+| Server with R2      | bucket, `songs/private/…`     | bucket, `notes/<id>/notes.json` | bucket, `users/`     |
+| Server without R2   | `songs/private` on its disk   | `data/notes/`                   | `data/users/`        |
+
+The catalog of the server lists the bucket on every request for the private songs and fetches
+a file again only when its tag has changed, so a song pushed with `npm run songs:push` appears
+without a deploy and without a restart. Public songs are always read from the songs folder,
+which every deploy replaces.
+
+Song ids and keys must be paths of plain names, so no request can read or write outside the
+songs, the notes, and the state. Whatever arrives as notes is passed through `readNotes`; a
+state document must be a small JSON object. Files on disk are written through a temporary file
+and a rename, so a reader never sees half of one. The R2 store signs its requests with
+`aws4fetch`, which esbuild bundles into the server.
+
+`npm run notes:pull` reads the notes from the bucket and brings them into the song folders
+here, and `npm run songs:push` sends the private songs the other way (`scripts/r2.ts` opens the
+bucket with the token in `.env.production`).
+`useMeasureNotes` asks the API only for an owner; a guest keeps notes in `localStorage`, and
+they join the account the next time its owner signs in on that browser.
+
+The dev plugin is loaded by `vite.config.ts`, so everything it imports becomes part of the
+configuration. That is why the file format of notes lives in `notes-file.ts`, a module that
+depends on nothing but the types, apart from the rest of the engine, and why that chain of
+imports names its files with their extension.
 
 ## Testing
 
@@ -375,6 +439,12 @@ its files with their extension.
   are written;
 - notes on measures: the place a note refers to, reading a file that was edited by hand, and
   writing, reading back, and removing the file in a temporary folder;
+- the server: signed values and cookies, every check of the Google sign-in (with a stand-in
+  for Google), who may use which route on a running API, the files it keeps, the built site it
+  serves without leaving its folder, and its configuration;
+- storage: objects on disk and in R2 (with a stand-in for its S3 API that pages its listings),
+  the signature of every request, and the catalog that reads private songs from the bucket and
+  fetches a file again only when it changed;
 - every committed song must load without errors or warnings.
 
 The audio engine and the React components are thin layers over the tested core and are verified

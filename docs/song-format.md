@@ -8,13 +8,13 @@ songs/
     song.txt             melody, printed chords, lyrics, and dynamics
     analysis.md          the reading of the song that its arrangements follow
     arrangements.json    left hands, right-hand parts, introductions, key lift, endings (optional)
-  private/               git-ignored: copyrighted songs stay on this machine
+  private/               git-ignored; on the public site shown to the signed-in owner only
     pkj-184-<title>/     hymnal code, number, and title in lower case
       song.txt
       analysis.md
       arrangements.json
       source.jpg         scan or photo of the printed score (never committed)
-      notes.json         the player's notes on measures, written by the app (never committed)
+      notes.json         the player's notes on measures (never committed; see below)
 ```
 
 The app and `npm run check` pick up every folder that contains a `song.txt`. The name of the
@@ -569,10 +569,12 @@ Lines of the text are quoted in their own language; the rest is written in Engli
 
 ## `notes.json`
 
-The player's notes on single measures. The app writes this file (through the development
-server) when a note is saved from the menu of a measure, and removes it when the last note is
-deleted. It is git-ignored in every song folder. Read it before revising a song: it says what
-the player wants corrected, changed, or kept.
+The player's notes on single measures. The development server writes this file when a note is
+saved from the menu of a measure, and removes it when the last note is deleted. Notes written on
+the public site are kept in the R2 bucket, in a file of the same format
+(`notes/<song id>/notes.json`), and `npm run notes:pull` copies them here. It is
+git-ignored in every song folder. Pull and read it before revising a song: it says what the
+player wants corrected, changed, or kept.
 
 ```json
 {

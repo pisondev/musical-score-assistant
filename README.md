@@ -4,6 +4,10 @@ A personal practice tool for pianists who read numbered notation (_not angka_). 
 a two-row numbered score, offers several left-hand arrangements to choose from, and plays them
 back so each idea can be heard before it is practised.
 
+It runs at <https://music-assistant.tierratie.com>. Anybody can open the public songs there; the
+owner signs in with Google to see the private songs and to keep notes, favourites, and settings
+with the account.
+
 ![The home page: the song that was practised last, and a card for every song](docs/images/home.png)
 
 ![The score of Amazing Grace with a written introduction and a gospel left hand during playback](docs/images/screenshot.png)
@@ -73,8 +77,12 @@ back so each idea can be heard before it is practised.
   two rounds the loop rests for a few beats and counts them on the sheet, so there is time to
   breathe and to find the start again.
 - **Notes on measures.** The same menu takes a note on a measure: a correction, something to
-  change, something that works. Notes are saved in the folder of the song together with the
-  arrangement that was on the sheet, so they are at hand when the song is revised.
+  change, something that works. Notes are saved together with the arrangement that was on the
+  sheet, so they are at hand when the song is revised.
+- **One account on every device.** On the public site the owner signs in with Google. Private
+  songs (copyrighted ones, kept out of the repository) appear only then, and notes,
+  favourites, recent songs, and settings follow the account from the laptop to the phone.
+  Guests see the public songs, and what they mark stays in their browser.
 - **Controls that stay out of the way.** Everything that decides what is on the sheet sits
   behind one **Options** button in the top bar: a short list of settings with their current
   values, each of which opens to show its choices.
@@ -96,7 +104,8 @@ back so each idea can be heard before it is practised.
   tempo, hands, length, file name, size), so nothing is downloaded with the wrong settings.
 
 The web app only displays and plays. Songs and arrangements are plain files in `songs/`, written
-outside the app (see [Adding a song](#adding-a-song)).
+outside the app (see [Adding a song](#adding-a-song)). A small server, part of this repository,
+signs the owner in and keeps what belongs to the account.
 
 ## Requirements
 
@@ -112,6 +121,10 @@ npm run dev
 
 Open the address that Vite prints (by default <http://localhost:5173>). `npm install` also points
 git at the versioned hooks in `.githooks/`.
+
+On this computer nobody signs in: the development server treats it as the owner, with every
+song, private ones included. Putting the app on the server is described in
+[docs/deployment.md](docs/deployment.md).
 
 ## Using the app
 
@@ -194,16 +207,17 @@ to its number, which opens the notes again, and the guide lists all notes of the
 **Your notes**. A note on a measure of the song also shows in the repeat; a note on an
 introduction or an ending belongs to that introduction or ending.
 
-With the app running from `npm run dev` (or `npm run preview`), notes are written to
-`songs/<song>/notes.json`, a git-ignored file that can be read in the editor whenever the song
-is worked on again. Opened from any other web server, the app keeps the notes in the browser
-and moves them into the folder the next time it runs from the development server.
+Where notes are kept depends on who writes them. The owner's notes on the public site are kept
+in the R2 bucket with the account; `npm run notes:pull` copies them into
+`songs/<song>/notes.json` on this computer, a git-ignored file that is read whenever the song is
+worked on again. With `npm run dev` notes go straight into that file. A guest's notes stay in
+the browser, and move to the account the next time its owner signs in on that browser.
 
 A dot next to a measure number means the guide explains that measure. Chords on a light-blue
 background differ from the printed score. The **Voice** button appears while the right hand
 accompanies; the row marked V is what the singers sing. The intro, the right-hand mode, the
 visible rows, the favourites, and the left hand last used for each song are remembered between
-visits, in this browser only.
+visits: with the account when the owner is signed in, otherwise in this browser.
 
 ## Adding a song
 
@@ -223,22 +237,31 @@ The formats are described in [docs/song-format.md](docs/song-format.md). With th
 server running, the app reloads as soon as a file changes.
 
 `songs/private/` is git-ignored. Keep copyrighted songs and scans of printed scores there so they
-never leave your machine. Note that `npm run build` bundles every song it finds, private ones
-included, so publish a build only if it contains songs you are allowed to share.
+stay out of the public repository. The built site contains only the songs outside
+`songs/private/`, and a deploy refuses a build that contains one. `npm run songs:push` sends the
+private songs to the R2 bucket, from which the server hands them to the signed-in owner only;
+they appear on the site at once, without a deploy. Scans never leave this computer.
+
+A push to `main` deploys: GitHub Actions checks the project and puts the new version on the
+server ([docs/deployment.md](docs/deployment.md)).
 
 ## Commands
 
-| Command             | Purpose                                                      |
-| ------------------- | ------------------------------------------------------------ |
-| `npm run dev`       | Start the development server                                 |
-| `npm run build`     | Type-check and build the static site into `dist/`            |
-| `npm run preview`   | Serve the built site locally                                 |
-| `npm run check`     | Check every song under `songs/`; add `-- --dump` for details |
-| `npm test`          | Run the unit tests                                           |
-| `npm run lint`      | Lint the source with ESLint                                  |
-| `npm run typecheck` | Type-check the project                                       |
-| `npm run format`    | Format the source with Prettier                              |
-| `npm run verify`    | Lint, type-check, test, check songs, and build               |
+| Command              | Purpose                                                                      |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `npm run dev`        | Start the development server                                                 |
+| `npm run build`      | Type-check, build the site into `dist/` and the server into `dist-server/`   |
+| `npm run preview`    | Serve the built site locally                                                 |
+| `npm start`          | Run the built server (see [docs/deployment.md](docs/deployment.md))          |
+| `npm run deploy`     | Build and put the app on the server (GitHub Actions does this on every push) |
+| `npm run songs:push` | Send the private songs to the R2 bucket; `-- --dry-run` only lists changes   |
+| `npm run notes:pull` | Copy the owner's notes from the R2 bucket into the song folders              |
+| `npm run check`      | Check every song under `songs/`; add `-- --dump` for details                 |
+| `npm test`           | Run the unit tests                                                           |
+| `npm run lint`       | Lint the source with ESLint                                                  |
+| `npm run typecheck`  | Type-check the project                                                       |
+| `npm run format`     | Format the source with Prettier                                              |
+| `npm run verify`     | Lint, type-check, test, check songs, and build                               |
 
 ## Project structure
 
@@ -248,9 +271,11 @@ src/core/           music engine: parsing, chords, arrangements, validation (no 
 src/audio/          playback engine built on Tone.js
 src/store/          player state, display settings, and what was opened
 src/ui/             React components: home page, song page, score, and controls
-scripts/            command-line tools, and the server plugin that saves notes
+server/             the server: Google sign-in, private songs, notes, account state
+scripts/            command-line tools, deploy, and the API inside the development server
+deploy/             the Docker Compose file and the receive script of the server
 tests/              unit tests
-docs/               format reference, architecture, roadmap
+docs/               format reference, architecture, deployment, roadmap
 public/samples/     piano samples
 ```
 

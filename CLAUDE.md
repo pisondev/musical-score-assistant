@@ -4,6 +4,7 @@ These rules apply to every change in this repository.
 
 1. **Commit and push only on explicit request.** Never run `git commit` or `git push` unless the
    user asks for it in so many words. Permission given for one task does not carry over to the next.
+   A push to `main` deploys the public site through GitHub Actions.
 2. **Verify before committing.** Run `npm run verify` (lint, type check, tests, song check, build)
    and make sure it passes. Do not commit code that has not been run.
 3. **Keep the documentation current.** Update `README.md`, `CHANGELOG.md`, and anything under
@@ -26,14 +27,17 @@ These rules apply to every change in this repository.
 
 ## Project guide
 
-A static web app that displays and plays numbered-notation piano scores with a choice of
-left-hand arrangements. The app never generates music: songs and arrangements are files under
-`songs/`, written in the editor.
+A web app that displays and plays numbered-notation piano scores with a choice of left-hand
+arrangements, public at https://music-assistant.tierratie.com. The app never generates music:
+songs and arrangements are files under `songs/`, written in the editor. A small server in
+`server/` signs the owner in with Google, hands out the private songs, and keeps notes and
+settings with the account.
 
 - Overview and commands: `README.md`
 - File formats (`song.txt`, `analysis.md`, `arrangements.json`, `notes.json`, left-hand
   notation): `docs/song-format.md`
 - Code structure: `docs/architecture.md`
+- The server, the domain, and deploying: `docs/deployment.md`
 - Purpose, workflow, and planned work: `docs/roadmap.md`
 - Adding a song from a photo of a score: the `new-song` skill in `.claude/skills/new-song/`
 
@@ -41,7 +45,12 @@ Things to keep in mind:
 
 - `src/core` must stay free of browser and React code; the checker and the tests run it in Node.
 - `songs/private/` is git-ignored. Copyrighted songs and scans of scores go there and are never
-  committed, because the repository is public.
+  committed, because the repository is public. They must never reach the built site either:
+  the library leaves them out of the bundle, and only the server hands them to the signed-in
+  owner. `npm run deploy` refuses a build that contains one.
+- **Deploy only when asked.** `npm run deploy`, `npm run songs:push`, and a push to `main`
+  change the public site; run them only when the user asks for it, like a commit. Changes on the
+  server itself (HestiaCP, nginx, Docker) and in the R2 bucket need the same explicit request.
 - **Fill the gaps.** This is the player's first criterion for every arrangement. Wherever the
   melody holds a long note or rests, the left hand must keep the beat audible and, from the
   intermediate level on, play a fill that suits the style and leads into the next phrase. A
@@ -70,7 +79,8 @@ Things to keep in mind:
 - **Every song names its hymnal.** The header carries `book:` (`KK`, `PKJ`, `KJ`, `KPJ`) and
   `number:`, and the folder is named `<book>-<number>-<title>` in lower case.
 - **Read the player's notes before revising a song.** The player writes notes on measures in
-  the app; they are stored in `notes.json` in the folder of the song (git-ignored, format in
+  the app, mostly on the public site, which keeps them in the R2 bucket. Run
+  `npm run notes:pull` first; it copies them into `notes.json` in the folder of the song (git-ignored, format in
   `docs/song-format.md`). Each note names the measure and the arrangement it was written
   about. Act on them, say which notes were handled and how, and leave the file itself to the
   player: do not delete or rewrite notes unless asked.

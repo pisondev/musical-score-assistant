@@ -303,8 +303,11 @@ Tell the user:
   phone) take a note on it, and that those
   notes are read when the song is revised.
 
-When the song is revised later, read `analysis.md` and `notes.json` in its folder first. Each
+When the song is revised later, run `npm run notes:pull` (the player writes notes on the
+public site, where the server keeps them), then read `analysis.md` and `notes.json` in its
+folder first. Each
 note names the measure and the arrangement it is about; when a note changes how the song is
 understood, correct the reading as well.
 
-Do not commit or push unless the user asks.
+Do not commit or push unless the user asks. A private song reaches the public site only with
+`npm run songs:push`; offer it in the hand-over and run it when the user agrees.

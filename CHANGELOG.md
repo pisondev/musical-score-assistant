@@ -9,6 +9,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The public site at https://music-assistant.tierratie.com, on the VPS beside the other
+  `tierratie.com` sites: a container behind nginx of HestiaCP and Cloudflare, with a Let's
+  Encrypt certificate. `npm run deploy` builds the app, checks that no private song is in the
+  built site, sends it over SSH, and switches to the new version; `docs/deployment.md`
+  describes the setup.
+- Sign-in with Google for the owner (authorization code flow with PKCE). Only the addresses in
+  `ALLOWED_EMAILS` get a session; anybody else is told that the account may not sign in.
+  Guests see the public songs.
+- What belongs to the owner follows the account: private songs appear after signing in, notes
+  are kept on the server, and favourites, recent songs, and settings travel between devices.
+  A button at the right of the top bar signs in and out.
+- A small server in `server/`, without run-time dependencies: the API (`/api/me`, sign-in,
+  private songs, notes, account state) and the built site. The development server mounts the
+  same API with this computer as the owner, so `npm run dev` works as before without signing
+  in.
+- `npm run notes:pull` copies the owner's notes from the R2 bucket into
+  `songs/<song>/notes.json`.
+- The Cloudflare R2 bucket `music-assistant` holds what is not code: private songs, notes, and
+  the state of accounts. The server reads and writes it through the S3 API; without R2 it keeps
+  the same on disk. `npm run songs:push` sends the private songs (only what changed, and
+  removes what is gone), and they appear on the site without a deploy.
+- Automatic deploys: after every push to `main` that passes the checks, GitHub Actions builds
+  the app and sends it to `bin/receive` on the server, which switches to it and goes back to the
+  previous version if the new one does not answer. Its SSH key may run that script and nothing
+  else.
+
 - Project tooling: Vite, React, TypeScript, Vitest, ESLint, and Prettier.
 - Repository rules in `CLAUDE.md`.
 - A `commit-msg` git hook that rejects commit messages carrying AI attribution.
@@ -206,6 +232,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   let go earlier only when the harmony moves to a chord it does not belong to.
 
 ### Changed
+
+- A deploy no longer carries private songs; it sends the code and the public songs only, and
+  `compose.yaml` and `.env` of the server are installed by `npm run deploy -- --setup-only`.
+- The account button shows the profile picture in a round frame, with a menu of name, address,
+  and Sign out; a guest gets a Google sign-in button, which is the G alone on a phone.
+
+- Private songs are no longer part of the built site. The library fetches them from the server
+  for the owner; a song address that names one asks a guest to sign in. Their badge reads
+  "Private" instead of "Local only".
+- The notes endpoint of the development server became part of the shared API
+  (`scripts/notes-plugin.ts` → `server/notes-store.ts` and `scripts/dev-api-plugin.ts`). A
+  guest's notes stay in the browser without asking the server.
+- `npm run build` also bundles the server into `dist-server/`.
+- The piano samples are requested with a version in the query string, so a changed set (or a
+  wrong copy kept by Cloudflare) is fetched afresh everywhere.
 
 - A new look in one family of colours instead of plain blue: ocean blue for what can be
   pressed, cyan for loops and tags, emerald for section names and hymnal badges, navy for the

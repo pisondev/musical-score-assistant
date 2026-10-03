@@ -1,0 +1,37 @@
+# The production server of Musical Score Assistant, as it runs on the VPS.
+# `npm run deploy` copies this file next to the folders it mounts; see docs/deployment.md.
+name: musical-score-assistant
+
+services:
+  app:
+    image: node:22-alpine
+    container_name: musical-score-assistant
+    restart: unless-stopped
+    # The owner of the folders on the server, so that notes and state can be written.
+    user: '${APP_UID}:${APP_GID}'
+    working_dir: /app
+    command: ['node', 'dist-server/main.js']
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: '3020'
+      STATIC_DIR: /app/dist
+      SONGS_DIR: /srv/songs
+      DATA_DIR: /srv/data
+    volumes:
+      - ./app:/app:ro
+      - ./songs:/srv/songs:ro
+      - ./data:/srv/data
+    # Reachable from nginx on the same machine only; nginx and Cloudflare face the internet.
+    ports:
+      - '127.0.0.1:3020:3020'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3020/api/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

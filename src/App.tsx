@@ -1,23 +1,87 @@
 import { useCallback, useEffect, useState, type MouseEvent } from 'react';
-import { library } from './library';
+import { signInUrl, useAccount } from './account';
+import { startAccountSync } from './account-sync';
+import { useLibrary } from './library';
+import { AccountButton } from './ui/AccountButton';
 import { Home } from './ui/Home';
-import { GridIcon, NoteIcon } from './ui/icons';
+import { GoogleIcon, GridIcon, LockIcon, NoteIcon } from './ui/icons';
 import { groupByHymnal, NO_BOOK, selectSongs } from './ui/library-view';
 import { songHref, songIdFromLocation } from './ui/navigation';
 import { SongPage } from './ui/SongPage';
 
 const APP_NAME = 'Musical Score Assistant';
 
-/** The song the address names, or null for the home page and for songs that do not exist. */
-function routeSongId(): string | null {
-  const requested = songIdFromLocation();
-  return library.some((entry) => entry.id === requested) ? requested : null;
+/**
+ * Finds out who is in front of the app once, at the start. The owner gets the
+ * private songs, and from then on what the app remembers travels with the
+ * account.
+ */
+function useAccountSetup(): void {
+  useEffect(() => {
+    let stopSync: (() => void) | null = null;
+    let cancelled = false;
+    void (async () => {
+      await useAccount.getState().check();
+      if (cancelled || !useAccount.getState().account) return;
+      void useLibrary.getState().loadPrivateSongs();
+      stopSync = startAccountSync();
+    })();
+    return () => {
+      cancelled = true;
+      stopSync?.();
+    };
+  }, []);
+}
+
+/** What the page shows for an address whose song is not (yet) in the library. */
+function MissingSong({ songId, onHome }: { songId: string; onHome: () => void }) {
+  const status = useAccount((state) => state.status);
+  const account = useAccount((state) => state.account);
+  const signIn = useAccount((state) => state.signIn);
+  const privateSongs = useLibrary((state) => state.privateSongs);
+  const waiting =
+    status === 'checking' ||
+    (account !== null && privateSongs !== 'loaded' && privateSongs !== 'unavailable');
+
+  if (waiting) return <main className="page page--empty">Loading the song…</main>;
+  if (songId.startsWith('private/') && !account && signIn === 'google') {
+    return (
+      <main className="page page--empty notice">
+        <LockIcon width={28} height={28} />
+        <h1>This song is private</h1>
+        <p>It is shown to its owner only. Sign in to open it.</p>
+        <a className="button button--solid" href={signInUrl()}>
+          <GoogleIcon width={17} height={17} />
+          Sign in with Google
+        </a>
+      </main>
+    );
+  }
+  return (
+    <main className="page page--empty notice">
+      <h1>This song is not in the library</h1>
+      <p>It may have been renamed or removed.</p>
+      <a
+        className="button"
+        href="./"
+        onClick={(event) => {
+          event.preventDefault();
+          onHome();
+        }}
+      >
+        <GridIcon width={16} height={16} />
+        All songs
+      </a>
+    </main>
+  );
 }
 
 /** The shell of the app: the top bar, and below it the home page or one song. */
 export function App() {
-  const [songId, setSongId] = useState(routeSongId);
-  const entry = library.find((candidate) => candidate.id === songId);
+  useAccountSetup();
+  const library = useLibrary((state) => state.entries);
+  const [songId, setSongId] = useState(songIdFromLocation);
+  const entry = songId ? library.find((candidate) => candidate.id === songId) : undefined;
   // The places in the top bar where a song page puts its controls and its progress bar.
   const [tools, setTools] = useState<HTMLElement | null>(null);
   const [progress, setProgress] = useState<HTMLElement | null>(null);
@@ -25,7 +89,7 @@ export function App() {
   // Links and the browser's Back button change the address; follow it.
   useEffect(() => {
     const sync = () => {
-      setSongId(routeSongId());
+      setSongId(songIdFromLocation());
       window.scrollTo({ top: 0 });
     };
     window.addEventListener('hashchange', sync);
@@ -53,15 +117,22 @@ export function App() {
     return () => observer.disconnect();
   }, [bar]);
 
-  const goHome = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
-    // Modified clicks (new tab, new window) are left to the browser.
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
-    event.preventDefault();
+  const showHome = useCallback(() => {
     // Drop the hash entirely instead of leaving a bare "#" in the address.
     window.history.pushState(null, '', window.location.pathname + window.location.search);
     setSongId(null);
     window.scrollTo({ top: 0 });
   }, []);
+
+  const goHome = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>) => {
+      // Modified clicks (new tab, new window) are left to the browser.
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      event.preventDefault();
+      showHome();
+    },
+    [showHome],
+  );
 
   // The song menu lists every hymnal that has songs, each in the order of its numbers.
   const byNumber = selectSongs(library, {
@@ -120,6 +191,9 @@ export function App() {
                 </label>
               </nav>
             )}
+            <div className="topbar__account">
+              <AccountButton />
+            </div>
           </div>
           {entry && <div ref={setTools} className="topbar__tools" />}
         </div>
@@ -128,6 +202,8 @@ export function App() {
 
       {entry ? (
         <SongPage key={entry.id} entry={entry} tools={tools} progress={progress} />
+      ) : songId ? (
+        <MissingSong songId={songId} onHome={showHome} />
       ) : (
         <Home />
       )}

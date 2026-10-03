@@ -1,4 +1,5 @@
 import { formatNoteName, hymnalName, midiToText, songReference, type Song } from '../core';
+import { PRIVATE_HINT } from '../library';
 import { LockIcon } from './icons';
 
 interface SongHeaderProps {
@@ -36,9 +37,9 @@ export function SongHeader({ song, isPrivate }: SongHeaderProps) {
         )}
         <h1>{meta.title}</h1>
         {isPrivate && (
-          <span className="badge badge--private" title="Stored in songs/private; never committed">
+          <span className="badge badge--private" title={PRIVATE_HINT}>
             <LockIcon width={12} height={12} />
-            Local only
+            Private
           </span>
         )}
       </div>
