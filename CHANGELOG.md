@@ -277,6 +277,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- On a phone the progress bar is the lower edge of the top bar, in place of its hairline. The
+  name of every part stands over its stretch, small and grey, and the part one is in is larger
+  and in colour; names that would run into it are left out until there is room. The zoom and
+  full screen moved out of the bar into a floating pill below it, and the title of the song
+  leaves room for it.
 - The state of accounts moved from `users/<address>.json` in the bucket into the database; an
   earlier document is moved over the first time its account asks for it. `ALLOWED_EMAILS` is
   now `OWNER_EMAILS`, in the server's `.env`, in `.env.production`, and in

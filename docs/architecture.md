@@ -207,43 +207,44 @@ for every song, starting from the left hand remembered for it.
 
 ### `src/ui`: the interface
 
-| Component          | Responsibility                                                            |
-| ------------------ | ------------------------------------------------------------------------- |
-| `App`              | The shell: top bar, and the home page or one song, chosen by the address  |
-| `Home`             | Totals, the song to continue, search, sorting, and the songs by hymnal    |
-| `library-view.ts`  | Which songs the home page lists, in what order, and under which hymnal    |
-| `SongPage`         | One song: builds the performance, feeds the engine, handles exports       |
-| `Toolbar`          | The controls of a song in the top bar: the Options list, notation, export |
-| `Popover`          | Panel behind a button: a drop-down, or a bottom sheet on a phone          |
-| `Sheet`            | The numbered score: introduction and song sections, systems, measures     |
-| `StaffSheet`       | The same score in staff notation, engraved by Verovio as SVG              |
-| `useVerovio`       | Loads the engraver on demand                                              |
-| `sheet-layout.ts`  | Measure widths, system breaks, and the scale that fits a phone            |
-| `ZoomControl`      | Smaller, the size in percent (a click resets it), larger                  |
-| `zoom.ts`          | The steps of the zoom, from 50 to 180 percent                             |
-| `useScreenShape`   | Whether the screen is a phone's, and whether it is held sideways          |
-| `FullScreenButton` | Gives the whole screen to the app, where the browser can                  |
-| `useWakeLock`      | Keeps the screen on while a song page is open                             |
-| `InstallCard`      | Offers to install the app, or explains the Share menu of an iPhone        |
-| `CommentDialog`    | A member's comments on one measure, where they stand, and the answers     |
-| `RepliesCard`      | Tells a member on the home page that the author has answered              |
-| `usePlayhead`      | Follows the audio clock and highlights the slots being played             |
-| `MeasureMenu`      | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
-| `useMeasureMenu`   | Opens that menu on a right click or a long press; a click selects         |
-| `MeasureOverlay`   | Something laid over one measure of either notation: corner or centre      |
-| `measure-box.ts`   | The box of a measure on the page, and the measure at a point              |
-| `Dialog`           | The frame of a dialog: centred, or a bottom sheet on a phone              |
-| `NoteDialog`       | The notes on one measure: read, write, change, delete                     |
-| `DownloadDialog`   | Lists what a file will hold and asks before it is made                    |
-| `song-export.ts`   | What a download holds right now: tracks, tempo, length, file name, sizes  |
-| `useMeasureNotes`  | Loads and saves the notes of a song: in its folder, or in the browser     |
-| `FormProgress`     | The progress bar under the controls: the part of the piece one is in      |
-| `view-position.ts` | Which measure the reader is at, from the scroll position; scrolling there |
-| `Guide`            | New patterns, practice tips, and per-measure explanations                 |
-| `TransportBar`     | Play, stop, hand mode, tempo, metronome, loop                             |
-| `SongHeader`       | Title, key, time signature, tempo; credits and legend on request          |
-| `IssueList`        | Errors and warnings for the song and the selected arrangement             |
-| `AccountButton`    | Sign in with Google, or the account with its sign-out, in the top bar     |
+| Component            | Responsibility                                                            |
+| -------------------- | ------------------------------------------------------------------------- |
+| `App`                | The shell: top bar, and the home page or one song, chosen by the address  |
+| `Home`               | Totals, the song to continue, search, sorting, and the songs by hymnal    |
+| `library-view.ts`    | Which songs the home page lists, in what order, and under which hymnal    |
+| `SongPage`           | One song: builds the performance, feeds the engine, handles exports       |
+| `Toolbar`            | The controls of a song in the top bar: the Options list, notation, export |
+| `Popover`            | Panel behind a button: a drop-down, or a bottom sheet on a phone          |
+| `Sheet`              | The numbered score: introduction and song sections, systems, measures     |
+| `StaffSheet`         | The same score in staff notation, engraved by Verovio as SVG              |
+| `useVerovio`         | Loads the engraver on demand                                              |
+| `sheet-layout.ts`    | Measure widths, system breaks, and the scale that fits a phone            |
+| `ZoomControl`        | Smaller, the size in percent (a click resets it), larger                  |
+| `zoom.ts`            | The steps of the zoom, from 50 to 180 percent                             |
+| `useScreenShape`     | Whether the screen is a phone's, and whether it is held sideways          |
+| `FullScreenButton`   | Gives the whole screen to the app, where the browser can                  |
+| `useWakeLock`        | Keeps the screen on while a song page is open                             |
+| `InstallCard`        | Offers to install the app, or explains the Share menu of an iPhone        |
+| `CommentDialog`      | A member's comments on one measure, where they stand, and the answers     |
+| `RepliesCard`        | Tells a member on the home page that the author has answered              |
+| `usePlayhead`        | Follows the audio clock and highlights the slots being played             |
+| `MeasureMenu`        | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
+| `useMeasureMenu`     | Opens that menu on a right click or a long press; a click selects         |
+| `MeasureOverlay`     | Something laid over one measure of either notation: corner or centre      |
+| `measure-box.ts`     | The box of a measure on the page, and the measure at a point              |
+| `Dialog`             | The frame of a dialog: centred, or a bottom sheet on a phone              |
+| `NoteDialog`         | The notes on one measure: read, write, change, delete                     |
+| `DownloadDialog`     | Lists what a file will hold and asks before it is made                    |
+| `song-export.ts`     | What a download holds right now: tracks, tempo, length, file name, sizes  |
+| `useMeasureNotes`    | Loads and saves the notes of a song: in its folder, or in the browser     |
+| `FormProgress`       | The progress bar under the controls: the part of the piece one is in      |
+| `progress-labels.ts` | On a phone, where the names of the parts go over the bar, and which fit   |
+| `view-position.ts`   | Which measure the reader is at, from the scroll position; scrolling there |
+| `Guide`              | New patterns, practice tips, and per-measure explanations                 |
+| `TransportBar`       | Play, stop, hand mode, tempo, metronome, loop                             |
+| `SongHeader`         | Title, key, time signature, tempo; credits and legend on request          |
+| `IssueList`          | Errors and warnings for the song and the selected arrangement             |
+| `AccountButton`      | Sign in with Google, or the account with its sign-out, in the top bar     |
 
 Navigation uses the address: `#song=<id>` names a song, and an address without one shows the
 home page. Song cards are ordinary links, so the Back button, bookmarks, and opening a song in a

@@ -94,14 +94,16 @@ The owner also sees the licensed hymnal songs and keeps notes for their revision
 - **Always know where you are.** A thin progress bar under the controls names the part of the
   piece that is in view or being played (_Intro_, _Song (verse)_, _Song (refrain)_,
   _Interlude_, _Ending_) and fills up to the right as the piece goes on. A click on a part of
-  the bar leads there.
+  the bar leads there. On a phone the bar is the lower edge of the top bar, with the name of
+  every part over its stretch.
 - **Made for the phone on the music stand.** In a narrow window the controls stay in reach in
   one row at the top, menus open as sheets from the bottom edge, and the playback bar shrinks
   to two short rows, so most of the screen is left for the score. The library shows the songs
   without totals and counts, with the filter and the sorting a full row each.
 - **A score as large as you want it.** A phone held upright fits about two measures per line
   and a phone held sideways four; a tablet or a computer fits as many as its width allows. `−`
-  and `+` at the right of the progress bar make the score smaller or larger on any screen (50
+  and `+` at the right of the progress bar (on a phone, floating below the top bar) make the
+  score smaller or larger on any screen (50
   to 180 percent), and a click on the percentage returns to the fitted size. Each device keeps
   its own size.
 - **An app on the phone and the tablet.** Installed from the browser, the app opens from the
@@ -163,6 +165,12 @@ names them (verse, refrain), the interlude and the repeat when **Repeat** is on,
 ending. The name on the left is the part you are in. While the music plays, the bar follows
 the playhead; otherwise it follows the page as it scrolls, and it is full when the end of the
 piece is reached. A click on a part scrolls there and moves the playhead to its first measure.
+
+On a phone the progress bar takes the place of the line under the top bar, and every part has
+its name over its stretch: small and grey, with the part you are in larger and in colour. Where
+two names would run into each other, the one nearer the current part stays and the other is
+left out until there is room. A tap on a name leads to its part. The zoom and full screen float
+in a small pill below the top bar, at the right.
 
 **Options** opens the settings of the score as a list. Each line shows the choice in effect,
 and a click on a line opens its choices; the list stays open, so several settings can be
