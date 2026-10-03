@@ -9,6 +9,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Accounts for everybody: anybody with a Google account can sign in and keep favourites,
+  recent songs, and settings on every device. The addresses in `OWNER_EMAILS` are owners, who
+  also see the licensed songs and keep notes; everybody else is a member, who chooses from the
+  public songs. `/api/me` names the role.
+- Deleting an account: the account menu asks, then removes the account and everything kept
+  for it (`DELETE /api/account`).
+- A privacy page (`privacy.html`), linked from the account menu and the home page, which says
+  what is kept, why, where, and how to remove it.
+- A SQLite database on the server (`data/app.db`, Node's built-in `node:sqlite`) for the users
+  and their state, with a copy in the R2 bucket every day; the last 14 copies are kept.
 - Categories: the library is divided into Christian, Classical, Traditional, and Other, and
   each into subcategories. Every hymnal is a subcategory of Christian, and songs from no
   hymnal are listed there under Hymns; classical songs are listed by composer. The header of a
@@ -257,6 +267,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The state of accounts moved from `users/<address>.json` in the bucket into the database; an
+  earlier document is moved over the first time its account asks for it. `ALLOWED_EMAILS` is
+  now `OWNER_EMAILS`; the earlier name is still read, with a warning.
+- `npm run dev`, `npm run preview`, and `npm start` run through `scripts/node-with-sqlite.mjs`,
+  which gives Node 22.5 to 22.12 the flag for `node:sqlite`.
 - The library loads a song only when it is opened. The home page works from an index of the
   songs (header, category, counts, names of the left hands): the public songs are indexed at
   build time and each becomes a chunk of its own, and the server sends the owner the index of

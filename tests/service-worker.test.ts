@@ -15,6 +15,8 @@ describe('the service worker', () => {
   it('opens the app from the network first, whatever the address', () => {
     expect(strategyFor('GET', at('/'), scope, true)).toBe('page');
     expect(strategyFor('GET', at('/index.html?x=1'), scope, true)).toBe('page');
+    // Another page of the site is not the app, and must not replace its copy.
+    expect(strategyFor('GET', at('/privacy.html'), scope, true)).toBe('shell');
   });
 
   it('keeps files with a hash and samples with a version', () => {

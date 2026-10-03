@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { AppDatabase } from './database.ts';
 import { finishLogin, startLogin, type GoogleClient, type LoginAttempt } from './google.ts';
 import { loadNotes, storeNotes } from './notes-store.ts';
 import type { ObjectStore } from './object-store.ts';
@@ -12,25 +13,28 @@ import {
   type Account,
 } from './session.ts';
 import type { SongCatalog } from './song-catalog.ts';
-import { loadState, storeState } from './user-state.ts';
+import { deleteAccount, loadState, storeState } from './user-state.ts';
 
 /**
  * The API of the app, under `/api`. The same handler runs inside the
  * development server, where this computer is the owner and nobody signs in,
- * and in the production server, where the owner signs in with Google.
+ * and in the production server, where anybody signs in with Google.
  *
- *   GET  /api/health                  is the server up
- *   GET  /api/me                      who is signed in, and how one signs in
- *   GET  /api/auth/google/start       sends the browser to Google
- *   GET  /api/auth/google/callback    where Google sends it back
- *   POST /api/auth/logout             ends the session
- *   GET  /api/private-songs           the songs under songs/private
- *   GET  /api/notes?song=<id>         the notes on one song
- *   PUT  /api/notes?song=<id>         replaces them
- *   GET  /api/state                   favourites, history, and settings of the account
- *   PUT  /api/state                   replaces them
+ *   GET    /api/health                  is the server up
+ *   GET    /api/me                      who is signed in, and how one signs in
+ *   GET    /api/auth/google/start       sends the browser to Google
+ *   GET    /api/auth/google/callback    where Google sends it back
+ *   POST   /api/auth/logout             ends the session
+ *   GET    /api/state                   favourites, history, and settings of the account
+ *   PUT    /api/state                   replaces them
+ *   DELETE /api/account                 removes the account and everything kept for it
+ *   GET    /api/private-songs           the index of the licensed songs under songs/private
+ *   GET    /api/private-songs?id=<id>   one of them, whole
+ *   GET    /api/notes?song=<id>         the owner's notes on one song
+ *   PUT    /api/notes?song=<id>         replaces them
  *
- * Everything but the first five needs an owner.
+ * The first five are open to everybody; the state and the account need someone signed in; the
+ * licensed songs and the notes need an owner.
  */
 
 /** Signing in with Google, on the public server. */
@@ -38,8 +42,11 @@ export interface GoogleSignIn {
   client: GoogleClient;
   /** Signs the cookies; at least 32 characters. */
   sessionSecret: string;
-  /** Addresses that may sign in, in lower case. */
-  allowedEmails: string[];
+  /**
+   * The addresses of the owners, in lower case: they see the licensed songs and keep notes.
+   * Anybody else with a verified Google address signs in as a member.
+   */
+  ownerEmails: string[];
   /** The address of the site, e.g. "https://music-assistant.tierratie.com". */
   origin: string;
 }
@@ -49,9 +56,11 @@ export interface ApiOptions {
   catalog: SongCatalog;
   /** Where notes are kept, under `<song id>/notes.json`. */
   notes: ObjectStore;
-  /** Where the state of each account is kept, under `users/<address>.json`. */
-  state: ObjectStore;
-  /** How owners sign in. Without it nobody can, unless `localOwner` is set. */
+  /** The users and the state of each account. */
+  database: AppDatabase;
+  /** Where the state of accounts was kept before the database, to move it over; optional. */
+  earlierState?: ObjectStore;
+  /** How people sign in. Without it nobody can, unless `localOwner` is set. */
   google?: GoogleSignIn;
   /** The owner on a development machine, who never signs in. */
   localOwner?: Account;
@@ -59,10 +68,18 @@ export interface ApiOptions {
   fetch?: typeof fetch;
 }
 
+/** An owner sees the licensed songs and keeps notes; a member chooses from the public songs. */
+export type Role = 'owner' | 'member';
+
+/** Someone signed in, with their role. */
+export interface SignedIn extends Account {
+  role: Role;
+}
+
 /** What the browser learns about the person in front of it. */
 export interface MeResponse {
-  /** The owner who is signed in, or null for a guest. */
-  account: Account | null;
+  /** Whoever is signed in, or null for a guest. */
+  account: SignedIn | null;
   /** "google" where one signs in with Google, "local" on a development machine, "none" otherwise. */
   signIn: 'google' | 'local' | 'none';
 }
@@ -151,27 +168,36 @@ function readBody(request: IncomingMessage): Promise<unknown> {
 
 /** Creates the handler. Requests outside `/api/` are passed on to `next`. */
 export function createApi(options: ApiOptions): ApiHandler {
-  const { catalog, google, localOwner } = options;
-  const allowed = new Set(google?.allowedEmails.map((email) => email.toLowerCase()) ?? []);
+  const { catalog, database, google, localOwner } = options;
+  const earlierState = options.earlierState ?? null;
+  const owners = new Set(google?.ownerEmails.map((email) => email.toLowerCase()) ?? []);
   const secure = google ? google.origin.startsWith('https://') : false;
 
-  /** The owner behind a request, or null for a guest. */
-  function ownerOf(request: IncomingMessage): Account | null {
-    if (localOwner) return localOwner;
+  /** Whoever is signed in behind a request, or null for a guest. */
+  function userOf(request: IncomingMessage): SignedIn | null {
+    if (localOwner) return { ...localOwner, role: 'owner' };
     if (!google) return null;
     const session = readSession(
       parseCookies(request.headers.cookie)[SESSION_COOKIE],
       google.sessionSecret,
     );
-    // An address taken off the list loses access at once, whatever its cookie says.
-    if (!session || !allowed.has(session.email.toLowerCase())) return null;
-    return { email: session.email, name: session.name, picture: session.picture };
+    if (!session) return null;
+    // The role is read from the list on every request, so a change to it applies at once.
+    const role: Role = owners.has(session.email.toLowerCase()) ? 'owner' : 'member';
+    return { email: session.email, name: session.name, picture: session.picture, role };
   }
 
-  function requireOwner(request: IncomingMessage): Account {
-    const owner = ownerOf(request);
-    if (!owner) throw new HttpError(401, 'Sign in to do this.');
-    return owner;
+  function requireUser(request: IncomingMessage): SignedIn {
+    const user = userOf(request);
+    if (!user) throw new HttpError(401, 'Sign in to do this.');
+    database.seeUser(user);
+    return user;
+  }
+
+  function requireOwner(request: IncomingMessage): SignedIn {
+    const user = requireUser(request);
+    if (user.role !== 'owner') throw new HttpError(403, 'Only the owner may do this.');
+    return user;
   }
 
   /** Changes come from the site itself, never from a page on another site. */
@@ -229,14 +255,7 @@ export function createApi(options: ApiOptions): ApiHandler {
       sendProblemPage(response, 502, (error as Error).message);
       return;
     }
-    if (!allowed.has(account.email)) {
-      sendProblemPage(
-        response,
-        403,
-        `The Google account ${account.email} may not sign in to this site.`,
-      );
-      return;
-    }
+    database.recordUser(account);
 
     const expires = Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000;
     const session = serializeCookie(
@@ -256,8 +275,10 @@ export function createApi(options: ApiOptions): ApiHandler {
       return;
     }
     if (path === '/api/me' && method === 'GET') {
+      const account = userOf(request);
+      if (account) database.seeUser(account);
       const body: MeResponse = {
-        account: ownerOf(request),
+        account,
         signIn: localOwner ? 'local' : google ? 'google' : 'none',
       };
       sendJson(response, 200, body);
@@ -309,20 +330,30 @@ export function createApi(options: ApiOptions): ApiHandler {
     }
 
     if (path === '/api/state') {
-      const owner = requireOwner(request);
+      const user = requireUser(request);
       if (method === 'GET') {
-        sendJson(response, 200, { state: await loadState(options.state, owner.email) });
+        sendJson(response, 200, { state: await loadState(database, earlierState, user.email) });
         return;
       }
       if (method === 'PUT') {
         requireSameOrigin(request);
         const body = await readBody(request);
-        if (!(await storeState(options.state, owner.email, body))) {
+        if (!storeState(database, user.email, body)) {
           throw new HttpError(400, 'The state must be a small JSON object.');
         }
         sendJson(response, 200, { ok: true });
         return;
       }
+    }
+
+    // Everything kept for the account goes, and the session with it.
+    if (path === '/api/account' && method === 'DELETE') {
+      const user = requireUser(request);
+      requireSameOrigin(request);
+      await deleteAccount(database, earlierState, user.email);
+      response.setHeader('Set-Cookie', serializeCookie(SESSION_COOKIE, '', { maxAge: 0, secure }));
+      sendJson(response, 200, { ok: true });
+      return;
     }
 
     throw new HttpError(404, 'There is no such endpoint.');

@@ -28,10 +28,15 @@ export function readServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
   const warnings: string[] = [];
   const port = Number(env.PORT ?? 3020);
   const origin = (env.PUBLIC_ORIGIN ?? `http://localhost:${port}`).replace(/\/+$/, '');
-  const allowedEmails = (env.ALLOWED_EMAILS ?? '')
+  // OWNER_EMAILS names the owners; ALLOWED_EMAILS is its earlier name, from when only the
+  // owner could sign in.
+  const ownerEmails = (env.OWNER_EMAILS ?? env.ALLOWED_EMAILS ?? '')
     .split(',')
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
+  if (env.OWNER_EMAILS === undefined && env.ALLOWED_EMAILS !== undefined) {
+    warnings.push('ALLOWED_EMAILS is read as OWNER_EMAILS; rename it in .env.');
+  }
 
   let sessionSecret = env.SESSION_SECRET ?? '';
   if (sessionSecret.length < MIN_SECRET_LENGTH) {
@@ -50,10 +55,12 @@ export function readServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
         redirectUri: `${origin}/api/auth/google/callback`,
       },
       sessionSecret,
-      allowedEmails,
+      ownerEmails,
       origin,
     };
-    if (allowedEmails.length === 0) warnings.push('ALLOWED_EMAILS is empty; nobody can sign in.');
+    if (ownerEmails.length === 0) {
+      warnings.push('OWNER_EMAILS is empty; nobody sees the licensed songs or keeps notes.');
+    }
   } else {
     warnings.push('GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is missing; signing in is off.');
   }
@@ -61,7 +68,7 @@ export function readServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
   const r2 = r2ConfigFrom(env);
   if (!r2) {
     warnings.push(
-      'R2 is not configured (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET); private songs, notes, and account state are kept on disk.',
+      'R2 is not configured (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET); private songs and notes are kept on disk, and the database is not copied anywhere.',
     );
   }
 

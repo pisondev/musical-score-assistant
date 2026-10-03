@@ -1,3 +1,4 @@
+import { isBuiltin } from 'node:module';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 import { devApiPlugin } from './scripts/dev-api-plugin.ts';
@@ -19,6 +20,11 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts'],
+    // The tests of the server open SQLite databases; Node before 22.13 needs a flag for that.
+    execArgv: [
+      ...(isBuiltin('node:sqlite') ? [] : ['--experimental-sqlite']),
+      '--disable-warning=ExperimentalWarning',
+    ],
     passWithNoTests: true,
   },
 });

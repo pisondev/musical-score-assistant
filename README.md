@@ -4,9 +4,9 @@ A personal practice tool for pianists who read numbered notation (_not angka_). 
 a two-row numbered score, offers several left-hand arrangements to choose from, and plays them
 back so each idea can be heard before it is practised.
 
-It runs at <https://music-assistant.tierratie.com>. Anybody can open the public songs there; the
-owner signs in with Google to see the private songs and to keep notes, favourites, and settings
-with the account.
+It runs at <https://music-assistant.tierratie.com>. Anybody can open the public songs there, and
+anybody can sign in with Google to keep favourites, recent songs, and settings with an account.
+The owner also sees the licensed hymnal songs and keeps notes for their revision.
 
 ![The home page: the song that was practised last, and a card for every song](docs/images/home.png)
 
@@ -82,10 +82,12 @@ with the account.
 - **Notes on measures.** The same menu takes a note on a measure: a correction, something to
   change, something that works. Notes are saved together with the arrangement that was on the
   sheet, so they are at hand when the song is revised.
-- **One account on every device.** On the public site the owner signs in with Google. Private
-  songs (copyrighted ones, kept out of the repository) appear only then, and notes,
+- **One account on every device.** On the public site anybody signs in with Google, and
   favourites, recent songs, and settings follow the account from the laptop to the phone.
-  Guests see the public songs, and what they mark stays in their browser.
+  Users choose songs; they do not add them. The owner's account also holds the licensed songs
+  (kept out of the repository) and the notes. Guests see the public songs, and what they mark
+  stays in their browser. The account menu leads to the privacy page and deletes the account
+  with everything kept for it.
 - **Controls that stay out of the way.** Everything that decides what is on the sheet sits
   behind one **Options** button in the top bar: a short list of settings with their current
   values, each of which opens to show its choices.
@@ -119,11 +121,12 @@ with the account.
 
 The web app only displays and plays. Songs and arrangements are plain files in `songs/`, written
 outside the app (see [Adding a song](#adding-a-song)). A small server, part of this repository,
-signs the owner in and keeps what belongs to the account.
+signs people in and keeps what belongs to their accounts in a SQLite database.
 
 ## Requirements
 
-- Node.js 22 or newer
+- Node.js 22.5 or newer (22.13 or newer has the SQLite module of the server without a flag;
+  the npm scripts add the flag for older versions)
 - npm 10 or newer
 
 ## Getting started
@@ -228,14 +231,14 @@ introduction or an ending belongs to that introduction or ending.
 Where notes are kept depends on who writes them. The owner's notes on the public site are kept
 in the R2 bucket with the account; `npm run notes:pull` copies them into
 `songs/<song>/notes.json` on this computer, a git-ignored file that is read whenever the song is
-worked on again. With `npm run dev` notes go straight into that file. A guest's notes stay in
-the browser, and move to the account the next time its owner signs in on that browser.
+worked on again. With `npm run dev` notes go straight into that file. Anybody else's notes stay
+in the browser.
 
 A dot next to a measure number means the guide explains that measure. Chords on a light-blue
 background differ from the printed score. The **Voice** button appears while the right hand
 accompanies; the row marked V is what the singers sing. The intro, the right-hand mode, the
 visible rows, the favourites, and the left hand last used for each song are remembered between
-visits: with the account when the owner is signed in, otherwise in this browser.
+visits: with the account when someone is signed in, otherwise in this browser.
 
 ## Installing the app
 
@@ -317,7 +320,7 @@ src/audio/          playback engine built on Tone.js
 src/store/          player state, display settings, and what was opened
 src/ui/             React components: home page, song page, score, and controls
 src/service-worker/ the service worker of the installed app: what it keeps and when
-server/             the server: Google sign-in, private songs, notes, account state
+server/             the server: Google sign-in, roles, the database, private songs, notes
 scripts/            command-line tools, deploy, and the API inside the development server
 deploy/             the Docker Compose file and the receive script of the server
 tests/              unit tests

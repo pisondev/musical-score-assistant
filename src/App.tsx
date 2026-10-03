@@ -13,8 +13,8 @@ const APP_NAME = 'Musical Score Assistant';
 
 /**
  * Finds out who is in front of the app once, at the start. The owner gets the
- * private songs, and from then on what the app remembers travels with the
- * account.
+ * licensed songs, and for anybody signed in what the app remembers travels
+ * with the account from then on.
  */
 function useAccountSetup(): void {
   useEffect(() => {
@@ -22,8 +22,9 @@ function useAccountSetup(): void {
     let cancelled = false;
     void (async () => {
       await useAccount.getState().check();
-      if (cancelled || !useAccount.getState().account) return;
-      void useLibrary.getState().loadPrivateSongs();
+      const account = useAccount.getState().account;
+      if (cancelled || !account) return;
+      if (account.role === 'owner') void useLibrary.getState().loadPrivateSongs();
       stopSync = startAccountSync();
     })();
     return () => {
@@ -41,7 +42,7 @@ function MissingSong({ songId, onHome }: { songId: string; onHome: () => void })
   const privateSongs = useLibrary((state) => state.privateSongs);
   const waiting =
     status === 'checking' ||
-    (account !== null && privateSongs !== 'loaded' && privateSongs !== 'unavailable');
+    (account?.role === 'owner' && privateSongs !== 'loaded' && privateSongs !== 'unavailable');
 
   if (waiting) return <main className="page page--empty">Loading the song…</main>;
   if (songId.startsWith('private/') && !account && signIn === 'google') {
@@ -49,7 +50,7 @@ function MissingSong({ songId, onHome }: { songId: string; onHome: () => void })
       <main className="page page--empty notice">
         <LockIcon width={28} height={28} />
         <h1>This song is private</h1>
-        <p>It is shown to its owner only. Sign in to open it.</p>
+        <p>It is licensed and shown to the owner only. The owner can sign in to open it.</p>
         <a className="button button--solid" href={signInUrl()}>
           <GoogleIcon width={17} height={17} />
           Sign in with Google

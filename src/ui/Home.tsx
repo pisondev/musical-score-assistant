@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { formatNoteName, hymnalName, songReference } from '../core';
-import { signInUrl, useAccount } from '../account';
+import { PRIVACY_URL, signInUrl, useAccount } from '../account';
 import { PRIVATE_HINT, useLibrary, type SongEntry } from '../library';
 import { useHistory } from '../store/history';
 import { cx } from './classnames';
@@ -201,8 +201,8 @@ export function Home() {
           </p>
           {signIn === 'google' && !account && (
             <p className="home__signin">
-              Your own songs, notes, and favourites appear after you{' '}
-              <a href={signInUrl()}>sign in with Google</a>.
+              <a href={signInUrl()}>Sign in with Google</a> to keep your favourites, recent songs,
+              and settings on every device.
             </p>
           )}
         </div>
@@ -381,6 +381,12 @@ export function Home() {
             </p>
           </li>
         </ul>
+      )}
+
+      {signIn === 'google' && (
+        <footer className="home__foot">
+          <a href={PRIVACY_URL}>Privacy</a>
+        </footer>
       )}
     </main>
   );

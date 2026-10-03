@@ -5,9 +5,9 @@
   "description": "Numbered-notation score viewer and player with left-hand arrangement suggestions for piano.",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/node-with-sqlite.mjs node_modules/vite/bin/vite.js",
     "build": "npm run typecheck && vite build && npm run build:server",
-    "preview": "vite preview",
+    "preview": "node scripts/node-with-sqlite.mjs node_modules/vite/bin/vite.js preview",
     "typecheck": "tsc --noEmit && tsc --noEmit -p src/service-worker",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -18,7 +18,7 @@
     "verify": "npm run lint && npm run typecheck && npm run test && npm run check && npm run build",
     "prepare": "node scripts/install-git-hooks.mjs",
     "build:server": "esbuild server/main.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist-server/main.js --log-level=warning",
-    "start": "node dist-server/main.js",
+    "start": "node scripts/node-with-sqlite.mjs dist-server/main.js",
     "deploy": "tsx scripts/deploy.ts",
     "notes:pull": "tsx scripts/pull-notes.ts",
     "songs:push": "tsx scripts/push-songs.ts"

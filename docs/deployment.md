@@ -37,20 +37,37 @@ On the server, everything lives in `~/projects/musical-score-assistant/` of the 
 | `app/dist`, `app/dist-server`    | The built site and the bundled server                        | yes                  |
 | `songs/`                         | The public song folders                                      | yes                  |
 | `app.previous`, `songs.previous` | The version before the last deploy                           | yes                  |
-| `data/`                          | Notes and state, only while R2 is not configured             | no                   |
+| `data/app.db`                    | The users and their state (SQLite, with `-wal` and `-shm`)   | no                   |
+| `data/notes/`                    | The owner's notes, only while R2 is not configured           | no                   |
 
 In the R2 bucket:
 
-| Key                                    | Content                                | Written by           |
-| -------------------------------------- | -------------------------------------- | -------------------- |
-| `songs/private/<id>/song.txt`          | A private song                         | `npm run songs:push` |
-| `songs/private/<id>/arrangements.json` | Its arrangements                       | `npm run songs:push` |
-| `notes/<song id>/notes.json`           | The player's notes on one song         | the app              |
-| `users/<address>.json`                 | Favourites, recent songs, and settings | the app              |
+| Key                                    | Content                              | Written by           |
+| -------------------------------------- | ------------------------------------ | -------------------- |
+| `songs/private/<id>/song.txt`          | A private song                       | `npm run songs:push` |
+| `songs/private/<id>/arrangements.json` | Its arrangements                     | `npm run songs:push` |
+| `notes/<song id>/notes.json`           | The owner's notes on one song        | the app              |
+| `backups/app-<date>.db`                | A copy of `data/app.db`, one per day | the server           |
+| `users/<address>.json`                 | State from before the database       | earlier versions     |
 
 Scans (`source.*`), readings (`analysis.md`), exported files, and local `notes.json` files never
 leave this computer. Private songs never reach GitHub or the built site; the server reads them
 from R2 and hands them to the signed-in owner only.
+
+The users are kept in `data/app.db`, a SQLite database (Node's built-in `node:sqlite`), which
+nothing but the server writes. Once a day the server copies it to `backups/` in the bucket and
+keeps the last 14 copies. A `users/<address>.json` from before the database is moved into it the
+first time its account asks for its state, and removed when the account is deleted; once every
+account has signed in again, the leftovers can be deleted from the bucket.
+
+To restore a copy, stop the container, put the copy in place of `data/app.db` (removing
+`app.db-wal` and `app.db-shm`), and start it again:
+
+```bash
+ssh vps-hestia 'cd ~/projects/musical-score-assistant && docker compose stop \
+  && rm -f data/app.db-wal data/app.db-shm && cp /path/to/app-<date>.db data/app.db \
+  && docker compose up -d'
+```
 
 The container runs the official `node:22-alpine` image with the folders mounted; there is no
 image of our own to build, and the server needs no npm packages at run time.
@@ -60,7 +77,7 @@ image of our own to build, and the server needs no npm packages at run time.
 | Variable               | Meaning                                                                  |
 | ---------------------- | ------------------------------------------------------------------------ |
 | `PUBLIC_ORIGIN`        | `https://music-assistant.tierratie.com`; the base of the Google redirect |
-| `ALLOWED_EMAILS`       | Comma-separated Google addresses that may sign in                        |
+| `OWNER_EMAILS`         | Comma-separated Google addresses of the owners (see Signing in)          |
 | `GOOGLE_CLIENT_ID`     | The OAuth client (type "Web application") in Google Cloud Console        |
 | `GOOGLE_CLIENT_SECRET` | Its secret                                                               |
 | `R2_ACCOUNT_ID`        | The Cloudflare account that owns the bucket                              |
@@ -70,8 +87,9 @@ image of our own to build, and the server needs no npm packages at run time.
 | `SESSION_SECRET`       | Signs the session cookies; changing it signs everybody out               |
 | `APP_UID`, `APP_GID`   | The user the container runs as                                           |
 
-Without all four `R2_` values the server keeps notes and state in `data/` and reads private
-songs from `songs/private` on its disk, which deploys no longer fill.
+Without all four `R2_` values the server keeps notes in `data/`, makes no daily copies, and
+reads private songs from `songs/private` on its disk, which deploys no longer fill.
+`ALLOWED_EMAILS`, the earlier name of `OWNER_EMAILS`, is still read, with a warning in the log.
 
 `npm run deploy -- --setup-only` adds whatever is missing to this file from `.env.production`
 on this computer (git-ignored; the same names) and a freshly generated session secret, and
@@ -184,24 +202,33 @@ plain HTTP, which Cloudflare turns into a loop.
 ## Signing in
 
 Sign-in uses Google's authorization code flow with PKCE. The OAuth client lives in the Google
-Cloud project "Musical Score Assistant" of `pison.gm.dev@gmail.com`, audience _External_, in
-_Testing_ (test users: the allowed addresses). Its settings:
+Cloud project "Musical Score Assistant" of `pison.gm.dev@gmail.com`, audience _External_. Its
+settings:
 
 | Field                         | Values                                                                                                             |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Authorized JavaScript origins | `https://music-assistant.tierratie.com`, `http://localhost:5173`                                                   |
 | Authorized redirect URIs      | `https://music-assistant.tierratie.com/api/auth/google/callback`, `http://localhost:5173/api/auth/google/callback` |
 
-Only the addresses in `ALLOWED_EMAILS` get a session; anybody else sees a page that says the
-account may not sign in. A session is a signed cookie that lasts 30 days. Taking an address off
-the list shuts it out at once. To let another person in, add the address to `ALLOWED_EMAILS`
-and, while the client is in _Testing_, to its test users.
+Anybody with a verified Google address can sign in. The addresses in `OWNER_EMAILS` are
+owners: they see the licensed songs and keep notes. Everybody else is a member, who chooses
+from the public songs and keeps favourites, recent songs, and settings. The role is read from
+the list on every request, so a change to it applies at once. A session is a signed cookie that
+lasts 30 days; deleting the account in the app ends it.
+
+For anybody but test users to sign in, the consent screen of the client has to be published
+(Google Cloud Console → Google Auth Platform → Audience → _Publish app_, from _Testing_ to _In
+production_). The app asks only for `openid`, `email`, and `profile`, which need no review by
+Google. The branding page of the consent screen takes the home page
+(`https://music-assistant.tierratie.com`) and the privacy policy
+(`https://music-assistant.tierratie.com/privacy.html`, from `public/privacy.html`).
 
 The localhost entries let the production server be tried on this computer:
 
 ```bash
 npm run build
-PORT=5173 PUBLIC_ORIGIN=http://localhost:5173 node --env-file=.env.production dist-server/main.js
+PORT=5173 PUBLIC_ORIGIN=http://localhost:5173 node --env-file=.env.production \
+  scripts/node-with-sqlite.mjs dist-server/main.js
 ```
 
 `npm run dev` needs none of this: the development server treats this computer as the owner.

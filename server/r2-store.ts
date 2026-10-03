@@ -97,6 +97,20 @@ export class R2Store implements ObjectStore {
     if (!response.ok) await this.fail(response, `write ${key}`);
   }
 
+  /** Stores bytes, such as a backup of the database. */
+  async putBytes(
+    key: string,
+    body: Uint8Array<ArrayBuffer>,
+    contentType = 'application/octet-stream',
+  ): Promise<void> {
+    const response = await this.request(this.url(key), {
+      method: 'PUT',
+      body,
+      headers: { 'Content-Type': contentType },
+    });
+    if (!response.ok) await this.fail(response, `write ${key}`);
+  }
+
   async delete(key: string): Promise<void> {
     const response = await this.request(this.url(key), { method: 'DELETE' });
     if (!response.ok && response.status !== 404) await this.fail(response, `delete ${key}`);

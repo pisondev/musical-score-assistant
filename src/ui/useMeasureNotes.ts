@@ -54,7 +54,7 @@ export function useMeasureNotes(songId: string) {
   const current = useRef<MeasureNote[]>([]);
   // Only the owner may ask the server; until it is known who that is, nothing is loaded.
   const known = useAccount((state) => state.status === 'ready');
-  const owner = useAccount((state) => state.account !== null);
+  const owner = useAccount((state) => state.account?.role === 'owner');
 
   useEffect(() => {
     if (!known) return;

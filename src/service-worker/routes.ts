@@ -5,14 +5,14 @@
 
 /**
  * - `pass`: not handled; the browser goes to the network as if there were no worker.
- * - `page`: the app itself. The network first, so that a deploy reaches everybody at once; the
- *   kept copy when there is no connection or it is too slow.
+ * - `page`: the app itself, at the root of the site. The network first, so that a deploy
+ *   reaches everybody at once; the kept copy when there is no connection or it is too slow.
  * - `kept`: a file whose name carries its hash, or a sample with its version. Such a file
  *   never changes, so the kept copy comes first, and a file seen for the first time is kept.
  * - `shell`: another file of the site (the icon, the manifest): the copy kept with the build,
  *   or the network for a file that is not part of it.
- * - `account`: what the account of the owner holds (who is signed in, the private songs, the
- *   notes). The network first, the kept copy without a connection.
+ * - `account`: what the account holds: who is signed in, and for the owner the licensed songs
+ *   and the notes. The network first, the kept copy without a connection.
  */
 export type Strategy = 'pass' | 'page' | 'kept' | 'shell' | 'account';
 
@@ -38,7 +38,8 @@ export function strategyFor(method: string, url: URL, scope: URL, navigation: bo
   if (path === 'api' || path.startsWith('api/')) {
     return ACCOUNT_PATHS.includes(path) ? 'account' : 'pass';
   }
-  if (navigation) return 'page';
+  // The app is one page; other pages of the site (privacy.html) are files like any other.
+  if (navigation && (path === '' || path === 'index.html')) return 'page';
   if (path.startsWith('assets/') || path.startsWith('samples/')) return 'kept';
   return 'shell';
 }

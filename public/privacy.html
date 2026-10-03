@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>Privacy · Musical Score Assistant</title>
+    <style>
+      :root {
+        --bg: #f0f6f8;
+        --surface: #ffffff;
+        --ink: #0c2233;
+        --muted: #5f7a8b;
+        --line: #d8e7ec;
+        --primary: #0b6fb8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.6 system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      main {
+        max-width: 44rem;
+        margin: 0 auto;
+        padding: 40px 20px 64px;
+      }
+      article {
+        padding: 28px clamp(20px, 5vw, 40px);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--surface);
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 1.75rem;
+        line-height: 1.25;
+      }
+      h2 {
+        margin: 28px 0 6px;
+        font-size: 1.1rem;
+      }
+      p,
+      li {
+        margin: 6px 0;
+      }
+      ul {
+        padding-left: 1.2rem;
+      }
+      a {
+        color: var(--primary);
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .back {
+        display: inline-block;
+        margin-bottom: 16px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="./">← Back to the songs</a>
+      <article>
+        <h1>Privacy</h1>
+        <p class="muted">Musical Score Assistant · last changed 3 October 2026</p>
+
+        <p>
+          Musical Score Assistant shows and plays piano scores. You can use it without an account.
+          Signing in with Google lets the app keep your favourites and settings on every device.
+          This page says what is kept, why, where, and how to remove it.
+        </p>
+
+        <h2>Who runs it</h2>
+        <p>
+          The site is a personal, non-commercial project run by the owner of the repository
+          <a href="https://github.com/pisondev/musical-score-assistant"
+            >pisondev/musical-score-assistant</a
+          >
+          on GitHub. Questions and requests can be sent there as an issue.
+        </p>
+
+        <h2>What is kept when you sign in</h2>
+        <ul>
+          <li>
+            From your Google account: your name, your email address, and the address of your profile
+            picture. Nothing else is asked of Google, and the app never sees your password.
+          </li>
+          <li>
+            What the app remembers for you: your favourite songs, the songs you opened last with the
+            left hand you chose, and your display settings.
+          </li>
+          <li>When you first signed in and when you last used the site.</li>
+        </ul>
+        <p>
+          Without an account, the same settings stay in your browser only and never reach the
+          server.
+        </p>
+
+        <h2>Why</h2>
+        <p>
+          Only to give you your favourites and settings on every device you sign in on. There is no
+          advertising, no tracking, and no analytics, and nothing is sold or shared with anybody.
+        </p>
+
+        <h2>Cookies and storage in your browser</h2>
+        <ul>
+          <li>
+            <code>msa_session</code> keeps you signed in for up to 30 days;
+            <code>msa_login</code> lasts ten minutes while you sign in. Both are needed for signing
+            in and are not used for anything else.
+          </li>
+          <li>
+            The app keeps your settings in the storage of your browser. Installed as an app, it also
+            keeps copies of the app and of the songs you opened, so that they work without a
+            connection.
+          </li>
+        </ul>
+
+        <h2>Where it is kept</h2>
+        <p>
+          Accounts are kept on the server of the site, in Indonesia. A copy of them is made every
+          day and kept for 14 days in storage of Cloudflare, which also carries the traffic of the
+          site. Google handles the sign-in. Like any web server, the site writes logs with IP
+          addresses, which are kept for a short time to keep the site running.
+        </p>
+
+        <h2>How long, and how to remove it</h2>
+        <p>
+          Your account is kept until you delete it. Open the account menu (your picture at the top
+          right) and choose <strong>Delete account</strong>: your account and everything kept for it
+          are removed at once, and from the daily copies within 14 days. You can also ask for a copy
+          of what is kept about you through an issue on GitHub.
+        </p>
+
+        <h2>Changes</h2>
+        <p>
+          When this page changes, the date at the top changes with it. What is kept will not be used
+          for anything other than what this page describes.
+        </p>
+      </article>
+    </main>
+  </body>
+</html>

@@ -1,9 +1,10 @@
 # Architecture
 
-The app is a site that runs in the browser, with a small server beside it. There is no
-database: songs are files in the repository, parsed in the browser, and what belongs to an
-account is kept by the server as JSON files. The server signs the owner in with Google, hands
-out the private songs, and keeps notes, favourites, recent songs, and settings (see
+The app is a site that runs in the browser, with a small server beside it. Songs are files in
+the repository (and, for the licensed ones, in a bucket), parsed in the browser; the people who
+sign in are kept by the server in a SQLite database. The server signs anybody in with Google,
+hands the licensed songs to the owner, and keeps notes, favourites, recent songs, and settings
+(see
 [`server/`](#server-the-api-and-the-production-server)). The same API runs inside the
 development server, where this computer is the owner. How it is deployed is described in
 [deployment.md](deployment.md).
@@ -192,11 +193,11 @@ Three small Zustand stores:
 
 Two more modules handle the account:
 
-- `account.ts` asks the server who is signed in (`/api/me`): an owner, a guest, or nobody at
-  all when the site is served without the server. It builds the sign-in address, which brings
-  the browser back to the same song.
-- `account-sync.ts` keeps the settings and the history with the account once the owner is
-  known. It fetches the stored document and merges it with the browser's (the account's
+- `account.ts` asks the server who is signed in (`/api/me`): an owner, a member, a guest, or
+  nobody at all when the site is served without the server. It builds the sign-in address,
+  which brings the browser back to the same song, and deletes the account on request.
+- `account-sync.ts` keeps the settings and the history with the account once someone is
+  signed in. It fetches the stored document and merges it with the browser's (the account's
   settings win, favourites are joined, of two visits to a song the later counts), then sends
   the whole document back a moment after every change. The stores themselves know nothing of
   it; the browser stays their first home.
@@ -443,7 +444,9 @@ into `dist-server/main.js`.
 | `song-catalog.ts`  | Which songs exist; the index of the private songs, and each song whole      |
 | `notes-store.ts`   | `notes.json` per song, under `<song id>/notes.json` in a store              |
 | `private-songs.ts` | Reads the songs under `songs/private` on disk                               |
-| `user-state.ts`    | The state document of each account, under `users/<address>.json`            |
+| `user-state.ts`    | The state document of each account; moving it over from before the database |
+| `database.ts`      | The SQLite database: users and their state, brought up to date when opened  |
+| `backup.ts`        | A daily copy of the database in the bucket, the last 14 kept                |
 | `static-files.ts`  | Serves the built site, with long caching for hashed assets                  |
 | `request-url.ts`   | Reads the path of a request; `//` stays a path instead of naming a host     |
 | `config.ts`        | Reads the settings of the server from its environment                       |
@@ -451,27 +454,38 @@ into `dist-server/main.js`.
 
 `createApi` returns one handler that works in two settings:
 
-- **On the public server** an owner signs in with Google. The browser is sent to Google with a
+- **On the public server** anybody signs in with Google. The browser is sent to Google with a
   random state, a nonce, and the hash of a PKCE verifier, all kept in a signed cookie for ten
   minutes; the server trades the returned code for an ID token, checks issuer, audience,
-  expiry, nonce, and that the address is verified, and gives a session only to the addresses in
-  `ALLOWED_EMAILS`. A session is a signed cookie (`HttpOnly`, `Secure`, `SameSite=Lax`) that
-  names the account and lasts 30 days; there is no table of sessions. Every request checks the
-  address against the list again, so taking an address off it shuts it out at once. Changes
-  (`PUT`, `POST`) must come from the site's own origin.
+  expiry, nonce, and that the address is verified, records the user in the database, and gives
+  a session. A session is a signed cookie (`HttpOnly`, `Secure`, `SameSite=Lax`) that names the
+  account and lasts 30 days; there is no table of sessions. Every request reads the role from
+  `OWNER_EMAILS`: an owner may use the licensed songs and the notes, a member only the state
+  and the account. Changes (`PUT`, `POST`, `DELETE`) must come from the site's own origin.
 - **On a development machine** (`scripts/dev-api-plugin.ts`, mounted by `vite.config.ts` in the
   development and the preview server) the computer is the owner and nobody signs in. Notes are
-  written next to `song.txt`, where they are read in the editor; the state goes to
-  `.local/data`.
+  written next to `song.txt`, where they are read in the editor; the database is
+  `.local/data/app.db`.
 
-What is not code is kept in an `ObjectStore`: text by key, with `get`, `put`, `delete`, and
-`list`. The API takes three of them, or parts of one:
+The users and their state are kept in a SQLite database (`AppDatabase`), through Node's
+built-in `node:sqlite`. Its schema is a list of steps in `database.ts`, applied in order when the
+database is opened and recorded in `PRAGMA user_version`; a change to the schema is a new step,
+never an edit of an old one. It runs in WAL mode with foreign keys, so deleting a user removes
+everything kept for them. The module takes `node:sqlite` with `process.getBuiltinModule` when a
+database is opened, not with an import, because the Vite configuration loads the server code
+and a build must work on a Node without the module. Node 22.5 to 22.12 need
+`--experimental-sqlite`; `scripts/node-with-sqlite.mjs` adds it where needed (`npm run dev`,
+`npm run preview`, `npm start`), and the test workers get it from `test.execArgv`.
 
-| Setting             | Private songs (`SongCatalog`) | Notes                           | State                |
-| ------------------- | ----------------------------- | ------------------------------- | -------------------- |
-| Development machine | `songs/private` on disk       | `songs/<id>/notes.json`         | `.local/data/users/` |
-| Server with R2      | bucket, `songs/private/…`     | bucket, `notes/<id>/notes.json` | bucket, `users/`     |
-| Server without R2   | `songs/private` on its disk   | `data/notes/`                   | `data/users/`        |
+What is not code and not a user is kept in an `ObjectStore`: text by key, with `get`, `put`,
+`delete`, and `list`:
+
+| Setting             | Private songs (`SongCatalog`) | Notes                           | Users and state       |
+| ------------------- | ----------------------------- | ------------------------------- | --------------------- |
+| Development machine | `songs/private` on disk       | `songs/<id>/notes.json`         | `.local/data/app.db`  |
+| Server with R2      | bucket, `songs/private/…`     | bucket, `notes/<id>/notes.json` | `data/app.db`, copies |
+|                     |                               |                                 | in bucket, `backups/` |
+| Server without R2   | `songs/private` on its disk   | `data/notes/`                   | `data/app.db`         |
 
 For the owner's library the catalog answers with index entries (`privateIndex`): it lists the
 bucket on every request, parses a song again only when the tag of one of its files has changed,
@@ -480,6 +494,9 @@ and keeps the entries, not the files. A song is fetched whole when it is opened
 `npm run songs:push` appears without a deploy and without a restart, and the answer for the
 library stays small with hundreds of songs. Public songs are always read from the songs folder,
 which every deploy replaces.
+
+State documents from before the database (`users/<address>.json` in the bucket or the data
+folder) are moved into it the first time their account asks for its state.
 
 Song ids and keys must be paths of plain names, so no request can read or write outside the
 songs, the notes, and the state. Whatever arrives as notes is passed through `readNotes`; a
@@ -516,7 +533,8 @@ import becomes part of the configuration, the engine included. That is why the m
 - notes on measures: the place a note refers to, reading a file that was edited by hand, and
   writing, reading back, and removing the file in a temporary folder;
 - the server: signed values and cookies, every check of the Google sign-in (with a stand-in
-  for Google), who may use which route on a running API, the files it keeps, the built site it
+  for Google), who may use which route on a running API (guest, member, owner), deleting an
+  account, the database and moving state into it, the daily copies, the files it keeps, the built site it
   serves without leaving its folder, and its configuration;
 - storage: objects on disk and in R2 (with a stand-in for its S3 API that pages its listings),
   the signature of every request, and the catalog that reads private songs from the bucket and

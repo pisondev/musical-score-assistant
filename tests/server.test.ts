@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -25,13 +25,16 @@ import {
   verifyValue,
 } from '../server/session';
 import { resolveStaticPath, serveStatic } from '../server/static-files';
-import { loadState, stateKey, storeState } from '../server/user-state';
+import { deleteAccount, loadState, stateKey, storeState } from '../server/user-state';
+import { AppDatabase } from '../server/database';
+import { backUp, backupKey, planBackups } from '../server/backup';
 import { FileStore, isSafeKey, scopedStore } from '../server/object-store';
 import { folderCatalog } from '../server/song-catalog';
 
 const SECRET = 'a-secret-that-is-long-enough-for-tests-0123456789';
 const ORIGIN = 'https://music.example.test';
 const OWNER = 'owner@example.test';
+const MEMBER = 'member@example.test';
 const CLIENT: GoogleClient = {
   clientId: 'client-id.apps.googleusercontent.com',
   clientSecret: 'client-secret',
@@ -181,10 +184,13 @@ async function startApi(options: Partial<ApiOptions> & { fetch?: typeof fetch })
   writeFileSync(join(songsDir, 'private', 'kj-1-song', 'arrangements.json'), '{"arrangements":[]}');
   mkdirSync(join(songsDir, 'public-song'));
   writeFileSync(join(songsDir, 'public-song', 'song.txt'), SONG);
+  const database = new AppDatabase(':memory:');
+  const earlierState = new FileStore(join(root, 'data'));
   const api = createApi({
     catalog: folderCatalog(songsDir),
     notes: new FileStore(join(root, 'data', 'notes')),
-    state: new FileStore(join(root, 'data')),
+    database,
+    earlierState,
     ...options,
   });
   const server: Server = createServer((request, response) =>
@@ -198,10 +204,13 @@ async function startApi(options: Partial<ApiOptions> & { fetch?: typeof fetch })
   return {
     root,
     base,
+    database,
+    earlierState,
     request: (path: string, init: RequestInit = {}) =>
       fetch(`${base}${path}`, { redirect: 'manual', ...init }),
     stop: async () => {
       await new Promise((done) => server.close(done));
+      database.close();
       rmSync(root, { recursive: true, force: true });
     },
   };
@@ -216,10 +225,11 @@ describe('the API on the public server', () => {
   const google = fakeGoogle();
   let api: Awaited<ReturnType<typeof startApi>>;
   let session = '';
+  let memberSession = '';
 
   beforeAll(async () => {
     api = await startApi({
-      google: { client: CLIENT, sessionSecret: SECRET, allowedEmails: [OWNER], origin: ORIGIN },
+      google: { client: CLIENT, sessionSecret: SECRET, ownerEmails: [OWNER], origin: ORIGIN },
       fetch: google.fetch,
     });
   });
@@ -266,11 +276,43 @@ describe('the API on the public server', () => {
     expect(await response.text()).toContain('Signing in did not work');
   });
 
-  it('refuses an account that is not on the list', async () => {
-    const response = await signIn('stranger@example.test');
-    expect(response.status).toBe(403);
-    expect(await response.text()).toContain('stranger@example.test may not sign in');
-    expect(cookieOf(response, 'msa_session')).toBeUndefined();
+  it('lets anybody with a Google account sign in, as a member', async () => {
+    const response = await signIn(MEMBER);
+    expect(response.status).toBe(302);
+    memberSession = cookieOf(response, 'msa_session')!;
+    const headers = { cookie: memberSession };
+    const me = await (await api.request('/api/me', { headers })).json();
+    expect(me.account).toMatchObject({ email: MEMBER, role: 'member' });
+    expect(api.database.user(MEMBER)?.name).toBe('The Owner');
+    // A member keeps favourites and settings, but never sees the licensed songs or the notes.
+    const state = { version: 1, history: { favourites: ['public-song'], opened: {} } };
+    const put = await api.request('/api/state', {
+      method: 'PUT',
+      headers: { ...headers, origin: ORIGIN, 'Content-Type': 'application/json' },
+      body: JSON.stringify(state),
+    });
+    expect(put.status).toBe(200);
+    expect((await (await api.request('/api/state', { headers })).json()).state).toEqual(state);
+    for (const path of [
+      '/api/private-songs',
+      '/api/private-songs?id=private%2Fkj-1-song',
+      '/api/notes?song=public-song',
+    ]) {
+      expect((await api.request(path, { headers })).status).toBe(403);
+    }
+  });
+
+  it('deletes an account with everything kept for it, from the site only', async () => {
+    const headers = { cookie: memberSession };
+    const remove = (origin: string) =>
+      api.request('/api/account', { method: 'DELETE', headers: { ...headers, origin } });
+    expect((await remove('https://evil.test')).status).toBe(403);
+    expect(api.database.user(MEMBER)).not.toBeNull();
+    const response = await remove(ORIGIN);
+    expect(response.status).toBe(200);
+    expect(cookieOf(response, 'msa_session')).toBe('msa_session=');
+    expect(api.database.user(MEMBER)).toBeNull();
+    expect(api.database.stateOf(MEMBER)).toBeNull();
   });
 
   it('signs the owner in and returns to where they were', async () => {
@@ -284,6 +326,7 @@ describe('the API on the public server', () => {
       email: OWNER,
       name: 'The Owner',
       picture: 'https://example.test/picture.png',
+      role: 'owner',
     });
   });
 
@@ -340,6 +383,13 @@ describe('the API on the public server', () => {
     ).toBe(404);
   });
 
+  it('moves a state kept before the database into it when it is first read', async () => {
+    await api.earlierState.put(stateKey(OWNER), JSON.stringify({ version: 1, moved: true }));
+    const body = await (await api.request('/api/state', { headers: { cookie: session } })).json();
+    expect(body.state).toEqual({ version: 1, moved: true });
+    expect(JSON.parse(api.database.stateOf(OWNER)!)).toEqual({ version: 1, moved: true });
+  });
+
   it('keeps the state of the owner', async () => {
     const state = { version: 1, history: { favourites: ['public-song'], opened: {} } };
     const put = await api.request('/api/state', {
@@ -367,15 +417,15 @@ describe('the API on the public server', () => {
     expect(cookieOf(response, 'msa_session')).toBe('msa_session=');
   });
 
-  it('shuts out an address once it is taken off the list', async () => {
+  it('takes the licensed songs away from an address once it is off the list of owners', async () => {
     const stricter = await startApi({
-      google: { client: CLIENT, sessionSecret: SECRET, allowedEmails: [], origin: ORIGIN },
+      google: { client: CLIENT, sessionSecret: SECRET, ownerEmails: [], origin: ORIGIN },
     });
     try {
-      const response = await stricter.request('/api/private-songs', {
-        headers: { cookie: session },
-      });
-      expect(response.status).toBe(401);
+      const headers = { cookie: session };
+      expect((await stricter.request('/api/private-songs', { headers })).status).toBe(403);
+      const me = await (await stricter.request('/api/me', { headers })).json();
+      expect(me.account.role).toBe('member');
     } finally {
       await stricter.stop();
     }
@@ -388,7 +438,7 @@ describe('the API on a development machine', () => {
     try {
       const me = await (await api.request('/api/me')).json();
       expect(me).toEqual({
-        account: { email: 'owner@localhost', name: 'This computer' },
+        account: { email: 'owner@localhost', name: 'This computer', role: 'owner' },
         signIn: 'local',
       });
       expect((await api.request('/api/private-songs')).status).toBe(200);
@@ -432,14 +482,75 @@ describe('the files of the server', () => {
     expect(privateSongIds(join(root, 'missing'))).toEqual([]);
   });
 
-  it('keep the state of an account in an object of its own', async () => {
-    const data = new FileStore(join(root, 'data'));
-    expect(stateKey('A.B+c@Example.test')).toBe('users/a.b_c@example.test.json');
-    expect(await loadState(data, OWNER)).toBeNull();
-    expect(await storeState(data, OWNER, { a: 1 })).toBe(true);
-    expect(await loadState(data, OWNER)).toEqual({ a: 1 });
-    expect(await storeState(data, OWNER, [1])).toBe(false);
-    expect(await storeState(data, OWNER, { big: 'x'.repeat(300_000) })).toBe(false);
+  it('keep the users and their state in the database', async () => {
+    const database = new AppDatabase(':memory:');
+    const earlier = new FileStore(join(root, 'earlier'));
+    try {
+      expect(database.version).toBeGreaterThan(0);
+      expect(stateKey('A.B+c@Example.test')).toBe('users/a.b_c@example.test.json');
+      database.recordUser({ email: 'Owner@Example.test', name: 'Owner' }, 1000);
+      expect(database.user(OWNER)).toEqual({
+        email: OWNER,
+        name: 'Owner',
+        createdAt: 1000,
+        lastSeenAt: 1000,
+      });
+      // Seen again within the hour: nothing is written; later: the moment moves on.
+      database.seeUser({ email: OWNER, name: 'Owner' }, 2000);
+      expect(database.user(OWNER)?.lastSeenAt).toBe(1000);
+      database.seeUser({ email: OWNER, name: 'Owner' }, 1000 + 60 * 60 * 1000);
+      expect(database.user(OWNER)?.lastSeenAt).toBe(1000 + 60 * 60 * 1000);
+
+      expect(await loadState(database, earlier, OWNER)).toBeNull();
+      expect(storeState(database, OWNER, { a: 1 })).toBe(true);
+      expect(await loadState(database, earlier, OWNER)).toEqual({ a: 1 });
+      expect(storeState(database, OWNER, [1])).toBe(false);
+      expect(storeState(database, OWNER, { big: 'x'.repeat(300_000) })).toBe(false);
+
+      // Deleting the account removes the state, here and in the earlier store.
+      await earlier.put(stateKey(OWNER), '{"old":true}');
+      await deleteAccount(database, earlier, OWNER);
+      expect(database.user(OWNER)).toBeNull();
+      expect(database.stateOf(OWNER)).toBeNull();
+      expect(await earlier.get(stateKey(OWNER))).toBeNull();
+      expect(database.countUsers()).toBe(0);
+    } finally {
+      database.close();
+    }
+  });
+
+  it('copy the database to the bucket once a day and keep two weeks of copies', async () => {
+    const keys = Array.from({ length: 14 }, (_, day) =>
+      backupKey(new Date(Date.UTC(2026, 8, day + 1))),
+    );
+    expect(keys[0]).toBe('backups/app-2026-09-01.db');
+    const today = backupKey(new Date(Date.UTC(2026, 9, 3)));
+    expect(planBackups([...keys, 'backups/other.txt'], today)).toEqual({
+      make: true,
+      remove: ['backups/app-2026-09-01.db'],
+    });
+    expect(planBackups([...keys.slice(1), today], today)).toEqual({ make: false, remove: [] });
+
+    const database = new AppDatabase(':memory:');
+    database.recordUser({ email: OWNER, name: 'Owner' });
+    const stored = new Map<string, Uint8Array>();
+    const target = {
+      putBytes: async (key: string, body: Uint8Array) => void stored.set(key, body),
+      list: async () => [...stored.keys()].map((key) => ({ key })),
+      delete: async (key: string) => void stored.delete(key),
+    };
+    const work = join(root, 'backup-work');
+    mkdirSync(work, { recursive: true });
+    try {
+      const now = new Date(Date.UTC(2026, 9, 3, 2));
+      expect(await backUp(database, target, work, now)).toBe(today);
+      expect(await backUp(database, target, work, now)).toBeNull();
+      // A real SQLite file, and nothing left behind in the folder it was made in.
+      expect(Buffer.from(stored.get(today)!).subarray(0, 15).toString()).toBe('SQLite format 3');
+      expect(readdirSync(work)).toEqual([]);
+    } finally {
+      database.close();
+    }
   });
 
   it('keep objects as files, and nothing outside their folder', async () => {
@@ -522,7 +633,7 @@ describe('the configuration of the server', () => {
       GOOGLE_CLIENT_ID: 'id',
       GOOGLE_CLIENT_SECRET: 'secret',
       SESSION_SECRET: SECRET,
-      ALLOWED_EMAILS: ' Owner@Example.test , second@example.test ',
+      OWNER_EMAILS: ' Owner@Example.test , second@example.test ',
       R2_ACCOUNT_ID: 'account',
       R2_ACCESS_KEY_ID: 'id',
       R2_SECRET_ACCESS_KEY: 'secret',
@@ -534,8 +645,19 @@ describe('the configuration of the server', () => {
     expect(config.google?.client.redirectUri).toBe(
       'https://music.example.test/api/auth/google/callback',
     );
-    expect(config.google?.allowedEmails).toEqual([OWNER, 'second@example.test']);
+    expect(config.google?.ownerEmails).toEqual([OWNER, 'second@example.test']);
     expect(config.warnings).toEqual([]);
+  });
+
+  it('reads the earlier name of the list of owners, with a warning', () => {
+    const config = readServerConfig({
+      GOOGLE_CLIENT_ID: 'id',
+      GOOGLE_CLIENT_SECRET: 'secret',
+      SESSION_SECRET: SECRET,
+      ALLOWED_EMAILS: OWNER,
+    });
+    expect(config.google?.ownerEmails).toEqual([OWNER]);
+    expect(config.warnings.join(' ')).toMatch(/ALLOWED_EMAILS is read as OWNER_EMAILS/);
   });
 
   it('warns about what is missing and still starts', () => {

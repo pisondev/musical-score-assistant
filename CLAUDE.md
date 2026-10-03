@@ -30,8 +30,8 @@ These rules apply to every change in this repository.
 A web app that displays and plays numbered-notation piano scores with a choice of left-hand
 arrangements, public at https://music-assistant.tierratie.com. The app never generates music:
 songs and arrangements are files under `songs/`, written in the editor. A small server in
-`server/` signs the owner in with Google, hands out the private songs, and keeps notes and
-settings with the account.
+`server/` signs anybody in with Google, keeps the users in a SQLite database, hands the
+licensed songs to the owner only, and keeps the owner's notes.
 
 - Overview and commands: `README.md`
 - File formats (`song.txt`, `analysis.md`, `arrangements.json`, `notes.json`, left-hand
