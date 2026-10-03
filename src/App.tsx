@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState, type MouseEvent } from 'react';
 import { signInUrl, useAccount } from './account';
 import { startAccountSync } from './account-sync';
-import { useLibrary } from './library';
+import { useLibrary, useSongBundle, type SongEntry } from './library';
 import { AccountButton } from './ui/AccountButton';
 import { Home } from './ui/Home';
 import { GoogleIcon, GridIcon, LockIcon, NoteIcon } from './ui/icons';
-import { groupByHymnal, NO_BOOK, selectSongs } from './ui/library-view';
+import { groupByCategory, selectSongs } from './ui/library-view';
 import { songHref, songIdFromLocation } from './ui/navigation';
 import { SongPage } from './ui/SongPage';
 
@@ -76,6 +76,30 @@ function MissingSong({ songId, onHome }: { songId: string; onHome: () => void })
   );
 }
 
+/** One song: loaded from its own file or from the server, then shown. */
+function SongView(props: {
+  entry: SongEntry;
+  tools: HTMLElement | null;
+  progress: HTMLElement | null;
+}) {
+  const load = useSongBundle(props.entry);
+  if (load.status === 'loading') {
+    return <main className="page page--empty">Loading the song…</main>;
+  }
+  if (load.status === 'failed') {
+    return (
+      <main className="page page--empty notice">
+        <h1>The song could not be loaded</h1>
+        <p>Check the connection and try again. Songs opened before also open without one.</p>
+        <button type="button" className="button" onClick={load.retry}>
+          Try again
+        </button>
+      </main>
+    );
+  }
+  return <SongPage {...props} bundle={load.bundle} />;
+}
+
 /** The shell of the app: the top bar, and below it the home page or one song. */
 export function App() {
   useAccountSetup();
@@ -134,16 +158,23 @@ export function App() {
     [showHome],
   );
 
-  // The song menu lists every hymnal that has songs, each in the order of its numbers.
+  // The song menu lists every subcategory that has songs, each in the order of its numbers.
   const byNumber = selectSongs(library, {
     query: '',
     filter: 'all',
-    book: null,
+    category: null,
+    subcategory: null,
     sort: 'number',
     favourites: [],
     opened: {},
   });
-  const hymnals = groupByHymnal(byNumber).filter((group) => group.songs.length > 0);
+  const menu = groupByCategory(byNumber).flatMap((group) =>
+    group.subcategories.map((sub) => ({
+      key: `${group.id}/${sub.id}`,
+      label: sub.name === sub.id ? `${group.name} · ${sub.name}` : `${sub.id} · ${sub.name}`,
+      songs: sub.songs,
+    })),
+  );
 
   return (
     <>
@@ -170,15 +201,10 @@ export function App() {
                       window.location.hash = songHref(event.target.value);
                     }}
                   >
-                    {hymnals.map((group) => (
-                      <optgroup
-                        key={group.code}
-                        label={
-                          group.code === NO_BOOK ? group.name : `${group.code} · ${group.name}`
-                        }
-                      >
+                    {menu.map((group) => (
+                      <optgroup key={group.key} label={group.label}>
                         {group.songs.map((candidate) => {
-                          const { number, title } = candidate.bundle.song.meta;
+                          const { number, title } = candidate.meta;
                           return (
                             <option key={candidate.id} value={candidate.id}>
                               {number ? `${number} · ${title}` : title}
@@ -201,7 +227,7 @@ export function App() {
       </header>
 
       {entry ? (
-        <SongPage key={entry.id} entry={entry} tools={tools} progress={progress} />
+        <SongView key={entry.id} entry={entry} tools={tools} progress={progress} />
       ) : songId ? (
         <MissingSong songId={songId} onHome={showHome} />
       ) : (

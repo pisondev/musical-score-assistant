@@ -1,8 +1,8 @@
-import { formatChordSymbol } from './chord';
-import { DynamicsTimeline } from './dynamics';
-import { engraveRow, keySignatureFifths, type StaffEvent, type StaffPitch } from './staff';
-import { beatTicks, measureTicks } from './time';
-import type { Arrangement, Measure, NoteName, SlotSpan, Song, Track } from './types';
+import { formatChordSymbol } from './chord.ts';
+import { DynamicsTimeline } from './dynamics.ts';
+import { engraveRow, keySignatureFifths, type StaffEvent, type StaffPitch } from './staff.ts';
+import { beatTicks, measureTicks } from './time.ts';
+import type { Arrangement, Measure, NoteName, SlotSpan, Song, Track } from './types.ts';
 
 /**
  * Serializes a performance as MEI, the format the staff-notation engraver

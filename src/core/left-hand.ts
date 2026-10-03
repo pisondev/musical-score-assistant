@@ -1,8 +1,8 @@
-import { chordDegree, parseChord, spellChordDegree, type Chord } from './chord';
-import type { RawMeasure, RawTone } from './notation';
-import { describeMidi, lowestAtOrAbove, pitchClass } from './notes';
-import { BASS_FLOOR } from './song';
-import type { ChordMark, Issue, NoteName, Pitch, Slot } from './types';
+import { chordDegree, parseChord, spellChordDegree, type Chord } from './chord.ts';
+import type { RawMeasure, RawTone } from './notation.ts';
+import { describeMidi, lowestAtOrAbove, pitchClass } from './notes.ts';
+import { BASS_FLOOR } from './song.ts';
+import type { ChordMark, Issue, NoteName, Pitch, Slot } from './types.ts';
 
 export interface LeftHandContext {
   key: NoteName;

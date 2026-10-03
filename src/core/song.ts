@@ -1,10 +1,11 @@
-import { parseChord } from './chord';
-import { normalizeBook } from './hymnals';
-import { KEYBOARD_LOWEST } from './keyboard';
-import { parseNotationLine, type RawMeasure } from './notation';
-import { lowestAtOrAbove, MAJOR_SCALE, parseNoteName, pitchClass } from './notes';
-import { beatTicks, measureTicks } from './time';
-import type { Issue, Measure, NoteName, Slot, Song, SongMeta, TimeSignature } from './types';
+import { parseChord } from './chord.ts';
+import { CATEGORIES, isKnownCategory, normalizeCategory } from './categories.ts';
+import { normalizeBook } from './hymnals.ts';
+import { KEYBOARD_LOWEST } from './keyboard.ts';
+import { parseNotationLine, type RawMeasure } from './notation.ts';
+import { lowestAtOrAbove, MAJOR_SCALE, parseNoteName, pitchClass } from './notes.ts';
+import { beatTicks, measureTicks } from './time.ts';
+import type { Issue, Measure, NoteName, Slot, Song, SongMeta, TimeSignature } from './types.ts';
 
 /**
  * Lowest pitch a left-hand root may take: the bottom key of the keyboard.
@@ -130,10 +131,30 @@ function readHeader(header: Header, issues: Issue[]): { meta: SongMeta; octave: 
     else warn('octave', `Octave "${octaveText}" must be a whole number between 2 and 6.`);
   }
 
+  const categoryText = get('category');
+  const category = categoryText ? normalizeCategory(categoryText) : undefined;
+  if (category !== undefined && !isKnownCategory(category)) {
+    issues.push({
+      severity: 'warning',
+      message: `Category "${categoryText}" is not known; use one of ${CATEGORIES.map((known) => known.id).join(', ')}.`,
+      line: header.lines.get('category'),
+    });
+  }
+  const book = get('book') ? normalizeBook(get('book')!) : undefined;
+  if (book && category !== undefined && category !== 'christian') {
+    issues.push({
+      severity: 'warning',
+      message: `A song from a hymnal is listed under Christian, not "${categoryText}".`,
+      line: header.lines.get('category'),
+    });
+  }
+
   const meta: SongMeta = {
     title: get('title') ?? 'Untitled',
-    book: get('book') ? normalizeBook(get('book')!) : undefined,
+    book,
     number: get('number'),
+    category,
+    subcategory: get('subcategory')?.trim() || undefined,
     composer: get('composer'),
     lyricist: get('lyricist'),
     source: get('source'),
@@ -149,6 +170,8 @@ const HEADER_NAMES = new Set([
   'title',
   'book',
   'number',
+  'category',
+  'subcategory',
   'composer',
   'lyricist',
   'source',

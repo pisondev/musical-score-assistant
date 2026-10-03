@@ -15,7 +15,7 @@ import {
   startLogin,
   type GoogleClient,
 } from '../server/google';
-import { readPrivateSongs } from '../server/private-songs';
+import { privateSongIds, readPrivateSong } from '../server/private-songs';
 import { requestUrl } from '../server/request-url';
 import {
   parseCookies,
@@ -244,7 +244,12 @@ describe('the API on the public server', () => {
   });
 
   it('keeps private songs, notes, and state from guests', async () => {
-    for (const path of ['/api/private-songs', '/api/notes?song=public-song', '/api/state']) {
+    for (const path of [
+      '/api/private-songs',
+      '/api/private-songs?id=private%2Fkj-1-song',
+      '/api/notes?song=public-song',
+      '/api/state',
+    ]) {
       expect((await api.request(path)).status).toBe(401);
     }
   });
@@ -282,13 +287,29 @@ describe('the API on the public server', () => {
     });
   });
 
-  it('gives the owner the private songs', async () => {
-    const body = await (
-      await api.request('/api/private-songs', { headers: { cookie: session } })
+  it('gives the owner the index of the private songs, and each song whole', async () => {
+    const headers = { cookie: session };
+    const body = await (await api.request('/api/private-songs', { headers })).json();
+    expect(
+      body.songs.map((entry: { id: string; isPrivate: boolean; meta: { title: string } }) => [
+        entry.id,
+        entry.meta.title,
+        entry.isPrivate,
+      ]),
+    ).toEqual([['private/kj-1-song', 'Private song', true]]);
+    // The index carries no music; the song itself comes when it is opened.
+    expect(JSON.stringify(body)).not.toContain('[F]1');
+    const one = await (
+      await api.request('/api/private-songs?id=private%2Fkj-1-song', { headers })
     ).json();
-    expect(body.songs).toEqual([
-      { id: 'private/kj-1-song', song: SONG, arrangements: { arrangements: [] } },
-    ]);
+    expect(one.song).toEqual({
+      id: 'private/kj-1-song',
+      song: SONG,
+      arrangements: { arrangements: [] },
+    });
+    for (const id of ['private%2Fmissing', 'public-song', 'private%2F..%2Fpublic-song']) {
+      expect((await api.request(`/api/private-songs?id=${id}`, { headers })).status).toBe(404);
+    }
   });
 
   it('keeps the notes of the owner, from the site only', async () => {
@@ -400,10 +421,15 @@ describe('the files of the server', () => {
     mkdirSync(join(songs, 'private', 'kk', 'kk-1'), { recursive: true });
     writeFileSync(join(songs, 'private', 'kk', 'kk-1', 'song.txt'), SONG);
     writeFileSync(join(songs, 'private', 'kk', 'kk-1', 'arrangements.json'), '{ broken');
-    expect(readPrivateSongs(songs)).toEqual([
-      { id: 'private/kk/kk-1', song: SONG, arrangements: null },
-    ]);
-    expect(readPrivateSongs(join(root, 'missing'))).toEqual([]);
+    expect(privateSongIds(songs)).toEqual(['private/kk/kk-1']);
+    expect(readPrivateSong(songs, 'private/kk/kk-1')).toEqual({
+      id: 'private/kk/kk-1',
+      song: SONG,
+      arrangements: null,
+    });
+    expect(readPrivateSong(songs, 'private/kk/missing')).toBeNull();
+    expect(readPrivateSong(songs, 'private/../../secret')).toBeNull();
+    expect(privateSongIds(join(root, 'missing'))).toEqual([]);
   });
 
   it('keep the state of an account in an object of its own', async () => {

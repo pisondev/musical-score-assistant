@@ -1,7 +1,7 @@
-import { formatNoteName } from './notes';
-import type { MeasureNote, NoteContext } from './notes-file';
-import { measureNames, type Performance } from './performance';
-import type { MeasurePart } from './types';
+import { formatNoteName } from './notes.ts';
+import type { MeasureNote, NoteContext } from './notes-file.ts';
+import { measureNames, type Performance } from './performance.ts';
+import type { MeasurePart } from './types.ts';
 
 /**
  * Where the player's notes belong in a performance. The notes themselves, and

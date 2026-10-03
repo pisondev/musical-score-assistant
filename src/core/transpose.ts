@@ -1,6 +1,6 @@
-import { transposeChordSymbol } from './chord';
-import { KEYBOARD_LOWEST } from './keyboard';
-import { mod, parseNoteName, pitchClass } from './notes';
+import { transposeChordSymbol } from './chord.ts';
+import { KEYBOARD_LOWEST } from './keyboard.ts';
+import { mod, parseNoteName, pitchClass } from './notes.ts';
 import type {
   Arrangement,
   ArrangementMeasure,
@@ -10,7 +10,7 @@ import type {
   Pitch,
   Slot,
   Song,
-} from './types';
+} from './types.ts';
 
 /** Key names used after transposing, one per pitch class. */
 const KEY_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];

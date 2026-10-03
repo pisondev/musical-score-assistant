@@ -1,13 +1,13 @@
-import { normalizeChordSymbol, parseChord, spellChordDegree, type Chord } from './chord';
+import { normalizeChordSymbol, parseChord, spellChordDegree, type Chord } from './chord.ts';
 import {
   bassPitch,
   describeLeftPitch,
   resolveLeftMeasure,
   rootPitch,
   type LeftHandContext,
-} from './left-hand';
-import { parseNotationLine } from './notation';
-import { beatTicks } from './time';
+} from './left-hand.ts';
+import { parseNotationLine } from './notation.ts';
+import { beatTicks } from './time.ts';
 import type {
   Arrangement,
   ArrangementMeasure,
@@ -18,7 +18,7 @@ import type {
   Pitch,
   Slot,
   Song,
-} from './types';
+} from './types.ts';
 
 export const BASELINE_ID = 'baseline';
 

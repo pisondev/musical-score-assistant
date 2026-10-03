@@ -1,11 +1,11 @@
-import { chordAt, chordTimeline } from './arrangement';
-import type { SongBundle } from './bundle';
-import { INTRO_ID_PREFIX } from './intro';
-import { formatNoteName } from './notes';
-import { applyRightHand, availableRightHand, chordsApply, composeRightHand } from './right-hand';
-import { beatTicks, measureTicks } from './time';
-import { keyShift, transposeMeasures } from './transpose';
-import { ENDING_OFF, INTRO_LAST_PHRASE } from './types';
+import { chordAt, chordTimeline } from './arrangement.ts';
+import type { SongBundle } from './bundle.ts';
+import { INTRO_ID_PREFIX } from './intro.ts';
+import { formatNoteName } from './notes.ts';
+import { applyRightHand, availableRightHand, chordsApply, composeRightHand } from './right-hand.ts';
+import { beatTicks, measureTicks } from './time.ts';
+import { keyShift, transposeMeasures } from './transpose.ts';
+import { ENDING_OFF, INTRO_LAST_PHRASE } from './types.ts';
 import type {
   Arrangement,
   ArrangementMeasure,
@@ -21,7 +21,7 @@ import type {
   Slot,
   SlotKind,
   Song,
-} from './types';
+} from './types.ts';
 
 /** A stretch of a performance that the sheet shows as a block of its own. */
 export interface PerformanceSection {

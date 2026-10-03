@@ -1,8 +1,8 @@
-import type { Chord } from './chord';
-import { resolveLeftMeasure } from './left-hand';
-import { parseNotationLine } from './notation';
-import { MAJOR_SCALE } from './notes';
-import { beatTicks, measureTicks } from './time';
+import type { Chord } from './chord.ts';
+import { resolveLeftMeasure } from './left-hand.ts';
+import { parseNotationLine } from './notation.ts';
+import { MAJOR_SCALE } from './notes.ts';
+import { beatTicks, measureTicks } from './time.ts';
 import type {
   Arrangement,
   ArrangementMeasure,
@@ -13,8 +13,8 @@ import type {
   PassageSpec,
   Slot,
   Song,
-} from './types';
-import { validateArrangement } from './validate';
+} from './types.ts';
+import { validateArrangement } from './validate.ts';
 
 /**
  * What a written passage is for. An introduction, the bridge after the last

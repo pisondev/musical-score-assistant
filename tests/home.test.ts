@@ -1,16 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createSongBundle } from '../src/core/bundle';
+import { categoryName, placeSong } from '../src/core/categories';
 import { hymnalName, songReference } from '../src/core/hymnals';
 import { parseSong } from '../src/core/song';
-import { summarizeSong } from '../src/core/summary';
-import type { SongEntry } from '../src/library';
-import {
-  groupByHymnal,
-  lastOpened,
-  NO_BOOK,
-  selectSongs,
-  type LibraryView,
-} from '../src/ui/library-view';
+import { indexSong, isIndexEntry, type SongIndexEntry } from '../src/core/song-index';
+import { groupByCategory, lastOpened, selectSongs, type LibraryView } from '../src/ui/library-view';
 import { timeAgo } from '../src/ui/time-ago';
 
 const MUSIC = `
@@ -55,9 +49,9 @@ const ARRANGEMENTS = {
   ],
 };
 
-function entry(id: string, header: string, arrangements?: unknown): SongEntry {
+function entry(id: string, header: string, arrangements?: unknown): SongIndexEntry {
   const bundle = createSongBundle(`${header}\nkey: C\ntime: 4/4\n${MUSIC}`, arrangements);
-  return { id, isPrivate: id.startsWith('private/'), bundle, summary: summarizeSong(bundle) };
+  return indexSong(id, bundle);
 }
 
 describe('summarizeSong', () => {
@@ -92,17 +86,37 @@ describe('summarizeSong', () => {
   });
 });
 
+describe('the index of a song', () => {
+  it('holds what the library needs without the measures', () => {
+    const indexed = entry('private/joy', 'title: Joy\nbook: pkj\nnumber: 120', ARRANGEMENTS);
+    expect(indexed.isPrivate).toBe(true);
+    expect(indexed.meta.title).toBe('Joy');
+    expect(indexed.placement).toEqual({ category: 'christian', subcategory: 'PKJ' });
+    expect(indexed.arrangements.map((arrangement) => arrangement.id)).toEqual([
+      'baseline',
+      'one',
+      'two',
+    ]);
+    expect(JSON.stringify(indexed)).not.toContain('slots');
+    expect(isIndexEntry(JSON.parse(JSON.stringify(indexed)))).toBe(true);
+    expect(isIndexEntry({ id: 'x' })).toBe(false);
+    expect(isIndexEntry(null)).toBe(false);
+  });
+});
+
 describe('selectSongs', () => {
   const entries = [
-    entry('grace', 'title: Amazing Grace\ncomposer: Traditional'),
+    entry('grace', 'title: Amazing Grace\ncomposer: Traditional\ncategory: Christian'),
     entry('private/night', 'title: Silent Night\nbook: KJ\nnumber: 99'),
     entry('joy', 'title: Joy to the World\nbook: pkj\nnumber: 120', ARRANGEMENTS),
     entry('holy', 'title: Holy, Holy, Holy\nbook: KJ\nnumber: 7'),
+    entry('ode', 'title: Ode to Joy\ncategory: classical\nsubcategory: Beethoven'),
   ];
   const view: LibraryView = {
     query: '',
     filter: 'all',
-    book: null,
+    category: null,
+    subcategory: null,
     sort: 'title',
     favourites: [],
     opened: {},
@@ -111,11 +125,11 @@ describe('selectSongs', () => {
     selectSongs(entries, { ...view, ...change }).map((song) => song.id);
 
   it('sorts by title', () => {
-    expect(ids({})).toEqual(['grace', 'holy', 'joy', 'private/night']);
+    expect(ids({})).toEqual(['grace', 'holy', 'joy', 'ode', 'private/night']);
   });
 
   it('sorts by number, with unnumbered songs last', () => {
-    expect(ids({ sort: 'number' })).toEqual(['holy', 'private/night', 'joy', 'grace']);
+    expect(ids({ sort: 'number' })).toEqual(['holy', 'private/night', 'joy', 'grace', 'ode']);
   });
 
   it('puts recently opened songs first and the rest by title', () => {
@@ -123,7 +137,13 @@ describe('selectSongs', () => {
       joy: { openedAt: 100, arrangementId: 'one' },
       'private/night': { openedAt: 200, arrangementId: 'baseline' },
     };
-    expect(ids({ sort: 'recent', opened })).toEqual(['private/night', 'joy', 'grace', 'holy']);
+    expect(ids({ sort: 'recent', opened })).toEqual([
+      'private/night',
+      'joy',
+      'grace',
+      'holy',
+      'ode',
+    ]);
   });
 
   it('searches the title, the number, the credits, and the styles', () => {
@@ -133,6 +153,12 @@ describe('selectSongs', () => {
     expect(ids({ query: 'gospel' })).toEqual(['joy']);
     expect(ids({ query: 'night silent' })).toEqual(['private/night']);
     expect(ids({ query: 'nothing' })).toEqual([]);
+  });
+
+  it('searches the category and the subcategory', () => {
+    expect(ids({ query: 'classical' })).toEqual(['ode']);
+    expect(ids({ query: 'beethoven' })).toEqual(['ode']);
+    expect(ids({ query: 'hymns' })).toEqual(['grace']);
   });
 
   it('keeps only the favourites when asked', () => {
@@ -146,31 +172,46 @@ describe('selectSongs', () => {
     expect(ids({ query: 'kidung jemaat' })).toEqual(['holy', 'joy', 'private/night']);
   });
 
-  it('narrows the list to one hymnal', () => {
-    expect(ids({ book: 'KJ' })).toEqual(['holy', 'private/night']);
-    expect(ids({ book: 'PKJ' })).toEqual(['joy']);
-    expect(ids({ book: 'KK' })).toEqual([]);
-    expect(ids({ book: NO_BOOK })).toEqual(['grace']);
-    expect(ids({ book: 'KJ', sort: 'number' })).toEqual(['holy', 'private/night']);
+  it('narrows the list to a category and to one of its subcategories', () => {
+    expect(ids({ category: 'christian' })).toEqual(['grace', 'holy', 'joy', 'private/night']);
+    expect(ids({ category: 'classical' })).toEqual(['ode']);
+    expect(ids({ category: 'christian', subcategory: 'KJ' })).toEqual(['holy', 'private/night']);
+    expect(ids({ category: 'christian', subcategory: 'PKJ' })).toEqual(['joy']);
+    expect(ids({ category: 'christian', subcategory: 'KK' })).toEqual([]);
+    expect(ids({ category: 'christian', subcategory: 'Hymns' })).toEqual(['grace']);
+    expect(ids({ category: 'christian', subcategory: 'KJ', sort: 'number' })).toEqual([
+      'holy',
+      'private/night',
+    ]);
   });
 
-  it('groups the songs by hymnal, known hymnals first', () => {
-    const groups = groupByHymnal([...entries, entry('psalm', 'title: Psalm\nbook: NKB')]);
-    expect(groups.map((group) => [group.code, group.name, group.songs.length])).toEqual([
-      ['KK', 'Kidung Keesaan', 0],
-      ['PKJ', 'Pelengkap Kidung Jemaat', 1],
-      ['KJ', 'Kidung Jemaat', 2],
-      ['KPJ', 'Kidung Pasamuwan Jawi', 0],
-      ['NKB', 'NKB', 1],
-      [NO_BOOK, 'Other songs', 1],
+  it('groups the songs by category, then by subcategory', () => {
+    const all = [
+      ...entries,
+      entry('psalm', 'title: Psalm\nbook: NKB'),
+      entry('misc', 'title: Misc'),
+    ];
+    const shape = (hymnals: boolean) =>
+      groupByCategory(all, { hymnals }).map((group) => [
+        group.id,
+        group.name,
+        group.subcategories.map((sub) => `${sub.id}:${sub.songs.length}`),
+      ]);
+    expect(shape(false)).toEqual([
+      ['christian', 'Christian', ['PKJ:1', 'KJ:2', 'NKB:1', 'Hymns:1']],
+      ['classical', 'Classical', ['Beethoven:1']],
+      ['other', 'Other', ['General:1']],
     ]);
-    // Without songs that name no hymnal, there is no section for them.
-    expect(groupByHymnal(entries.slice(1)).map((group) => group.code)).toEqual([
-      'KK',
-      'PKJ',
-      'KJ',
-      'KPJ',
-    ]);
+    // The owner of the hymnals sees all of them, empty ones too.
+    expect(shape(true)[0][2]).toEqual(['KK:0', 'PKJ:1', 'KJ:2', 'KPJ:0', 'NKB:1', 'Hymns:1']);
+    expect(groupByCategory(all)[0].subcategories[1].name).toBe('Kidung Jemaat');
+  });
+
+  it('shows nobody else a hymnal that holds no song', () => {
+    const publicOnly = [entries[0], entries[4]];
+    expect(
+      groupByCategory(publicOnly).map((group) => group.subcategories.map((sub) => sub.id)),
+    ).toEqual([['Hymns'], ['Beethoven']]);
   });
 
   it('finds the song that was opened last', () => {
@@ -182,6 +223,48 @@ describe('selectSongs', () => {
       gone: { openedAt: 900, arrangementId: 'baseline' },
     };
     expect(lastOpened(entries, opened)?.id).toBe('holy');
+  });
+});
+
+describe('categories', () => {
+  it('are read from the header of a song', () => {
+    const { meta, issues } = parseSong(
+      'title: Song\ncategory: Classical \nsubcategory: Bach\nkey: C\ntime: 4/4\n| 1 2 3 4 ||',
+    );
+    expect(meta.category).toBe('classical');
+    expect(meta.subcategory).toBe('Bach');
+    expect(issues).toEqual([]);
+  });
+
+  it('warn about a category the library does not know, and a hymnal outside Christian', () => {
+    const unknown = parseSong('title: S\ncategory: jazz\nkey: C\ntime: 4/4\n| 1 2 3 4 ||');
+    expect(unknown.issues.map((issue) => issue.message)).toEqual([
+      expect.stringContaining('Category "jazz" is not known'),
+    ]);
+    const hymnal = parseSong(
+      'title: S\nbook: KK\ncategory: classical\nkey: C\ntime: 4/4\n| 1 2 3 4 ||',
+    );
+    expect(hymnal.issues.map((issue) => issue.message)).toEqual([
+      expect.stringContaining('listed under Christian'),
+    ]);
+  });
+
+  it('place every hymnal under Christian, and give songs without a subcategory one', () => {
+    expect(placeSong({ book: 'KK', category: 'classical' })).toEqual({
+      category: 'christian',
+      subcategory: 'KK',
+    });
+    expect(placeSong({ category: 'christian' })).toEqual({
+      category: 'christian',
+      subcategory: 'Hymns',
+    });
+    expect(placeSong({ category: 'classical' })).toEqual({
+      category: 'classical',
+      subcategory: 'General',
+    });
+    expect(placeSong({})).toEqual({ category: 'other', subcategory: 'General' });
+    expect(categoryName('traditional')).toBe('Traditional');
+    expect(categoryName('jazz')).toBe('Jazz');
   });
 });
 

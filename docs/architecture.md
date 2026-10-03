@@ -51,6 +51,8 @@ in the command-line checker.
 | `notation.ts`       | Tokenizer and layout for one line of numbered notation                       |
 | `song.ts`           | `song.txt` parser: header, measures, lyrics, dynamics, pickup detection      |
 | `hymnals.ts`        | The hymnals the library knows by name, and how a song is cited ("PKJ 184")   |
+| `categories.ts`     | The categories of the library, and where a song is listed in them            |
+| `song-index.ts`     | The index entry of a song: what the library needs before the song is opened  |
 | `left-hand.ts`      | Resolves chord-relative left-hand notation to pitches                        |
 | `arrangement.ts`    | Builds the baseline and the stored arrangements                              |
 | `intro.ts`          | Locates the last phrase of a song                                            |
@@ -352,15 +354,31 @@ tinted in its own colour. On paper all of it gives way to black on white.
 
 Scrollbars are styled once, for the page and every panel, from `--scroll-thumb`.
 
-### `src/library.ts`
+### `src/library.ts`: the index and loading a song
 
-Collects every `song.txt` and `arrangements.json` outside `songs/private` at build time
-through Vite's `import.meta.glob`, and summarizes each song for the home page. Private songs
-are left out of the build on purpose, because they may be copyrighted and the built site can be
-downloaded by anybody: `useLibrary` fetches them from `/api/private-songs` once the owner is
-known and adds them to the list. A song address that names a private song waits for them, or
-asks a guest to sign in. With the development server running, editing a song file reloads the
-page; for private songs the development API triggers the reload.
+The library holds an index entry per song (`SongIndexEntry` in `src/core/song-index.ts`): the
+header, the place in the categories, the counts of the summary, and the names of the left
+hands. The home page, the search, the song menu, and "continue practising" work from these
+entries alone. A song is loaded whole only when it is opened (`loadSong`, `useSongBundle`),
+once per visit, so the first page stays small however large the library grows.
+
+- Public songs: `scripts/song-index-plugin.ts` reads every song outside `songs/private` at
+  build time, runs the engine on it, and offers the entries as the module
+  `virtual:song-index`. The files themselves are imported through a lazy
+  `import.meta.glob`, so each song becomes a chunk of its own. The service worker keeps such
+  a chunk when the song is first opened, not when the app is installed.
+- Private songs are licensed and never part of the build, because the built site can be
+  downloaded by anybody. For the owner, `useLibrary` fetches their entries from
+  `/api/private-songs`, which the server makes once per change of a song, and a song itself
+  from `/api/private-songs?id=<song id>`. A song address that names a private song waits for
+  the entries, or asks a guest to sign in.
+
+With the development server running, a change to a public song file rebuilds the index and
+reloads the page; for private songs the development API triggers the reload.
+
+Every module of `src/core` names the files it imports (`./types.ts`): the core runs in the
+browser, in the tests, in the checker, in the server, and inside the Vite configuration (the
+index plugin), and a full file name works in all of them.
 
 ### The installed app: `src/installed-app.ts` and `src/service-worker/`
 
@@ -422,7 +440,7 @@ into `dist-server/main.js`.
 | `session.ts`       | Signed cookies and the session they carry                                   |
 | `object-store.ts`  | Text objects by key: the interface, and a store in a folder on disk         |
 | `r2-store.ts`      | The same interface on the R2 bucket, through its S3 API                     |
-| `song-catalog.ts`  | Which songs exist; private songs from a folder or from the bucket           |
+| `song-catalog.ts`  | Which songs exist; the index of the private songs, and each song whole      |
 | `notes-store.ts`   | `notes.json` per song, under `<song id>/notes.json` in a store              |
 | `private-songs.ts` | Reads the songs under `songs/private` on disk                               |
 | `user-state.ts`    | The state document of each account, under `users/<address>.json`            |
@@ -455,9 +473,12 @@ What is not code is kept in an `ObjectStore`: text by key, with `get`, `put`, `d
 | Server with R2      | bucket, `songs/private/…`     | bucket, `notes/<id>/notes.json` | bucket, `users/`     |
 | Server without R2   | `songs/private` on its disk   | `data/notes/`                   | `data/users/`        |
 
-The catalog of the server lists the bucket on every request for the private songs and fetches
-a file again only when its tag has changed, so a song pushed with `npm run songs:push` appears
-without a deploy and without a restart. Public songs are always read from the songs folder,
+For the owner's library the catalog answers with index entries (`privateIndex`): it lists the
+bucket on every request, parses a song again only when the tag of one of its files has changed,
+and keeps the entries, not the files. A song is fetched whole when it is opened
+(`privateSong`, `GET /api/private-songs?id=<song id>`). So a song pushed with
+`npm run songs:push` appears without a deploy and without a restart, and the answer for the
+library stays small with hundreds of songs. Public songs are always read from the songs folder,
 which every deploy replaces.
 
 Song ids and keys must be paths of plain names, so no request can read or write outside the
@@ -472,10 +493,9 @@ bucket with the token in `.env.production`).
 `useMeasureNotes` asks the API only for an owner; a guest keeps notes in `localStorage`, and
 they join the account the next time its owner signs in on that browser.
 
-The dev plugin is loaded by `vite.config.ts`, so everything it imports becomes part of the
-configuration. That is why the file format of notes lives in `notes-file.ts`, a module that
-depends on nothing but the types, apart from the rest of the engine, and why that chain of
-imports names its files with their extension.
+The dev plugin and the song index plugin are loaded by `vite.config.ts`, so everything they
+import becomes part of the configuration, the engine included. That is why the modules of
+`src/core` name the files they import with their extension.
 
 ## Testing
 
@@ -503,6 +523,8 @@ imports names its files with their extension.
   fetches a file again only when it changed;
 - the service worker: which strategy answers which request, when the account is forgotten, and
   which files of a build are fetched on installing;
+- the library: the index entry of a song, categories read from the header, and the grouping
+  by category and subcategory, with the hymnals hidden from everybody but the owner;
 - every committed song must load without errors or warnings.
 
 The audio engine and the React components are thin layers over the tested core and are verified

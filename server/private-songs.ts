@@ -1,10 +1,11 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { isWellFormedSongId } from './notes-store.ts';
 
 /**
- * Songs under `songs/private`. They may be copyrighted, so they are not part
- * of the built site; the server hands them out to signed-in owners only, as
- * the raw files, and the browser parses them like the bundled songs.
+ * Songs under `songs/private`. They are licensed, so they are not part of the built site; the
+ * server hands them out to the owner only, as the raw files, and the browser parses them like
+ * the songs of the site.
  */
 
 export const PRIVATE_FOLDER = 'private';
@@ -19,6 +20,21 @@ export interface StoredSong {
   arrangements: unknown;
 }
 
+/** True for the id of a private song: well formed, below `private/`. */
+export function isPrivateSongId(songId: string): boolean {
+  return isWellFormedSongId(songId) && songId.startsWith(`${PRIVATE_FOLDER}/`);
+}
+
+/** Parses the text of `arrangements.json`; a damaged file counts as none. */
+export function parseArrangements(text: string | null): unknown {
+  if (text === null) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 function songFolders(folder: string): string[] {
   if (!existsSync(folder)) return [];
   if (existsSync(join(folder, 'song.txt'))) return [folder];
@@ -28,20 +44,37 @@ function songFolders(folder: string): string[] {
     .sort();
 }
 
-function readJson(file: string): unknown {
-  if (!existsSync(file)) return null;
-  try {
-    return JSON.parse(readFileSync(file, 'utf8'));
-  } catch {
-    return null;
-  }
+/** The ids of the private songs on disk, nested folders included. */
+export function privateSongIds(songsRoot: string): string[] {
+  return songFolders(join(songsRoot, PRIVATE_FOLDER)).map((folder) =>
+    relative(songsRoot, folder).split(sep).join('/'),
+  );
 }
 
-/** Every private song, read from disk on each call so that a deploy needs no restart. */
-export function readPrivateSongs(songsRoot: string): StoredSong[] {
-  return songFolders(join(songsRoot, PRIVATE_FOLDER)).map((folder) => ({
-    id: relative(songsRoot, folder).split(sep).join('/'),
-    song: readFileSync(join(folder, 'song.txt'), 'utf8'),
-    arrangements: readJson(join(folder, 'arrangements.json')),
-  }));
+const readText = (file: string) => (existsSync(file) ? readFileSync(file, 'utf8') : null);
+
+/** One private song from disk, or null when its folder holds none. */
+export function readPrivateSong(songsRoot: string, songId: string): StoredSong | null {
+  if (!isPrivateSongId(songId)) return null;
+  const folder = join(songsRoot, ...songId.split('/'));
+  const song = readText(join(folder, 'song.txt'));
+  if (song === null) return null;
+  return {
+    id: songId,
+    song,
+    arrangements: parseArrangements(readText(join(folder, 'arrangements.json'))),
+  };
+}
+
+/** What changes whenever a file of the song changes: the sizes and times of both files. */
+export function privateSongStamp(songsRoot: string, songId: string): string {
+  const folder = join(songsRoot, ...songId.split('/'));
+  return ['song.txt', 'arrangements.json']
+    .map((name) => {
+      const file = join(folder, name);
+      if (!existsSync(file)) return '-';
+      const stats = statSync(file);
+      return `${stats.size}:${stats.mtimeMs}`;
+    })
+    .join('|');
 }

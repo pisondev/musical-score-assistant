@@ -7,9 +7,8 @@ import { cx } from './classnames';
 import { AlertIcon, ArrowRightIcon, LockIcon, PlusIcon, SearchIcon, StarIcon } from './icons';
 import { InstallCard } from './InstallCard';
 import {
-  groupByHymnal,
+  groupByCategory,
   lastOpened,
-  NO_BOOK,
   selectSongs,
   type SongFilter,
   type SongSort,
@@ -41,8 +40,7 @@ interface SongCardProps {
 }
 
 function SongCard({ entry, favourite, openedAt, now, onToggleFavourite }: SongCardProps) {
-  const { meta } = entry.bundle.song;
-  const { summary } = entry;
+  const { meta, summary } = entry;
   const toReview = summary.errors + summary.warnings;
   const reference = songReference(meta);
   const credit = [meta.composer, meta.source].filter(Boolean).join(' · ');
@@ -123,7 +121,10 @@ function SongCard({ entry, favourite, openedAt, now, onToggleFavourite }: SongCa
   );
 }
 
-/** The home page: what was practised last, and every song in the library, hymnal by hymnal. */
+/**
+ * The home page: what was practised last, and every song in the library by category and
+ * subcategory (Christian: the hymnals; Classical: the composers).
+ */
 export function Home() {
   const opened = useHistory((state) => state.opened);
   const favourites = useHistory((state) => state.favourites);
@@ -131,27 +132,38 @@ export function Home() {
   const library = useLibrary((state) => state.entries);
   const account = useAccount((state) => state.account);
   const signIn = useAccount((state) => state.signIn);
+  const privateSongs = useLibrary((state) => state.privateSongs);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<SongFilter>('all');
-  const [book, setBook] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
+  const [subcategory, setSubcategory] = useState<string | null>(null);
   const [sort, setSort] = useState<SongSort>('recent');
   // One reading of the clock per visit keeps "opened 3 hours ago" stable while typing.
   const [now] = useState(() => Date.now());
 
-  // The chips count every song of a hymnal; the sections show what the search leaves of it.
-  const hymnals = useMemo(() => groupByHymnal(library), [library]);
+  // The owner of the licensed hymnals sees every hymnal, empty or not; nobody else sees them.
+  const owner = privateSongs === 'loaded';
+  // The chips count every song of a category; the sections show what the search leaves of it.
+  const categories = useMemo(() => groupByCategory(library, { hymnals: owner }), [library, owner]);
   const songs = useMemo(
-    () => selectSongs(library, { query, filter, book, sort, favourites, opened }),
-    [library, query, filter, book, sort, favourites, opened],
+    () => selectSongs(library, { query, filter, category, subcategory, sort, favourites, opened }),
+    [library, query, filter, category, subcategory, sort, favourites, opened],
   );
   const sections = useMemo(
-    () => groupByHymnal(songs).filter((group) => group.songs.length > 0),
+    () =>
+      groupByCategory(songs).flatMap((group) =>
+        group.subcategories.map((sub) => ({ category: group, ...sub })),
+      ),
     [songs],
   );
   const resume = useMemo(() => lastOpened(library, opened), [library, opened]);
-  const resumeArrangement = resume?.bundle.arrangements.find(
+  const resumeArrangement = resume?.arrangements.find(
     (arrangement) => arrangement.id === opened[resume.id].arrangementId,
   );
+  const chooseCategory = (id: string | null) => {
+    setCategory(id);
+    setSubcategory(null);
+  };
 
   const totals = useMemo(() => {
     const sum = (pick: (entry: SongEntry) => number) =>
@@ -165,14 +177,16 @@ export function Home() {
   }, [library]);
 
   const empty = library.length === 0;
-  const selected = hymnals.find((group) => group.code === book);
+  const selected = categories.find((group) => group.id === category);
+  const selectedSub = selected?.subcategories.find((sub) => sub.id === subcategory);
 
   let nothing: string | null = null;
   if (!empty && songs.length === 0) {
     if (query.trim() !== '') nothing = 'No song matches the search.';
     else if (filter === 'favourites') {
       nothing = 'No favourites here yet. Mark a song with the star to keep it in this list.';
-    } else if (selected) nothing = `No songs from ${selected.name} yet.`;
+    } else if (selectedSub) nothing = `No songs from ${selectedSub.name} yet.`;
+    else if (selected) nothing = `No ${selected.name} songs yet.`;
   }
 
   return (
@@ -210,11 +224,9 @@ export function Home() {
         <section className="card resume" aria-label="Continue practising">
           <div className="resume__text">
             <p className="resume__label">Continue practising</p>
-            <h2>{resume.bundle.song.meta.title}</h2>
+            <h2>{resume.meta.title}</h2>
             <p className="resume__detail">
-              {songReference(resume.bundle.song.meta) && (
-                <span>{songReference(resume.bundle.song.meta)}</span>
-              )}
+              {songReference(resume.meta) && <span>{songReference(resume.meta)}</span>}
               {resumeArrangement && <span>Left hand: {resumeArrangement.name}</span>}
               <span>Opened {timeAgo(opened[resume.id].openedAt, now)}</span>
             </p>
@@ -266,31 +278,61 @@ export function Home() {
       )}
 
       {!empty && (
-        <div className="chips" role="radiogroup" aria-label="Hymnal">
+        <div className="chips chips--categories" role="radiogroup" aria-label="Category">
           <button
             type="button"
             role="radio"
-            aria-checked={book === null}
-            className={cx('chip', book === null && 'is-selected')}
-            onClick={() => setBook(null)}
+            aria-checked={category === null}
+            className={cx('chip', category === null && 'is-selected')}
+            onClick={() => chooseCategory(null)}
           >
-            All hymnals <span>{library.length}</span>
+            All songs <span>{library.length}</span>
           </button>
-          {hymnals.map((group) => (
+          {categories.map((group) => (
             <button
-              key={group.code}
+              key={group.id}
               type="button"
               role="radio"
-              aria-checked={book === group.code}
+              aria-checked={category === group.id}
               className={cx(
                 'chip',
-                book === group.code && 'is-selected',
+                category === group.id && 'is-selected',
                 group.songs.length === 0 && 'chip--empty',
               )}
-              onClick={() => setBook(group.code)}
-              title={group.name}
+              onClick={() => chooseCategory(group.id)}
             >
-              {group.code === NO_BOOK ? 'Other' : group.code} <span>{group.songs.length}</span>
+              {group.name} <span>{group.songs.length}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {selected && selected.subcategories.length > 1 && (
+        <div className="chips" role="radiogroup" aria-label={`${selected.name} by subcategory`}>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={subcategory === null}
+            className={cx('chip', subcategory === null && 'is-selected')}
+            onClick={() => setSubcategory(null)}
+          >
+            All {selected.name} <span>{selected.songs.length}</span>
+          </button>
+          {selected.subcategories.map((sub) => (
+            <button
+              key={sub.id}
+              type="button"
+              role="radio"
+              aria-checked={subcategory === sub.id}
+              className={cx(
+                'chip',
+                subcategory === sub.id && 'is-selected',
+                sub.songs.length === 0 && 'chip--empty',
+              )}
+              onClick={() => setSubcategory(sub.id)}
+              title={sub.name}
+            >
+              {sub.id} <span>{sub.songs.length}</span>
             </button>
           ))}
         </div>
@@ -299,10 +341,15 @@ export function Home() {
       {nothing && <p className="library-empty">{nothing}</p>}
 
       {sections.map((group) => (
-        <section key={group.code} className="hymnal" aria-label={group.name}>
+        <section
+          key={`${group.category.id}/${group.id}`}
+          className="hymnal"
+          aria-label={`${group.category.name}: ${group.name}`}
+        >
           <h2 className="hymnal__title">
+            {category === null && <em>{group.category.name}</em>}
             {group.name}
-            {group.code !== NO_BOOK && group.name !== group.code && <span>{group.code}</span>}
+            {group.name !== group.id && <span>{group.id}</span>}
             <small>{plural(group.songs.length, 'song')}</small>
           </h2>
           <ul className="song-grid">
@@ -320,19 +367,21 @@ export function Home() {
         </section>
       ))}
 
-      <ul className="song-grid">
-        <li className="song-card song-card--add">
-          <span className="song-card__plus">
-            <PlusIcon width={18} height={18} />
-          </span>
-          <h2 className="song-card__title">Add a song</h2>
-          <p>
-            Give a photo of the score to the assistant in your editor. It writes the melody, the
-            left hands, and the right-hand parts into <code>songs/</code>, and the song appears here
-            under its hymnal. The format is described in <code>docs/song-format.md</code>.
-          </p>
-        </li>
-      </ul>
+      {owner && (
+        <ul className="song-grid">
+          <li className="song-card song-card--add">
+            <span className="song-card__plus">
+              <PlusIcon width={18} height={18} />
+            </span>
+            <h2 className="song-card__title">Add a song</h2>
+            <p>
+              Give a photo of the score to the assistant in your editor. It writes the melody, the
+              left hands, and the right-hand parts into <code>songs/</code>, and the song appears
+              here under its category. The format is described in <code>docs/song-format.md</code>.
+            </p>
+          </li>
+        </ul>
+      )}
     </main>
   );
 }

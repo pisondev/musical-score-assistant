@@ -1,11 +1,11 @@
-import { chordAt, chordTimeline } from './arrangement';
-import { chordPitchClasses, normalizeChordSymbol, parseChord } from './chord';
-import { findGaps, leftHandOnsets, noteOnsets, type Gap } from './gaps';
-import { KEYBOARD_HIGHEST, KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard';
-import { formatNoteName, mod, pitchClass, toneToText } from './notes';
-import { buildWrittenNotes, measureIndexAt } from './playback';
-import { composeRightHand } from './right-hand';
-import { beatTicks } from './time';
+import { chordAt, chordTimeline } from './arrangement.ts';
+import { chordPitchClasses, normalizeChordSymbol, parseChord } from './chord.ts';
+import { findGaps, leftHandOnsets, noteOnsets, type Gap } from './gaps.ts';
+import { KEYBOARD_HIGHEST, KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard.ts';
+import { formatNoteName, mod, pitchClass, toneToText } from './notes.ts';
+import { buildWrittenNotes, measureIndexAt } from './playback.ts';
+import { composeRightHand } from './right-hand.ts';
+import { beatTicks } from './time.ts';
 import type {
   Arrangement,
   ArrangementMeasure,
@@ -16,7 +16,7 @@ import type {
   NoteEvent,
   RightHandPart,
   Song,
-} from './types';
+} from './types.ts';
 
 /** Below C3, notes a third or less apart sound muddy. */
 const MUDDY_BELOW = 48;

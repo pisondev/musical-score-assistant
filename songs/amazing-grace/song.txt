@@ -2,6 +2,7 @@ title: Amazing Grace
 composer: Traditional American melody (New Britain)
 lyricist: John Newton, 1779
 source: Public domain
+category: christian
 key: G
 time: 3/4
 tempo: 84

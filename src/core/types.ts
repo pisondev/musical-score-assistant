@@ -143,6 +143,10 @@ export interface SongMeta {
   book?: string;
   /** Number of the song in that hymnal. */
   number?: string;
+  /** Category of the library, such as "christian" or "classical"; see `categories.ts`. */
+  category?: string;
+  /** Subcategory inside the category, such as a composer; a hymnal is one by itself. */
+  subcategory?: string;
   composer?: string;
   lyricist?: string;
   source?: string;

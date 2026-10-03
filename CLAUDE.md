@@ -43,7 +43,8 @@ settings with the account.
 
 Things to keep in mind:
 
-- `src/core` must stay free of browser and React code; the checker and the tests run it in Node.
+- `src/core` must stay free of browser and React code; the checker, the tests, the server, and
+  the Vite configuration run it in Node. Its modules name the files they import (`./types.ts`).
 - `songs/private/` is git-ignored. Copyrighted songs and scans of scores go there and are never
   committed, because the repository is public. They must never reach the built site either:
   the library leaves them out of the bundle, and only the server hands them to the signed-in
@@ -76,8 +77,15 @@ Things to keep in mind:
   A fill must connect to what follows: end it on a note of the next chord, or let it land on
   the next downbeat.
 - **Write for a 61-key keyboard** (C2 to C7), not a full piano: no left-hand note below C2.
-- **Every song names its hymnal.** The header carries `book:` (`KK`, `PKJ`, `KJ`, `KPJ`) and
-  `number:`, and the folder is named `<book>-<number>-<title>` in lower case.
+- **Every song names its place in the library.** A hymnal song carries `book:` (`KK`, `PKJ`,
+  `KJ`, `KPJ`) and `number:`, is listed under Christian with its hymnal as the subcategory,
+  and its folder is named `<book>-<number>-<title>` in lower case. Any other song carries
+  `category:` (`christian`, `classical`, `traditional`, `other`) and, where it helps,
+  `subcategory:` (the composer's surname for classical music).
+- **Licensing decides who sees a song.** Hymnal songs are licensed: they live under
+  `songs/private/` and are shown to the owner's account only, never to other users. The public
+  library holds only songs whose melody and text are both in the public domain (in Indonesia,
+  the author died more than 70 years ago). Users choose songs; they never add them.
 - **Read the player's notes before revising a song.** The player writes notes on measures in
   the app, mostly on the public site, which keeps them in the R2 bucket. Run
   `npm run notes:pull` first; it copies them into `notes.json` in the folder of the song (git-ignored, format in

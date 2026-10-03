@@ -1,6 +1,6 @@
-import type { SongBundle } from './bundle';
-import { findGaps } from './gaps';
-import type { Issue, Level } from './types';
+import type { SongBundle } from './bundle.ts';
+import { findGaps } from './gaps.ts';
+import type { Issue, Level } from './types.ts';
 
 /** What one song has to offer, counted for the overview of all songs. */
 export interface SongSummary {

@@ -1,4 +1,4 @@
-import type { Song } from './types';
+import type { Song } from './types.ts';
 
 /** Number of measures the last-phrase introduction takes when none is specified. */
 const DEFAULT_PHRASE_MEASURES = 4;

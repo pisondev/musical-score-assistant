@@ -1,9 +1,9 @@
-import { chordTimeline } from './arrangement';
-import { chordPitchClasses } from './chord';
-import { DynamicsTimeline } from './dynamics';
-import { mod } from './notes';
-import { beatTicks, measureTicks } from './time';
-import type { Arrangement, NoteEvent, Slot, SlotSpan, Song, Track } from './types';
+import { chordTimeline } from './arrangement.ts';
+import { chordPitchClasses } from './chord.ts';
+import { DynamicsTimeline } from './dynamics.ts';
+import { mod } from './notes.ts';
+import { beatTicks, measureTicks } from './time.ts';
+import type { Arrangement, NoteEvent, Slot, SlotSpan, Song, Track } from './types.ts';
 
 interface StaffMeasure {
   startTick: number;

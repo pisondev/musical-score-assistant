@@ -274,9 +274,17 @@ export function createApi(options: ApiOptions): ApiHandler {
       return;
     }
 
+    // The index of the private songs for the library, or one of them, whole, for its page.
     if (path === '/api/private-songs' && method === 'GET') {
       requireOwner(request);
-      sendJson(response, 200, { songs: await catalog.privateSongs() });
+      const songId = url.searchParams.get('id');
+      if (songId === null) {
+        sendJson(response, 200, { songs: await catalog.privateIndex() });
+        return;
+      }
+      const song = await catalog.privateSong(songId);
+      if (!song) throw new HttpError(404, 'There is no such song.');
+      sendJson(response, 200, { song });
       return;
     }
 

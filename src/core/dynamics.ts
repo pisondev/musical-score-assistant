@@ -1,4 +1,4 @@
-import type { DynamicLevel, DynamicMark } from './types';
+import type { DynamicLevel, DynamicMark } from './types.ts';
 
 /**
  * Loudness of each dynamic level, in decibels relative to mezzo-forte. One

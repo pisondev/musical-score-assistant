@@ -28,9 +28,12 @@ with the account.
   the number of left hands, right-hand parts, and introductions written for it. The song that
   was practised last can be continued with one click; songs can be searched, sorted, and marked
   as favourites.
-- **Songs grouped by hymnal.** A song names the hymnal it comes from (Kidung Keesaan, Pelengkap
-  Kidung Jemaat, Kidung Jemaat, Kidung Pasamuwan Jawi) and is cited the way a service sheet
-  cites it: "PKJ 184". The home page and the song menu list the songs hymnal by hymnal.
+- **Songs by category.** The library is divided into categories (Christian, Classical,
+  Traditional, Other) and each into subcategories: the hymnals under Christian (Kidung Keesaan,
+  Pelengkap Kidung Jemaat, Kidung Jemaat, Kidung Pasamuwan Jawi), the composers under
+  Classical. A hymnal song is cited the way a service sheet cites it: "PKJ 184". The hymnals
+  are licensed, so their songs are shown to the owner only; everybody else sees the songs in
+  the public domain.
 - **Numbered score for both hands.** The melody is on the upper row and the left hand on the
   lower row, aligned beat for beat, with chords above, lyrics below the melody, and dynamics
   between the hands. Notes that are struck together are written one above the other.
@@ -140,9 +143,12 @@ song, private ones included. Putting the app on the server is described in
 ## Using the app
 
 The app opens on the home page. **Continue** reopens the song that was practised last with the
-left hand that was selected; a click on a card opens that song. The songs are listed hymnal by
-hymnal; the row of buttons above them (**All hymnals**, **KK**, **PKJ**, **KJ**, **KPJ**) narrows
-the list to one hymnal and shows how many songs each has. The star marks a favourite, and the
+left hand that was selected; a click on a card opens that song. The songs are listed by
+category and subcategory. The first row of buttons above them (**All songs**, **Christian**,
+**Classical**, …) narrows the list to one category; the second row, below a chosen category,
+to one of its subcategories (**KK**, **PKJ**, **KJ**, **KPJ**, **Hymns** under Christian). Each
+button shows how many songs it holds. The library lists the songs only; a song is loaded when
+it is opened, so it stays quick as it grows. The star marks a favourite, and the
 search box looks at titles, hymnals, numbers ("pkj 184"), credits, and styles. On a song page,
 the name of the app in the top bar leads back, as do **All songs** beside it on a computer and
 the Back button of the browser. Every song has an address of its own (`#song=amazing-grace`), so it can be bookmarked.
@@ -258,10 +264,12 @@ What the installed app does differently:
 
 ## Adding a song
 
-1. Create a folder under `songs/` (or under `songs/private/` for copyrighted material), named
-   after the hymnal, the number, and the title: `pkj-184-nama-yesus-termulia`.
+1. Create a folder under `songs/private/` for a licensed song (every hymnal song), named after
+   the hymnal, the number, and the title: `pkj-184-nama-yesus-termulia`. Only a song whose
+   melody and text are both in the public domain goes directly under `songs/`.
 2. Write `song.txt`: header, melody, chords, lyrics, dynamics. `book: PKJ` and `number: 184` in
-   the header put the song under its hymnal.
+   the header put the song under its hymnal; any other song names its `category` (and its
+   `subcategory`, such as the composer).
 3. Read the song before arranging it, and write the reading down as `analysis.md`: what the
    text says, the mood to build, where the climax is, and what follows for the arrangements.
 4. Optionally write `arrangements.json` with left-hand arrangements, the right-hand parts

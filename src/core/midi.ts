@@ -1,6 +1,6 @@
-import { keySignatureFifths } from './staff';
-import { PPQ, quarterNotesPerMinute } from './time';
-import type { NoteEvent, NoteName, Song, Track } from './types';
+import { keySignatureFifths } from './staff.ts';
+import { PPQ, quarterNotesPerMinute } from './time.ts';
+import type { NoteEvent, NoteName, Song, Track } from './types.ts';
 
 /**
  * Writes a performance as a Standard MIDI File (format 1): a conductor track

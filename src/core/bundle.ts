@@ -1,8 +1,8 @@
-import { buildArrangement, buildBaseline } from './arrangement';
-import { lastPhraseStart } from './intro';
-import { buildPassage } from './passage';
-import { buildRightHandPart, RIGHT_HAND_PARTS } from './right-hand';
-import { parseSong } from './song';
+import { buildArrangement, buildBaseline } from './arrangement.ts';
+import { lastPhraseStart } from './intro.ts';
+import { buildPassage } from './passage.ts';
+import { buildRightHandPart, RIGHT_HAND_PARTS } from './right-hand.ts';
+import { parseSong } from './song.ts';
 import type {
   Arrangement,
   ArrangementSpec,
@@ -16,9 +16,9 @@ import type {
   RightHandMeasureSpec,
   RightHandSpec,
   Song,
-} from './types';
-import { ENDING_OFF, INTRO_LAST_PHRASE, INTRO_OFF } from './types';
-import { validateArrangement, validateRightHand } from './validate';
+} from './types.ts';
+import { ENDING_OFF, INTRO_LAST_PHRASE, INTRO_OFF } from './types.ts';
+import { validateArrangement, validateRightHand } from './validate.ts';
 
 /**
  * A song together with its baseline, every stored arrangement, and the

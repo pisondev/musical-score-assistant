@@ -17,6 +17,7 @@ import {
   type IntroChoice,
   type MeasureNote,
   type NoteTarget,
+  type SongBundle,
 } from '../core';
 import type { SongEntry } from '../library';
 import { useHistory } from '../store/history';
@@ -69,6 +70,8 @@ function isTypingTarget(target: EventTarget | null): boolean {
 
 interface SongPageProps {
   entry: SongEntry;
+  /** The full song, loaded for this page. */
+  bundle: SongBundle;
   /** The place in the top bar for the controls of the song; null until the bar is drawn. */
   tools: HTMLElement | null;
   /** The place under those controls for the progress bar. */
@@ -80,8 +83,7 @@ interface SongPageProps {
  * The page is mounted afresh for every song, so its choices start from what
  * was remembered for that song.
  */
-export function SongPage({ entry, tools, progress }: SongPageProps) {
-  const { bundle } = entry;
+export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
   const songId = entry.id;
   const [arrangementId, setArrangementId] = useState(
     () => useHistory.getState().opened[songId]?.arrangementId ?? BASELINE_ID,

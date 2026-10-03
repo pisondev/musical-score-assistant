@@ -10,8 +10,11 @@ Read `docs/song-format.md` before writing any file. It is the authority on synta
 ## 1. Set up the folder
 
 - Use `songs/private/<book>-<number>-<title-in-kebab-case>/` (for example
-  `pkj-184-nama-yesus-termulia`) unless the user states that the song is in the public domain.
-  The repository is public and `songs/private/` is git-ignored.
+  `pkj-184-nama-yesus-termulia`) for every hymnal song: hymnals are licensed and shown to the
+  owner only. The repository is public and `songs/private/` is git-ignored.
+- Only a song whose melody and text are both in the public domain (the author died more than
+  70 years ago) goes directly under `songs/`, where every user sees it; name its folder after
+  its title. When in doubt, use `songs/private/` and ask.
 - `<book>` is the code of the hymnal in lower case: `kk` (Kidung Keesaan), `pkj` (Pelengkap
   Kidung Jemaat), `kj` (Kidung Jemaat), `kpj` (Kidung Pasamuwan Jawi). Take it from the page or
   from the name of the file; ask when neither says which hymnal it is.
@@ -28,7 +31,9 @@ Read `docs/song-format.md` before writing any file. It is the authority on synta
      `3 . 5` with the dot and the 5 under one beam is `3 (. 5)`;
    - a comma-like tick between notes is a breath mark and is not transcribed.
 2. Copy the header from the score: `title`, `book` (the hymnal code in capitals: `PKJ`),
-   `number`, `key` (from "do = f"), `time`, `tempo`.
+   `number`, `key` (from "do = f"), `time`, `tempo`. A song from no hymnal names its
+   `category` instead (`christian`, `classical`, `traditional`, `other`), and a classical
+   piece its composer's surname as `subcategory`.
 3. Place each chord before the note it is printed above. Chords printed over the second note of a
    beamed pair belong to that note: `(5 [C/E]4)`.
 4. Add the first verse as `L:` lines, one syllable per note, `_` where a note continues a

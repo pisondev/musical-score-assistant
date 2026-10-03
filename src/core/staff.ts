@@ -1,6 +1,6 @@
-import { MAJOR_SCALE, mod, pitchClass } from './notes';
-import { beatTicks } from './time';
-import type { NoteName, Pitch, Slot, TimeSignature } from './types';
+import { MAJOR_SCALE, mod, pitchClass } from './notes.ts';
+import { beatTicks } from './time.ts';
+import type { NoteName, Pitch, Slot, TimeSignature } from './types.ts';
 
 /**
  * Staff notation for one row of slots.

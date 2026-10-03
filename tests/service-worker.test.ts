@@ -65,6 +65,7 @@ describe('the service worker', () => {
         { fileName: 'assets/index-a1.js', size: 400_000 },
         { fileName: 'assets/index-b2.css', size: 55_000 },
         { fileName: 'assets/verovio-module-c3.js', size: SHELL_SIZE_LIMIT * 8 },
+        { fileName: 'assets/song-d4.js', size: 3_000, song: true },
       ],
       ['favicon.svg', 'manifest.webmanifest'],
     );
@@ -79,6 +80,7 @@ describe('the service worker', () => {
       'assets/index-a1.js',
       'assets/index-b2.css',
       'assets/verovio-module-c3.js',
+      'assets/song-d4.js',
     ]);
   });
 });

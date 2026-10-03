@@ -1,8 +1,8 @@
-import { buildLeftMeasure, chordAt, chordTimeline } from './arrangement';
-import type { Chord } from './chord';
-import { parseNotationLine } from './notation';
-import { toneToMidi } from './notes';
-import { beatTicks } from './time';
+import { buildLeftMeasure, chordAt, chordTimeline } from './arrangement.ts';
+import type { Chord } from './chord.ts';
+import { parseNotationLine } from './notation.ts';
+import { toneToMidi } from './notes.ts';
+import { beatTicks } from './time.ts';
 import type {
   Arrangement,
   ArrangementMeasure,
@@ -17,7 +17,7 @@ import type {
   Slot,
   Song,
   WrittenRightHandMode,
-} from './types';
+} from './types.ts';
 
 /**
  * Right-hand parts.

@@ -7,8 +7,8 @@ import {
   pitchClass,
   simplifyNoteName,
   spellAbove,
-} from './notes';
-import type { NoteName } from './types';
+} from './notes.ts';
+import type { NoteName } from './types.ts';
 
 export type ChordQuality = 'major' | 'minor' | 'diminished' | 'augmented' | 'suspended';
 

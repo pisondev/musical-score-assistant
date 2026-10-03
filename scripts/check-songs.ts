@@ -8,16 +8,19 @@
  * Exits with status 1 when any song or arrangement contains an error.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import {
   beatTicks,
+  categoryName,
   createSongBundle,
   findGaps,
   formatNoteName,
   midiToText,
+  placeSong,
   readNotes,
   RIGHT_HAND_PARTS,
   songReference,
+  subcategoryName,
   toneToText,
 } from '../src/core';
 import type {
@@ -195,6 +198,24 @@ function checkFolder(folder: string, dump: boolean): boolean {
   reportable(song.issues).forEach((issue) => console.log(describeIssue(issue, song)));
   console.log(`  gaps to fill: ${describeGaps(song)}`);
   console.log(`  reading: ${describeReading(folder)}`);
+  const placement = placeSong(meta);
+  console.log(
+    `  listed under: ${categoryName(placement.category)} > ${subcategoryName(placement.subcategory)}`,
+  );
+  // Hymnals are licensed: a song from one belongs to the owner's private library only.
+  const isPrivate = relative(resolve(SONGS_ROOT), resolve(folder)).split(sep)[0] === 'private';
+  if (meta.book && !isPrivate) {
+    fileIssues.push({
+      severity: 'error',
+      message: `Songs from a hymnal (${meta.book}) are licensed: keep them under songs/private/, never in the public library.`,
+    });
+  }
+  if (!meta.book && !meta.category) {
+    fileIssues.push({
+      severity: 'warning',
+      message: 'Header "category" is missing; the song is listed under Other.',
+    });
+  }
   const playerNotes = countPlayerNotes(folder);
   if (playerNotes > 0) {
     console.log(

@@ -8,7 +8,7 @@ songs/
     song.txt             melody, printed chords, lyrics, and dynamics
     analysis.md          the reading of the song that its arrangements follow
     arrangements.json    left hands, right-hand parts, introductions, key lift, endings (optional)
-  private/               git-ignored; on the public site shown to the signed-in owner only
+  private/               git-ignored; licensed songs, on the public site for the owner only
     pkj-184-<title>/     hymnal code, number, and title in lower case
       song.txt
       analysis.md
@@ -19,7 +19,14 @@ songs/
 
 The app and `npm run check` pick up every folder that contains a `song.txt`. The name of the
 folder is free; `<hymnal code>-<number>-<title>` keeps a growing library in order. Which hymnal
-a song belongs to is decided by its header, not by the folder.
+and category a song belongs to is decided by its header, not by the folder.
+
+**Licensing decides the folder.** The public library (`songs/` outside `private/`) is open to
+every visitor and part of a public repository, so it holds only songs whose melody and text are
+both in the public domain: in Indonesia the author has to have died more than 70 years ago.
+Every song from a hymnal goes under `songs/private/`, even an old one, because the Indonesian
+texts and translations are licensed; the owner sees those songs, nobody else does. `npm run
+check` fails a public song that names a hymnal.
 
 ## `song.txt`
 
@@ -29,6 +36,7 @@ A plain-text file with a header followed by the melody.
 title: Amazing Grace
 composer: Traditional American melody (New Britain)
 lyricist: John Newton, 1779
+category: christian
 key: G
 time: 3/4
 tempo: 84
@@ -42,19 +50,21 @@ L: A-ma-zing _ grace! how sweet the sound, that
 
 One `name: value` pair per line, before the first line of music.
 
-| Field      | Meaning                                                                            | Default   |
-| ---------- | ---------------------------------------------------------------------------------- | --------- |
-| `title`    | Song title                                                                         | Untitled  |
-| `book`     | Code of the hymnal the song is taken from: `KK`, `PKJ`, `KJ`, `KPJ` (see below)    | none      |
-| `number`   | Number in the hymnal or songbook                                                   | none      |
-| `composer` | Composer of the melody                                                             | none      |
-| `lyricist` | Author or translator of the text                                                   | none      |
-| `source`   | Where the score comes from                                                         | none      |
-| `key`      | The note that "1" stands for: `C`, `F`, `Bb`, `F#`, `Bes`, `Es`                    | `C`       |
-| `mode`     | `major` or `minor`; minor songs are written from 6                                 | `major`   |
-| `time`     | Time signature such as `4/4`, `3/4`, `6/8`                                         | `4/4`     |
-| `tempo`    | Beats per minute, counted in beats of the time signature                           | `80`      |
-| `octave`   | Octave of "1" for the melody (4 means C4 to B4); chosen automatically when omitted | automatic |
+| Field         | Meaning                                                                            | Default   |
+| ------------- | ---------------------------------------------------------------------------------- | --------- |
+| `title`       | Song title                                                                         | Untitled  |
+| `book`        | Code of the hymnal the song is taken from: `KK`, `PKJ`, `KJ`, `KPJ` (see below)    | none      |
+| `number`      | Number in the hymnal or songbook                                                   | none      |
+| `category`    | Category of the library: `christian`, `classical`, `traditional`, `other`          | see below |
+| `subcategory` | Subcategory inside the category, such as the composer (`Bach`); see below          | see below |
+| `composer`    | Composer of the melody                                                             | none      |
+| `lyricist`    | Author or translator of the text                                                   | none      |
+| `source`      | Where the score comes from                                                         | none      |
+| `key`         | The note that "1" stands for: `C`, `F`, `Bb`, `F#`, `Bes`, `Es`                    | `C`       |
+| `mode`        | `major` or `minor`; minor songs are written from 6                                 | `major`   |
+| `time`        | Time signature such as `4/4`, `3/4`, `6/8`                                         | `4/4`     |
+| `tempo`       | Beats per minute, counted in beats of the time signature                           | `80`      |
+| `octave`      | Octave of "1" for the melody (4 means C4 to B4); chosen automatically when omitted | automatic |
 
 ### Hymnals
 
@@ -71,8 +81,28 @@ code, its number, or the name of its hymnal.
 | `KPJ` | Kidung Pasamuwan Jawi   |
 
 The code is not case-sensitive. Any other code is accepted and gets a section of its own under
-that code; to give it a full name, add it to the list in `src/core/hymnals.ts`. Songs without a
-`book` are listed under "Other songs".
+that code; to give it a full name, add it to the list in `src/core/hymnals.ts`.
+
+### Categories
+
+The library is divided into categories, and each category into subcategories. The home page
+offers the categories first, then the subcategories of the chosen one; the song menu and the
+search use them too.
+
+| `category`    | Name        | Subcategories                                                    |
+| ------------- | ----------- | ---------------------------------------------------------------- |
+| `christian`   | Christian   | The hymnals (`KK`, `PKJ`, `KJ`, `KPJ`), and `Hymns` for the rest |
+| `classical`   | Classical   | The composer, by surname: `subcategory: Bach`                    |
+| `traditional` | Traditional | Free, for example the country: `subcategory: Indonesia`          |
+| `other`       | Other       | Free                                                             |
+
+- A song with a `book` is always listed under Christian, with its hymnal as the subcategory;
+  it needs neither field. Naming another category beside a hymnal is a warning.
+- Every other song names its `category`. Without one it is listed under Other, and the check
+  warns. An unknown category is a warning as well; new ones are added in
+  `src/core/categories.ts`.
+- Without a `subcategory`, a Christian song is listed under `Hymns` and any other song under
+  `General`.
 
 ### Body
 

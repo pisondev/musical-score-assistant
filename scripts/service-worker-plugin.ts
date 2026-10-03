@@ -19,10 +19,18 @@ const WORKER_ENTRY = fileURLToPath(new URL('../src/service-worker/worker.ts', im
  */
 export const SHELL_SIZE_LIMIT = 1024 * 1024;
 
+/** The modules of a song: `song.txt` and `arrangements.json` below the songs folder. */
+const SONG_MODULE = /[\\/]songs[\\/].+[\\/](song\.txt|arrangements\.json)(\?|$)/;
+
 /** A file of the build: its name relative to the root of the site, and its size in bytes. */
 export interface BuiltFile {
   fileName: string;
   size: number;
+  /**
+   * True for the chunk of one song: there may be hundreds, so each is kept when it is first
+   * opened instead of when the app is installed.
+   */
+  song?: boolean;
 }
 
 /**
@@ -37,7 +45,9 @@ export function shellFiles(
   return {
     shell: [
       './',
-      ...files.filter((file) => file.size <= SHELL_SIZE_LIMIT).map((file) => file.fileName),
+      ...files
+        .filter((file) => !file.song && file.size <= SHELL_SIZE_LIMIT)
+        .map((file) => file.fileName),
       ...publicFiles,
     ],
     assets: files.map((file) => file.fileName).filter((name) => name.startsWith('assets/')),
@@ -77,6 +87,7 @@ export function serviceWorkerPlugin(): Plugin {
         built.push({
           fileName: item.fileName,
           size: typeof content === 'string' ? Buffer.byteLength(content) : content.byteLength,
+          song: item.type === 'chunk' && SONG_MODULE.test(item.facadeModuleId ?? ''),
         });
       }
       const publicFiles = publicShell(config.publicDir);

@@ -9,6 +9,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Categories: the library is divided into Christian, Classical, Traditional, and Other, and
+  each into subcategories. Every hymnal is a subcategory of Christian, and songs from no
+  hymnal are listed there under Hymns; classical songs are listed by composer. The header of a
+  song names them (`category:`, `subcategory:`), the home page offers the categories and
+  then the subcategories of the chosen one, and the song menu and the search use them. The
+  hymnals appear for the owner only, empty ones included; everybody else sees only what holds
+  a song they may open.
+- `npm run check` shows where each song is listed, warns about a song without a category,
+  and fails a song from a hymnal that lies outside `songs/private`: hymnals are licensed.
 - The app can be installed on a phone, tablet, or computer from the browser (a web app
   manifest, icons, and a service worker). It opens in a window of its own and works without a
   connection: the app, the piano samples, and the staff engraver once used are kept, and so are
@@ -248,6 +257,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The library loads a song only when it is opened. The home page works from an index of the
+  songs (header, category, counts, names of the left hands): the public songs are indexed at
+  build time and each becomes a chunk of its own, and the server sends the owner the index of
+  the private songs and a song itself on request (`/api/private-songs?id=`). The first page
+  stays small however many songs the library holds, and the installed app keeps a song once
+  it has been opened.
+- The modules of `src/core` name the files they import with their extension, since the
+  configuration of Vite now loads the engine.
 - On a tablet the first row of the top bar scrolls away, as on a phone, so the controls and
   the progress bar take 93 pixels of the height instead of 136, and the button with four
   squares is left out. The content keeps clear of the notch of a phone held sideways.

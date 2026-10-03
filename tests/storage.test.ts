@@ -159,24 +159,43 @@ describe('the catalog of songs with private songs in the bucket', () => {
 
   it('reads private songs from the bucket and public ones from the folder', async () => {
     const { catalog } = await setUp();
-    expect(await catalog.privateSongs()).toEqual([
-      { id: 'private/kj-1', song: SONG, arrangements: { arrangements: [] } },
-      { id: 'private/kk-2', song: SONG, arrangements: null },
+    const index = await catalog.privateIndex();
+    expect(index.map((entry) => [entry.id, entry.meta.title, entry.isPrivate])).toEqual([
+      ['private/kj-1', 'Private song', true],
+      ['private/kk-2', 'Private song', true],
     ]);
+    expect(await catalog.privateSong('private/kj-1')).toEqual({
+      id: 'private/kj-1',
+      song: SONG,
+      arrangements: { arrangements: [] },
+    });
+    expect(await catalog.privateSong('private/kk-2')).toEqual({
+      id: 'private/kk-2',
+      song: SONG,
+      arrangements: null,
+    });
+    expect(await catalog.privateSong('private/none')).toBeNull();
+    // Only private songs are handed out, and only by a well-formed id.
+    expect(await catalog.privateSong('public-song')).toBeNull();
+    expect(await catalog.privateSong('private/../public-song')).toBeNull();
     expect(await catalog.has('public-song')).toBe(true);
     expect(await catalog.has('private/kj-1')).toBe(true);
     expect(await catalog.has('private/kj')).toBe(false);
     expect(await catalog.has('missing')).toBe(false);
   });
 
-  it('fetches a file again only when it has changed', async () => {
+  it('indexes a song again only when one of its files has changed', async () => {
     const { r2, catalog } = await setUp();
-    await catalog.privateSongs();
+    await catalog.privateIndex();
     const before = r2.reads();
-    await catalog.privateSongs();
+    await catalog.privateIndex();
     expect(r2.reads()).toBe(before);
-    r2.objects.set('songs/private/kj-1/song.txt', `${SONG}\n`);
-    await catalog.privateSongs();
-    expect(r2.reads()).toBe(before + 1);
+    r2.objects.set('songs/private/kj-1/song.txt', SONG.replace('Private song', 'Renamed'));
+    const index = await catalog.privateIndex();
+    // The two files of that song, and nothing of the other.
+    expect(r2.reads()).toBe(before + 2);
+    expect(index.map((entry) => entry.meta.title)).toEqual(['Renamed', 'Private song']);
+    r2.objects.delete('songs/private/kk-2/song.txt');
+    expect((await catalog.privateIndex()).map((entry) => entry.id)).toEqual(['private/kj-1']);
   });
 });

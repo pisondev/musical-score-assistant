@@ -1,4 +1,4 @@
-import type { SongMeta } from './types';
+import type { SongMeta } from './types.ts';
 
 /** A hymnal that songs are taken from, known by a short code. */
 export interface Hymnal {

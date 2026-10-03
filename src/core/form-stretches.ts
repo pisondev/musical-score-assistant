@@ -1,5 +1,5 @@
-import type { Performance, PerformanceSection } from './performance';
-import type { MeasurePart } from './types';
+import type { Performance, PerformanceSection } from './performance.ts';
+import type { MeasurePart } from './types.ts';
 
 /**
  * A stretch of a performance that has one name for the player: the

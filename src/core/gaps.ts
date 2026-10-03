@@ -1,5 +1,5 @@
-import { beatTicks } from './time';
-import type { Slot, Song } from './types';
+import { beatTicks } from './time.ts';
+import type { Slot, Song } from './types.ts';
 
 /** A melody note or rest is a gap when nothing new is sung for longer than this many beats. */
 const GAP_BEATS = 2;

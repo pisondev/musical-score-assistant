@@ -1,4 +1,4 @@
-import type { Barline, DynamicSign, Issue, SlotKind } from './types';
+import type { Barline, DynamicSign, Issue, SlotKind } from './types.ts';
 
 /**
  * Numbered-notation text shared by the melody and the left hand.

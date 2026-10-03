@@ -1,4 +1,4 @@
-import type { TimeSignature } from './types';
+import type { TimeSignature } from './types.ts';
 
 /** Ticks per quarter note. 480 keeps triplets and sixteenths on whole ticks. */
 export const PPQ = 480;
