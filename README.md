@@ -94,6 +94,11 @@ with the account.
   one row at the top, menus open as sheets from the bottom edge, and the playback bar shrinks
   to two short rows, so most of the screen is left for the score. The library shows the songs
   without totals and counts, with the filter and the sorting a full row each.
+- **A score as large as you want it.** A phone held upright fits about two measures per line
+  and a phone held sideways four; a tablet or a computer fits as many as its width allows. `−`
+  and `+` at the right of the progress bar make the score smaller or larger on any screen (50
+  to 180 percent), and a click on the percentage returns to the fitted size. Each device keeps
+  its own size.
 - **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
   key, and introduction. It prints in black with the browser's default settings; "Background
   graphics" does not have to be switched on.
@@ -176,6 +181,7 @@ choices scroll, so it is always clear which setting they belong to.
 | Move the playhead         | Click a measure                               | `Enter` on a focused measure                                             |
 | Set the tempo             | Drag the slider, or click the number and type | `Enter` applies, `Esc` cancels, `↑` `↓` step by one, with `Shift` by ten |
 | Back to the printed tempo | Arrow button beside the number                |                                                                          |
+| Score smaller or larger   | `−` and `+` beside the progress bar           | `-` and `+`; `0` returns to the fitted size                              |
 
 The tempo ranges from 40 to 160 beats per minute; a typed number outside that range is brought
 to the nearest limit.

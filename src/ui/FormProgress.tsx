@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { formStretches, stretchAt, type Performance } from '../core';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
@@ -42,7 +42,14 @@ function useViewedPosition(performance: Performance): number {
  * plays it follows the playhead; otherwise it follows the part of the sheet
  * that is in view. Each stretch of the bar leads to its part of the piece.
  */
-export function FormProgress({ performance }: { performance: Performance }) {
+export function FormProgress({
+  performance,
+  children,
+}: {
+  performance: Performance;
+  /** Controls at the right end of the strip, such as the size of the score. */
+  children?: ReactNode;
+}) {
   const stretches = useMemo(() => formStretches(performance), [performance]);
   const total = performance.song.measures.length;
   const viewed = useViewedPosition(performance);
@@ -90,6 +97,7 @@ export function FormProgress({ performance }: { performance: Performance }) {
           );
         })}
       </div>
+      {children}
     </nav>
   );
 }

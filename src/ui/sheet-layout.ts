@@ -103,3 +103,35 @@ export function layOutSystems(
     filler: position === systems.length - 1 ? Math.max(0, widest - system.weight) : 0,
   }));
 }
+
+/**
+ * How wide a run of `count` measures in a row typically is, in weight units: the given
+ * percentile of the sums of every such run. A line has to hold runs like this one for the
+ * score to show `count` measures on most lines.
+ */
+export function typicalRun(weights: number[], count: number, percentile = 0.8): number {
+  if (weights.length === 0) return 0;
+  const runs: number[] = [];
+  for (let start = 0; start + count <= weights.length; start += 1) {
+    runs.push(weights.slice(start, start + count).reduce((sum, weight) => sum + weight, 0));
+  }
+  if (runs.length === 0) return weights.reduce((sum, weight) => sum + weight, 0);
+  runs.sort((a, b) => a - b);
+  return runs[Math.min(runs.length - 1, Math.floor(percentile * runs.length))];
+}
+
+/**
+ * The scale at which a run of measures `runWeight` units wide fits across `width` pixels,
+ * never larger than the full size and never smaller than `minimum`. Phones use it to show a
+ * few measures per line instead of one big one.
+ */
+export function fitScale(
+  width: number,
+  runWeight: number,
+  unitWidth: number,
+  labelWidth: number,
+  minimum = 0.4,
+): number {
+  if (width <= 0 || runWeight <= 0) return 1;
+  return Math.max(minimum, Math.min(1, width / (runWeight * unitWidth + labelWidth)));
+}

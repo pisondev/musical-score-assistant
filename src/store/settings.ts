@@ -27,6 +27,8 @@ interface SettingsState {
   showDynamics: boolean;
   /** Whether the panel that explains the arrangement is open. */
   guideOpen: boolean;
+  /** Size of the score relative to the size that suits the screen; kept per device. */
+  zoom: number;
 
   setIntro: (intro: IntroChoice) => void;
   setEnding: (ending: EndingChoice) => void;
@@ -37,6 +39,7 @@ interface SettingsState {
   toggleLyrics: () => void;
   toggleDynamics: () => void;
   toggleGuide: () => void;
+  setZoom: (zoom: number) => void;
 }
 
 /** Display preferences, remembered between visits. */
@@ -52,6 +55,7 @@ export const useSettings = create<SettingsState>()(
       showLyrics: true,
       showDynamics: true,
       guideOpen: false,
+      zoom: 1,
 
       setIntro: (intro) => set({ intro }),
       setEnding: (ending) => set({ ending }),
@@ -62,14 +66,16 @@ export const useSettings = create<SettingsState>()(
       toggleLyrics: () => set((state) => ({ showLyrics: !state.showLyrics })),
       toggleDynamics: () => set((state) => ({ showDynamics: !state.showDynamics })),
       toggleGuide: () => set((state) => ({ guideOpen: !state.guideOpen })),
+      setZoom: (zoom) => set({ zoom }),
     }),
     {
       name: 'musical-score-assistant:settings',
-      version: 4,
+      version: 5,
       // Version 1 stored an intro choice that no longer exists; everything else carries over.
       migrate: (persisted, version) => {
         const state = persisted as Partial<SettingsState>;
-        return version < 2 ? { ...state, intro: INTRO_OFF } : state;
+        const zoom = typeof state.zoom === 'number' ? state.zoom : 1;
+        return version < 2 ? { ...state, intro: INTRO_OFF, zoom } : { ...state, zoom };
       },
     },
   ),

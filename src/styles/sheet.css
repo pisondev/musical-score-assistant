@@ -17,11 +17,15 @@
   --lyric-size: 11px;
   --bar: #9cb7c4;
 
-  display: grid;
-  gap: 18px;
   user-select: none;
   /* A long press opens the menu of a measure, not the browser's own. */
   -webkit-touch-callout: none;
+}
+
+/* The score itself; scaled as a whole by the zoom, while the sheet keeps the width it measures. */
+.sheet__body {
+  display: grid;
+  gap: 18px;
 }
 
 .sheet__section {
@@ -775,8 +779,11 @@
   --lyric-size: 9px;
   --bar: #000;
 
-  gap: 12px;
   width: 700px;
+}
+
+.sheet--print .sheet__body {
+  gap: 12px;
 }
 
 .sheet--print .sheet__section {

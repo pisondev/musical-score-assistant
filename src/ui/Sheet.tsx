@@ -21,18 +21,23 @@ import { PencilIcon } from './icons';
 import { keepInView } from './keep-in-view';
 import { SectionHeading } from './SectionHeading';
 import {
+  fitScale,
   labelRowWidth,
   layOutSystems,
   measureWeight,
+  typicalRun,
   type Label,
   type SystemLayout,
 } from './sheet-layout';
 import { useElementWidth } from './useElementWidth';
+import { useScreenShape } from './useScreenShape';
 import { slotElementId, usePlayhead } from './usePlayhead';
 
 /** Width, in pixels, that one weight unit (a plain beat) needs at minimum. */
 const MIN_UNIT_WIDTH = 40;
 const MAX_MEASURES_PER_SYSTEM = 4;
+/** Measures per line that a phone aims for at 100%: held upright, and on its side. */
+const PHONE_MEASURES = { portrait: 2, landscape: 4 };
 /** Width of the column that labels the two hands. */
 const LABEL_WIDTH = 22;
 /** Layout width used for paper: A4 portrait inside its margins. */
@@ -65,6 +70,8 @@ interface SheetProps {
   noted: ReadonlySet<number>;
   /** Opens the notes of a measure. */
   onOpenNotes: (index: number) => void;
+  /** Size relative to the size that suits the screen; paper ignores it. */
+  zoom: number;
 }
 
 /** A piece of a hairpin that falls inside one measure. */
@@ -526,11 +533,12 @@ export function Sheet({
   printing,
   noted,
   onOpenNotes,
+  zoom,
 }: SheetProps) {
   const { song, arrangement, sections: parts } = performance;
   const container = useRef<HTMLDivElement>(null);
   const measuredWidth = useElementWidth(container);
-  const width = printing ? PRINT_WIDTH : measuredWidth;
+  const screen = useScreenShape();
   const unitWidth = printing ? PRINT_UNIT_WIDTH : MIN_UNIT_WIDTH;
 
   // Song measures leave room for every arrangement and every right-hand part,
@@ -593,6 +601,31 @@ export function Sheet({
     });
   }, [song, arrangement, bundle, parts, printing, unitWidth]);
 
+  // On a phone the score is drawn smaller, so that a few measures fit on a line (two held
+  // upright, four on its side); the zoom of the player scales that size. The systems are laid
+  // out for the width the score has at its own size, and the whole is then scaled to fit.
+  const target = screen.landscape ? PHONE_MEASURES.landscape : PHONE_MEASURES.portrait;
+  // The measures of the song itself decide; a short pickup or a passage around it does not.
+  const songWeights = useMemo(
+    () =>
+      weights.filter(
+        (_, index) => song.measures[index].part === 'song' && song.measures[index].number !== null,
+      ),
+    [weights, song],
+  );
+  const fitted =
+    !printing && screen.compact
+      ? fitScale(measuredWidth, typicalRun(songWeights, target), MIN_UNIT_WIDTH, LABEL_WIDTH)
+      : 1;
+  const scale = printing ? 1 : fitted * zoom;
+  const width = printing ? PRINT_WIDTH : measuredWidth / scale;
+  // Where the score had to be drawn smaller to fit, a line holds that many measures and no
+  // more; with room to spare, as many as fit. Zooming out lets more measures share a line.
+  const perLine = fitted < 1 ? target : MAX_MEASURES_PER_SYSTEM;
+  const perSystem = printing
+    ? MAX_MEASURES_PER_SYSTEM
+    : Math.min(8, Math.max(1, Math.round(perLine / zoom)));
+
   // Every section starts on a system of its own.
   const sections = useMemo(() => {
     const capacity = Math.max(1, (width - LABEL_WIDTH) / unitWidth);
@@ -605,10 +638,10 @@ export function Sheet({
         weights,
         isPickup,
         capacity,
-        MAX_MEASURES_PER_SYSTEM,
+        perSystem,
       ),
     }));
-  }, [song, parts, weights, width, unitWidth]);
+  }, [song, parts, weights, width, unitWidth, perSystem]);
   const names = useMemo(() => measureNames(performance), [performance]);
   const sectionEnds = useMemo(
     () => new Set(parts.slice(0, -1).map((section) => section.start + section.count - 1)),
@@ -716,20 +749,22 @@ export function Sheet({
       )}
       aria-label="Score"
     >
-      {width > 0 &&
-        sections.map(({ section, systems }) => (
-          <section
-            key={section.start}
-            className={cx(
-              'sheet__section',
-              section.kind !== 'song' && `sheet__section--aside sheet__section--${section.kind}`,
-            )}
-            aria-label={section.title}
-          >
-            {sections.length > 1 && <SectionHeading section={section} />}
-            {renderSystems(systems)}
-          </section>
-        ))}
+      <div className="sheet__body" style={scale === 1 ? undefined : { zoom: scale }}>
+        {width > 0 &&
+          sections.map(({ section, systems }) => (
+            <section
+              key={section.start}
+              className={cx(
+                'sheet__section',
+                section.kind !== 'song' && `sheet__section--aside sheet__section--${section.kind}`,
+              )}
+              aria-label={section.title}
+            >
+              {sections.length > 1 && <SectionHeading section={section} />}
+              {renderSystems(systems)}
+            </section>
+          ))}
+      </div>
     </div>
   );
 }

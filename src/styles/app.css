@@ -411,6 +411,45 @@ code {
   background: #a8cdda;
 }
 
+/* Larger and smaller, at the right end of the strip under the controls. */
+.zoom {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.zoom button {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  min-width: 26px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-soft);
+}
+
+.zoom button:hover:not(:disabled) {
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+}
+
+.zoom button:disabled {
+  opacity: 0.35;
+}
+
+.zoom .zoom__value {
+  min-width: 44px;
+  font-size: 12px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
 /*
  * The gradient is fixed to the window, not to a stretch, so it runs through all stretches
  * as one sweep: green where the piece begins, blue where it ends.
@@ -1898,14 +1937,39 @@ a.button {
     --transport-height: 58px;
   }
 
+  /*
+   * As on a phone held upright: the first row, with the name and the song, scrolls away, and
+   * the controls of the song stay at the top with a little room above them, together with the
+   * line that says where one is. They share one row, so little height is lost.
+   */
   .topbar {
-    position: static;
+    top: calc(-52px - env(safe-area-inset-top));
   }
 
-  /* With a song open, the line that says where one is stays; the rest scrolls away. */
-  .topbar:has(.form-progress) {
-    position: sticky;
-    top: calc(27px - var(--topbar-height, 60px));
+  .topbar__inner {
+    padding-top: env(safe-area-inset-top);
+    row-gap: 0;
+  }
+
+  .topbar__main {
+    flex: 1 1 100%;
+    height: 52px;
+  }
+
+  .topbar__tools {
+    flex: 1 1 100%;
+    margin-left: 0;
+    padding-top: calc(6px + env(safe-area-inset-top));
+    padding-bottom: 6px;
+  }
+
+  .topbar__tools .toolbar {
+    justify-content: flex-end;
+  }
+
+  /* The name of the app leads back to all songs; the extra button is not needed here. */
+  .topbar__nav > .button--quiet {
+    display: none;
   }
 
   .transport__inner {
@@ -1968,10 +2032,20 @@ a.button {
     gap: 10px;
   }
 
+  /*
+   * When the first row has scrolled away, the controls keep a little room above them (and
+   * clear of a notch or a camera, where the screen has one).
+   */
   .topbar__tools {
     flex: 1 1 100%;
     margin-left: 0;
+    padding-top: calc(10px + env(safe-area-inset-top));
     padding-bottom: 8px;
+  }
+
+  /* The name of the app leads back to all songs; the extra button is not needed here. */
+  .topbar__nav > .button--quiet {
+    display: none;
   }
 
   .form-progress {

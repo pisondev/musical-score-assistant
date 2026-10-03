@@ -233,6 +233,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- On a phone the score is scaled so that about two measures fit on a line when the phone is
+  held upright and four when it is held sideways, instead of one large measure per line.
+- Zoom for the score on every screen: `−`, the size in percent, and `+` at the right of the
+  progress bar, or the keys `-`, `+`, and `0`. The size is kept per device and does not travel
+  with the account.
+- On a phone the controls that stay at the top keep a little room above them instead of
+  touching the edge of the screen, also when the phone is held sideways, and the button with
+  four squares is left out of the top bar; the name of the app leads back to the songs.
 - On a phone the library shows the songs alone: the totals above it and the counts on each
   card are left out, and the All/Favourites switch and the sorting each fill a row.
 - A deploy no longer carries private songs; it sends the code and the public songs only, and

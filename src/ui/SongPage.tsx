@@ -46,6 +46,8 @@ import { MAX_TRANSPOSE, Toolbar } from './Toolbar';
 import { TransportBar } from './TransportBar';
 import { useMeasureMenu } from './useMeasureMenu';
 import { useMeasureNotes } from './useMeasureNotes';
+import { zoomIn, zoomOut } from './zoom';
+import { ZoomControl } from './ZoomControl';
 
 const LEVEL_LABEL = { easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' } as const;
 
@@ -97,6 +99,7 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
   const showLyrics = useSettings((state) => state.showLyrics);
   const showDynamics = useSettings((state) => state.showDynamics);
   const guideOpen = useSettings((state) => state.guideOpen);
+  const zoom = useSettings((state) => state.zoom);
 
   const arrangement = useMemo(
     () =>
@@ -175,6 +178,11 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
       else if (event.key === '3') player.setHandMode('right');
       else if (event.key === 'v' || event.key === 'V') player.toggleVoiceGuide();
       else if (event.key === 'Home') player.stop();
+      else if (event.key === '+' || event.key === '=') {
+        useSettings.getState().setZoom(zoomIn(useSettings.getState().zoom));
+      } else if (event.key === '-' || event.key === '_') {
+        useSettings.getState().setZoom(zoomOut(useSettings.getState().zoom));
+      } else if (event.key === '0') useSettings.getState().setZoom(1);
       else if (event.key === 'Escape') deselectMeasure.current();
     };
     window.addEventListener('keydown', onKeyDown);
@@ -379,7 +387,13 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
             />,
             tools,
           )}
-        {progress && createPortal(<FormProgress performance={performance} />, progress)}
+        {progress &&
+          createPortal(
+            <FormProgress performance={performance}>
+              <ZoomControl />
+            </FormProgress>,
+            progress,
+          )}
         <IssueList
           names={names}
           issues={[...performance.song.issues, ...bundle.issues, ...performance.arrangement.issues]}
@@ -400,6 +414,7 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
                 printing={printing}
                 noted={noted}
                 onOpenNotes={openNotes}
+                zoom={zoom}
               />
             ) : (
               <Sheet
@@ -410,6 +425,7 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
                 printing={printing}
                 noted={noted}
                 onOpenNotes={openNotes}
+                zoom={zoom}
               />
             )}
             {!printing &&

@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { parseSong } from '../src/core/song';
 import type { Slot } from '../src/core/types';
-import { labelRowWidth, layOutSystems, measureWeight } from '../src/ui/sheet-layout';
+import {
+  fitScale,
+  labelRowWidth,
+  layOutSystems,
+  measureWeight,
+  typicalRun,
+} from '../src/ui/sheet-layout';
+import { canZoomIn, canZoomOut, ZOOM_STEPS, zoomIn, zoomOut } from '../src/ui/zoom';
 
 const BEAT = 480;
 
@@ -114,5 +121,37 @@ describe('layOutSystems', () => {
     const systems = layOutSystems([4, 5, 6], [9, 9, 9, 9, 2, 2, 2], () => false, 100, 2);
     expect(systems.map((system) => system.measures)).toEqual([[4, 5], [6]]);
     expect(systems[1].filler).toBe(2);
+  });
+});
+
+describe('the size of the score on a phone', () => {
+  it('takes the width of a typical run of measures in a row', () => {
+    const weights = [4, 4, 6, 4, 8, 4, 4, 4, 5, 4];
+    // Runs of two: 8, 10, 10, 12, 12, 8, 8, 9, 9; the 80th percentile is 12.
+    expect(typicalRun(weights, 2)).toBe(12);
+    expect(typicalRun(weights, 1)).toBe(6);
+    expect(typicalRun([3, 4], 4)).toBe(7);
+    expect(typicalRun([], 2)).toBe(0);
+  });
+
+  it('shrinks the score until such a run fits, within limits', () => {
+    // A run of 10 units at 40 pixels each, plus 22 for the labels, needs 422 pixels.
+    expect(fitScale(211, 10, 40, 22)).toBeCloseTo(0.5);
+    expect(fitScale(1000, 10, 40, 22)).toBe(1);
+    expect(fitScale(50, 10, 40, 22)).toBe(0.4);
+    expect(fitScale(0, 10, 40, 22)).toBe(1);
+  });
+});
+
+describe('the zoom of the score', () => {
+  it('steps through the sizes and stops at both ends', () => {
+    expect(zoomIn(1)).toBe(1.1);
+    expect(zoomOut(1)).toBe(0.9);
+    expect(zoomIn(ZOOM_STEPS[ZOOM_STEPS.length - 1])).toBe(ZOOM_STEPS[ZOOM_STEPS.length - 1]);
+    expect(zoomOut(ZOOM_STEPS[0])).toBe(ZOOM_STEPS[0]);
+    expect(canZoomIn(1.8)).toBe(false);
+    expect(canZoomOut(0.5)).toBe(false);
+    // A value between the steps snaps to the nearest one first.
+    expect(zoomIn(1.03)).toBe(1.1);
   });
 });

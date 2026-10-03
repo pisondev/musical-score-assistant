@@ -181,8 +181,9 @@ Three small Zustand stores:
   current measure, the beat of a loop's rest) and forwards every change to the engine. When new music is loaded it is told
   how much changed: nothing structural (keep the playhead), the measures (rewind), or the song
   (rewind and restore the tempo).
-- `settings.ts` holds display preferences (introduction, right-hand mode, visible rows, guide)
-  and persists them in the browser.
+- `settings.ts` holds display preferences (introduction, right-hand mode, visible rows, guide,
+  zoom) and persists them in the browser. The zoom stays with the device; the rest travels
+  with the account.
 - `history.ts` holds what the home page needs: when each song was last opened and with which
   left hand, and the favourites. It is persisted as well.
 
@@ -213,7 +214,10 @@ for every song, starting from the left hand remembered for it.
 | `Sheet`            | The numbered score: introduction and song sections, systems, measures     |
 | `StaffSheet`       | The same score in staff notation, engraved by Verovio as SVG              |
 | `useVerovio`       | Loads the engraver on demand                                              |
-| `sheet-layout.ts`  | Measure widths and system breaks                                          |
+| `sheet-layout.ts`  | Measure widths, system breaks, and the scale that fits a phone            |
+| `ZoomControl`      | Smaller, the size in percent (a click resets it), larger                  |
+| `zoom.ts`          | The steps of the zoom, from 50 to 180 percent                             |
+| `useScreenShape`   | Whether the screen is a phone's, and whether it is held sideways          |
 | `usePlayhead`      | Follows the audio clock and highlights the slots being played             |
 | `MeasureMenu`      | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
 | `useMeasureMenu`   | Opens that menu on a right click or a long press; a click selects         |
@@ -308,6 +312,13 @@ Layout notes:
   (`measureWeight`), or wider when its syllables or chord symbols would otherwise run into each
   other (`labelRowWidth`). The widths of the text are estimated from the font sizes of
   `sheet.css`; the two have to be kept in step.
+- Size on screen: the numbered score is laid out for a width of `measuredWidth / scale` and
+  drawn with CSS `zoom: scale` on `.sheet__body`, so a smaller scale means more measures per
+  line at the same physical width. On a phone `fitScale` picks the scale at which a typical
+  run of measures (`typicalRun`, the 80th percentile of runs of that length) fills the line:
+  two upright, four sideways. The zoom of the player multiplies that scale and divides the
+  measures allowed per line. `StaffSheet` multiplies the Verovio scale by the zoom instead.
+  Printing ignores both.
 
 ### `src/styles`: the look
 

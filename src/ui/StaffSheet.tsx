@@ -77,6 +77,8 @@ interface StaffSheetProps {
   noted: ReadonlySet<number>;
   /** Opens the notes of the measure at an index. */
   onOpenNotes: (index: number) => void;
+  /** Size relative to the size that suits the screen; paper ignores it. */
+  zoom: number;
 }
 
 interface RenderedSection {
@@ -95,6 +97,7 @@ export function StaffSheet({
   printing,
   noted,
   onOpenNotes,
+  zoom,
 }: StaffSheetProps) {
   const { song, arrangement, sections: parts } = performance;
   const container = useRef<HTMLDivElement>(null);
@@ -105,7 +108,9 @@ export function StaffSheet({
   // Every section is engraved separately: it starts on its own system and carries its own key.
   const sections = useMemo<RenderedSection[] | null>(() => {
     if (!toolkit || width === 0) return null;
-    const scale = printing ? PRINT_SCALE : width < NARROW_WIDTH ? NARROW_SCALE : SCREEN_SCALE;
+    const scale = printing
+      ? PRINT_SCALE
+      : (width < NARROW_WIDTH ? NARROW_SCALE : SCREEN_SCALE) * zoom;
     toolkit.setOptions({
       pageWidth: Math.round((width * 100) / scale),
       pageHeight: 60000,
@@ -136,7 +141,7 @@ export function StaffSheet({
       toolkit.loadData(mei);
       return { section, svg: toolkit.renderToSVG(1), spans };
     });
-  }, [toolkit, width, printing, song, arrangement, parts, showLyrics, showDynamics]);
+  }, [toolkit, width, printing, zoom, song, arrangement, parts, showLyrics, showDynamics]);
 
   const spans = useMemo(
     () => (sections ? sections.flatMap((section) => section.spans) : NO_SPANS),
