@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { finishLogin, startLogin, type GoogleClient, type LoginAttempt } from './google.ts';
 import { loadNotes, storeNotes } from './notes-store.ts';
 import type { ObjectStore } from './object-store.ts';
+import { requestUrl } from './request-url.ts';
 import {
   parseCookies,
   readSession,
@@ -320,7 +321,11 @@ export function createApi(options: ApiOptions): ApiHandler {
   }
 
   return (request, response, next) => {
-    const url = new URL(request.url ?? '/', 'http://localhost');
+    const url = requestUrl(request.url);
+    if (!url) {
+      sendJson(response, 400, { error: 'The address of the request is not a path.' });
+      return;
+    }
     if (!url.pathname.startsWith('/api/')) {
       next();
       return;

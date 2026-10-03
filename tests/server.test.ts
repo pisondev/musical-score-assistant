@@ -16,6 +16,7 @@ import {
   type GoogleClient,
 } from '../server/google';
 import { readPrivateSongs } from '../server/private-songs';
+import { requestUrl } from '../server/request-url';
 import {
   parseCookies,
   readSession,
@@ -250,6 +251,8 @@ describe('the API on the public server', () => {
 
   it('passes requests outside the API on', async () => {
     expect((await api.request('/index.html')).status).toBe(299);
+    expect((await api.request('//')).status).toBe(299);
+    expect((await api.request('//api/me')).status).toBe(299);
   });
 
   it('refuses a callback that it did not start', async () => {
@@ -434,6 +437,17 @@ describe('the files of the server', () => {
     }
   });
 
+  it('read the address of a request as a path, whatever it starts with', () => {
+    expect(requestUrl('/api/notes?song=a')?.searchParams.get('song')).toBe('a');
+    expect(requestUrl(undefined)?.pathname).toBe('/');
+    expect(requestUrl('//')?.pathname).toBe('//');
+    const other = requestUrl('//example.test/x');
+    expect(other?.host).toBe('localhost');
+    expect(other?.pathname).toBe('//example.test/x');
+    expect(requestUrl('http://example.test/')).toBeNull();
+    expect(requestUrl('*')).toBeNull();
+  });
+
   it('serve the built site and nothing outside it', async () => {
     const site = join(root, 'site');
     mkdirSync(join(site, 'assets'), { recursive: true });
@@ -464,6 +478,9 @@ describe('the files of the server', () => {
       const manifest = await fetch(`${base}/manifest.webmanifest`);
       expect(manifest.headers.get('content-type')).toContain('application/manifest+json');
       expect((await fetch(`${base}/missing.js`)).status).toBe(404);
+      // A path of two slashes once stopped the server; it is a missing file like any other.
+      expect((await fetch(`${base}//`)).status).toBe(404);
+      expect((await fetch(`${base}/`)).status).toBe(200);
       expect((await fetch(`${base}/`, { method: 'POST' })).status).toBe(405);
     } finally {
       await new Promise((done) => server.close(done));

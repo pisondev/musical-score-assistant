@@ -1,6 +1,7 @@
 import { createReadStream, statSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extname, join, normalize, resolve, sep } from 'node:path';
+import { requestUrl } from './request-url.ts';
 
 /**
  * Serves the built site. The file names under `assets/` carry a hash of
@@ -61,8 +62,8 @@ export function serveStatic(root: string, request: IncomingMessage, response: Se
     response.end();
     return;
   }
-  const url = new URL(request.url ?? '/', 'http://localhost');
-  const file = resolveStaticPath(root, url.pathname);
+  const url = requestUrl(request.url);
+  const file = url ? resolveStaticPath(root, url.pathname) : null;
   let size = -1;
   if (file) {
     try {
@@ -90,5 +91,8 @@ export function serveStatic(root: string, request: IncomingMessage, response: Se
     response.end();
     return;
   }
-  createReadStream(join(file)).pipe(response);
+  // The file may vanish between the look and the read, for instance during a deploy.
+  createReadStream(join(file))
+    .on('error', () => response.destroy())
+    .pipe(response);
 }

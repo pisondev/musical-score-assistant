@@ -221,6 +221,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- A request for the path `//` stopped the server until Docker started it again, because the
+  address could not be read as a URL. Request paths are now read as paths, a mistake in one
+  request answers with an error instead of ending the process, and a file that disappears
+  while it is being sent (during a deploy) closes that response only.
 - In staff notation a click between the notes of a measure did not move the playhead, because
   the empty space belongs to no symbol. The measure is now found from its staves. A tie or a
   hairpin that reaches into the next measure no longer makes a right click there open the

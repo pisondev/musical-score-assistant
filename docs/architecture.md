@@ -427,6 +427,7 @@ into `dist-server/main.js`.
 | `private-songs.ts` | Reads the songs under `songs/private` on disk                               |
 | `user-state.ts`    | The state document of each account, under `users/<address>.json`            |
 | `static-files.ts`  | Serves the built site, with long caching for hashed assets                  |
+| `request-url.ts`   | Reads the path of a request; `//` stays a path instead of naming a host     |
 | `config.ts`        | Reads the settings of the server from its environment                       |
 | `main.ts`          | The production server: the API, then the site                               |
 

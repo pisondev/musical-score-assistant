@@ -40,7 +40,14 @@ const server = createServer((request, response) => {
   response.setHeader('X-Content-Type-Options', 'nosniff');
   response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.setHeader('X-Frame-Options', 'DENY');
-  api(request, response, () => serveStatic(config.staticDir, request, response));
+  // A request that trips over a mistake answers with an error; it never stops the server.
+  try {
+    api(request, response, () => serveStatic(config.staticDir, request, response));
+  } catch (error) {
+    console.error(error);
+    if (!response.headersSent) response.statusCode = 500;
+    response.end();
+  }
 });
 
 server.listen(config.port, config.host, () => {
