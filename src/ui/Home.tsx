@@ -6,6 +6,7 @@ import { useHistory } from '../store/history';
 import { cx } from './classnames';
 import { AlertIcon, ArrowRightIcon, LockIcon, PlusIcon, SearchIcon, StarIcon } from './icons';
 import { InstallCard } from './InstallCard';
+import { RepliesCard } from './RepliesCard';
 import {
   groupByCategory,
   lastOpened,
@@ -219,6 +220,7 @@ export function Home() {
       </section>
 
       <InstallCard />
+      <RepliesCard library={library} />
 
       {resume && (
         <section className="card resume" aria-label="Continue practising">

@@ -650,6 +650,49 @@ hand and _Melody + fills_ is about that left hand and that right-hand part, not 
 The file can be edited by hand. Entries that are not well formed are dropped the next time the
 app saves.
 
+## `comments.json`
+
+What users have told the author about a song: comments on single measures, sent from the
+public site by members (anybody signed in who is not the owner). A comment changes nothing; it
+waits on the server until `npm run comments:pull` brings it here, and the users see it marked
+as read from then on. The file is git-ignored in every song folder, and a comment on a song that
+is not on this computer goes to `.local/comments/`. Read it before revising a song, together
+with `notes.json`.
+
+```json
+{
+  "comments": [
+    {
+      "id": 12,
+      "author": "Ana (3fa2c1)",
+      "part": "song",
+      "measure": 5,
+      "where": "Measure 5",
+      "context": { "leftHand": "gospel", "leftHandName": "Gospel walk-ups", "rightHand": "fills" },
+      "text": "The B in the left hand sounds too low here.",
+      "createdAt": "2026-10-03T08:21:46.737Z",
+      "reply": "Thank you. The bass goes an octave up in the next version.",
+      "replySent": "Thank you. The bass goes an octave up in the next version.",
+      "repliedAt": "2026-10-04T09:00:00.000Z"
+    }
+  ]
+}
+```
+
+| Field                                            | Meaning                                                                                         |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `id`                                             | The number of the comment on the server                                                         |
+| `author`                                         | The name of the user and a short tag that tells two people of one name apart; never the address |
+| `part`, `measure`, `passage`, `where`, `context` | The place and what was on the sheet, as in `notes.json`                                         |
+| `text`                                           | What the user wrote                                                                             |
+| `reply`                                          | The answer: write it here                                                                       |
+| `replySent`, `repliedAt`                         | The answer as it was last sent, and when; written by `npm run comments:reply`                   |
+
+`npm run comments:reply` sends every `reply` that is not empty and differs from `replySent`;
+the user sees it under their comment in the app, and the home page tells them there is a new
+answer. To correct an answer, edit `reply` and send again. Pulling again keeps an answer that has
+not been sent yet.
+
 ## Checking
 
 ```bash

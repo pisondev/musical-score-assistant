@@ -1,7 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { COMMENTS_PER_DAY, DAY, readNewComment, viewComment } from './comments.ts';
 import type { AppDatabase } from './database.ts';
 import { finishLogin, startLogin, type GoogleClient, type LoginAttempt } from './google.ts';
-import { loadNotes, storeNotes } from './notes-store.ts';
+import { isWellFormedSongId, loadNotes, storeNotes } from './notes-store.ts';
 import type { ObjectStore } from './object-store.ts';
 import { requestUrl } from './request-url.ts';
 import {
@@ -28,13 +29,17 @@ import { deleteAccount, loadState, storeState } from './user-state.ts';
  *   GET    /api/state                   favourites, history, and settings of the account
  *   PUT    /api/state                   replaces them
  *   DELETE /api/account                 removes the account and everything kept for it
+ *   GET    /api/comments[?song=<id>]    the user's comments on measures, with the replies
+ *   POST   /api/comments                sends a comment on a measure to the author
+ *   DELETE /api/comments?id=<id>        takes one back
+ *   POST   /api/comments/seen           notes that the replies to some comments were seen
  *   GET    /api/private-songs           the index of the licensed songs under songs/private
  *   GET    /api/private-songs?id=<id>   one of them, whole
  *   GET    /api/notes?song=<id>         the owner's notes on one song
  *   PUT    /api/notes?song=<id>         replaces them
  *
- * The first five are open to everybody; the state and the account need someone signed in; the
- * licensed songs and the notes need an owner.
+ * The first five are open to everybody; the state, the account, and the comments need someone
+ * signed in; the licensed songs and the notes need an owner.
  */
 
 /** Signing in with Google, on the public server. */
@@ -344,6 +349,56 @@ export function createApi(options: ApiOptions): ApiHandler {
         sendJson(response, 200, { ok: true });
         return;
       }
+    }
+
+    if (path === '/api/comments' && method === 'GET') {
+      const user = requireUser(request);
+      const songId = url.searchParams.get('song') ?? undefined;
+      sendJson(response, 200, {
+        comments: database.commentsOf(user.email, songId).map(viewComment),
+      });
+      return;
+    }
+    if (path === '/api/comments' && method === 'POST') {
+      const user = requireUser(request);
+      requireSameOrigin(request);
+      const comment = readNewComment(await readBody(request));
+      if (typeof comment === 'string') throw new HttpError(400, comment);
+      // Only a song the user may open: a member does not know the licensed ones.
+      const allowed =
+        isWellFormedSongId(comment.songId) &&
+        (user.role === 'owner' || !comment.songId.startsWith('private/')) &&
+        (await catalog.has(comment.songId));
+      if (!allowed) throw new HttpError(404, 'There is no such song.');
+      if (database.countCommentsSince(user.email, Date.now() - DAY) >= COMMENTS_PER_DAY) {
+        throw new HttpError(429, `At most ${COMMENTS_PER_DAY} comments a day; try again tomorrow.`);
+      }
+      const stored = database.addComment(user.email, comment.songId, comment.place, comment.text);
+      sendJson(response, 201, { comment: viewComment(stored) });
+      return;
+    }
+    if (path === '/api/comments' && method === 'DELETE') {
+      const user = requireUser(request);
+      requireSameOrigin(request);
+      const id = Number(url.searchParams.get('id'));
+      if (!Number.isInteger(id) || !database.deleteComment(user.email, id)) {
+        throw new HttpError(404, 'There is no such comment.');
+      }
+      sendJson(response, 200, { ok: true });
+      return;
+    }
+    if (path === '/api/comments/seen' && method === 'POST') {
+      const user = requireUser(request);
+      requireSameOrigin(request);
+      const body = await readBody(request);
+      const ids = (body as { ids?: unknown } | null)?.ids;
+      if (!Array.isArray(ids) || ids.length > 1000) throw new HttpError(400, 'Send a list of ids.');
+      database.markRepliesSeen(
+        user.email,
+        ids.map(Number).filter((id) => Number.isInteger(id)),
+      );
+      sendJson(response, 200, { ok: true });
+      return;
     }
 
     // Everything kept for the account goes, and the session with it.

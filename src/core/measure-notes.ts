@@ -51,7 +51,10 @@ export function noteTarget(
 }
 
 /** The notes that belong to one place. */
-export function notesAt(notes: readonly MeasureNote[], target: NoteTarget | null): MeasureNote[] {
+export function notesAt<T extends MeasureNote>(
+  notes: readonly T[],
+  target: NoteTarget | null,
+): T[] {
   if (!target) return [];
   return notes.filter(
     (note) =>

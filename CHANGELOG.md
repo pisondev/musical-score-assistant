@@ -9,6 +9,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Comments on measures for members: a message to the author about a place in a song, sent with
+  what was on the sheet. It changes nothing; it waits on the server, and the author fetches it
+  (`npm run comments:pull`, into `comments.json` beside the song) and answers whenever there
+  is time (`npm run comments:reply`). The member sees each comment as sent, read, or answered,
+  with the answer under it, and the home page tells them about new answers. 30 comments a day,
+  1000 characters each, on the songs they may open; a comment can be taken back.
+- `dist-server/admin.js`, the author's tools on the database, run inside the container over
+  SSH; nothing of it is reachable over the network.
 - Accounts for everybody: anybody with a Google account can sign in and keep favourites,
   recent songs, and settings on every device. The addresses in `OWNER_EMAILS` are owners, who
   also see the licensed songs and keep notes; everybody else is a member, who chooses from the

@@ -32,6 +32,7 @@ import { FullScreenButton } from './FullScreenButton';
 import { IssueList } from './IssueList';
 import { MeasureOverlay } from './MeasureOverlay';
 import { MeasureMenu, type MeasureMenuItem } from './MeasureMenu';
+import { CommentDialog } from './CommentDialog';
 import { NoteDialog } from './NoteDialog';
 import { RIGHT_HAND_NAME } from './right-hand-name';
 import { Sheet } from './Sheet';
@@ -47,6 +48,7 @@ import { StaffSheet } from './StaffSheet';
 import { MAX_TRANSPOSE, Toolbar } from './Toolbar';
 import { TransportBar } from './TransportBar';
 import { useMeasureMenu } from './useMeasureMenu';
+import { useMeasureComments } from './useMeasureComments';
 import { useMeasureNotes } from './useMeasureNotes';
 import { useWakeLock } from './useWakeLock';
 import { zoomIn, zoomOut } from './zoom';
@@ -254,6 +256,9 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
   // The player's notes on measures. A note belongs to a place (measure 12, the second measure
   // of an introduction), which the sheet may show more than once or not at all.
   const playerNotes = useMeasureNotes(songId);
+  // A member sends comments to the author instead of keeping notes; the sheet marks both alike.
+  const comments = useMeasureComments(songId);
+  const marks: MeasureNote[] = comments.enabled ? comments.comments : playerNotes.notes;
   const [noteTargetOpen, setNoteTargetOpen] = useState<NoteTarget | null>(null);
   const targets = useMemo(
     () =>
@@ -265,10 +270,10 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
   const noted = useMemo(() => {
     const indexes = new Set<number>();
     targets.forEach((target, index) => {
-      if (notesAt(playerNotes.notes, target).length > 0) indexes.add(index);
+      if (notesAt(marks, target).length > 0) indexes.add(index);
     });
     return indexes;
-  }, [targets, playerNotes.notes]);
+  }, [targets, marks]);
   const openNotes = useCallback((index: number) => setNoteTargetOpen(targets[index]), [targets]);
   const openNote = useCallback((note: MeasureNote) => {
     const { part, measure, passage, where } = note;
@@ -358,16 +363,26 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
         onSelect: () => player.setLoop({ enabled: false }),
       });
     }
-    const written = notesAt(playerNotes.notes, targets[index]).length;
-    items.push({
-      id: 'note',
-      label: written > 0 ? `Notes (${written})…` : 'Write a note…',
-      hint: 'A correction, something you like, something to change. It is saved with the song.',
-      icon: <PencilIcon width={16} height={16} />,
-      onSelect: () => openNotes(index),
-    });
+    const written = notesAt(marks, targets[index]).length;
+    items.push(
+      comments.enabled
+        ? {
+            id: 'note',
+            label: written > 0 ? `Comments (${written})…` : 'Comment on this measure…',
+            hint: 'A wrong note, a question, something you liked. The author reads it and may answer.',
+            icon: <PencilIcon width={16} height={16} />,
+            onSelect: () => openNotes(index),
+          }
+        : {
+            id: 'note',
+            label: written > 0 ? `Notes (${written})…` : 'Write a note…',
+            hint: 'A correction, something you like, something to change. It is saved with the song.',
+            icon: <PencilIcon width={16} height={16} />,
+            onSelect: () => openNotes(index),
+          },
+    );
     return items;
-  }, [menuTarget, names, loop, playerNotes.notes, targets, openNotes]);
+  }, [menuTarget, names, loop, marks, comments.enabled, targets, openNotes]);
 
   return (
     <>
@@ -493,7 +508,8 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
             <section className="card card--guide">
               <Guide
                 performance={performance}
-                playerNotes={playerNotes.notes}
+                playerNotes={marks}
+                notesKind={comments.enabled ? 'comments' : 'notes'}
                 onOpenNote={openNote}
               />
             </section>
@@ -509,7 +525,19 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
           onClose={measureMenu.close}
         />
       )}
-      {noteTargetOpen && (
+      {noteTargetOpen && comments.enabled && (
+        <CommentDialog
+          target={noteTargetOpen}
+          comments={notesAt(comments.comments, noteTargetOpen)}
+          onSend={(text) =>
+            comments.send(noteTargetOpen, text, noteContext(performance, { intro, ending, lift }))
+          }
+          onDelete={(id) => void comments.remove(id)}
+          onSeen={comments.markSeen}
+          onClose={() => setNoteTargetOpen(null)}
+        />
+      )}
+      {noteTargetOpen && !comments.enabled && (
         <NoteDialog
           target={noteTargetOpen}
           notes={notesAt(playerNotes.notes, noteTargetOpen)}

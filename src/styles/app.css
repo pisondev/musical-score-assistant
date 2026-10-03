@@ -2626,6 +2626,84 @@ a.button {
   background: rgb(255 255 255 / 80%);
 }
 
+/* Where a member's comment stands: sent, read by the author, or answered. */
+.comment-status {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 18px;
+  color: var(--muted);
+  background: var(--bg);
+}
+
+.comment-status--read {
+  color: var(--sky-strong);
+  background: var(--sky-soft);
+}
+
+.comment-status--answered {
+  color: var(--emerald-strong);
+  background: var(--emerald-soft);
+}
+
+/* The author's answer, under the comment it answers. */
+.comment-reply {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--emerald);
+  border-radius: 0 8px 8px 0;
+  background: var(--surface);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comment-reply__label {
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--emerald-strong);
+}
+
+/* On the home page: songs where the author has answered a member's comments. */
+.replies {
+  display: grid;
+  gap: 8px;
+  padding: 14px 18px;
+  border-color: var(--emerald-soft);
+}
+
+.replies h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--emerald-strong);
+}
+
+.replies ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  list-style: none;
+}
+
+.replies li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.replies a {
+  font-weight: 650;
+  color: var(--primary-strong);
+}
+
+.replies span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
 @media (max-width: 720px) {
   .dialog {
     inset: auto 0 0;

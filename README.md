@@ -205,13 +205,14 @@ puts a button with three dots at the top right corner of the measure, and that b
 the menu. A right click on a measure, or a long press on a phone, opens the same menu
 directly. `Esc` or a click beside the measures takes the button away again.
 
-| In the menu of a measure    | What it does                                                                          |
-| --------------------------- | ------------------------------------------------------------------------------------- |
-| **Play from here**          | Moves the playhead to the measure and starts playing                                  |
-| **Loop this measure**       | Locks the playback to this one measure and repeats it, with a rest between the rounds |
-| **Extend the loop to here** | Widens a loop that is on, so it runs from its first measure to this one               |
-| **Switch the loop off**     | Plays straight through again                                                          |
-| **Write a note…**           | Opens the notes on this measure: write one, change one, delete one                    |
+| In the menu of a measure     | What it does                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| **Play from here**           | Moves the playhead to the measure and starts playing                                  |
+| **Loop this measure**        | Locks the playback to this one measure and repeats it, with a rest between the rounds |
+| **Extend the loop to here**  | Widens a loop that is on, so it runs from its first measure to this one               |
+| **Switch the loop off**      | Plays straight through again                                                          |
+| **Write a note…**            | Opens the notes on this measure: write one, change one, delete one                    |
+| **Comment on this measure…** | For a member, instead of notes: sends a comment to the author                         |
 
 **A loop takes a breath.** After each round of a loop, nothing plays for a short rest before
 the next round begins: two beats in a meter counted in twos or fours, three beats in a meter
@@ -231,8 +232,21 @@ introduction or an ending belongs to that introduction or ending.
 Where notes are kept depends on who writes them. The owner's notes on the public site are kept
 in the R2 bucket with the account; `npm run notes:pull` copies them into
 `songs/<song>/notes.json` on this computer, a git-ignored file that is read whenever the song is
-worked on again. With `npm run dev` notes go straight into that file. Anybody else's notes stay
-in the browser.
+worked on again. With `npm run dev` notes go straight into that file. A guest's notes stay in
+the browser.
+
+**Members comment; the author answers when there is time.** For a member the menu of a
+measure offers **Comment on this measure…** instead of notes. A comment is a message to the
+author: a wrong note, a question, a left hand they liked. It changes nothing on the sheet and is
+sent with what was on it (left hand, right-hand mode, key). The dialog shows each comment with
+where it stands (**Sent**, **Read**, **Answered**) and the author's answer under it; the guide
+lists them under **Your comments**, and the home page says when there is a new answer. A
+member may send 30 comments a day, and can take a comment back.
+
+On the author's side nothing answers by itself. `npm run comments:pull` brings the comments
+into `comments.json` in the folder of each song (and marks them as read for the users); an
+answer written into a `reply` field goes out with `npm run comments:reply`. Both reach the
+server over SSH; `-- --local` uses the database of the development server instead.
 
 A dot next to a measure number means the guide explains that measure. Chords on a light-blue
 background differ from the printed score. The **Voice** button appears while the right hand
@@ -295,21 +309,23 @@ server ([docs/deployment.md](docs/deployment.md)).
 
 ## Commands
 
-| Command              | Purpose                                                                      |
-| -------------------- | ---------------------------------------------------------------------------- |
-| `npm run dev`        | Start the development server                                                 |
-| `npm run build`      | Type-check, build the site into `dist/` and the server into `dist-server/`   |
-| `npm run preview`    | Serve the built site locally                                                 |
-| `npm start`          | Run the built server (see [docs/deployment.md](docs/deployment.md))          |
-| `npm run deploy`     | Build and put the app on the server (GitHub Actions does this on every push) |
-| `npm run songs:push` | Send the private songs to the R2 bucket; `-- --dry-run` only lists changes   |
-| `npm run notes:pull` | Copy the owner's notes from the R2 bucket into the song folders              |
-| `npm run check`      | Check every song under `songs/`; add `-- --dump` for details                 |
-| `npm test`           | Run the unit tests                                                           |
-| `npm run lint`       | Lint the source with ESLint                                                  |
-| `npm run typecheck`  | Type-check the project and the service worker                                |
-| `npm run format`     | Format the source with Prettier                                              |
-| `npm run verify`     | Lint, type-check, test, check songs, and build                               |
+| Command                  | Purpose                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| `npm run dev`            | Start the development server                                                 |
+| `npm run build`          | Type-check, build the site into `dist/` and the server into `dist-server/`   |
+| `npm run preview`        | Serve the built site locally                                                 |
+| `npm start`              | Run the built server (see [docs/deployment.md](docs/deployment.md))          |
+| `npm run deploy`         | Build and put the app on the server (GitHub Actions does this on every push) |
+| `npm run songs:push`     | Send the private songs to the R2 bucket; `-- --dry-run` only lists changes   |
+| `npm run notes:pull`     | Copy the owner's notes from the R2 bucket into the song folders              |
+| `npm run comments:pull`  | Bring the users' comments into `comments.json` in the song folders           |
+| `npm run comments:reply` | Send the answers written into `comments.json`; `-- --dry-run` lists them     |
+| `npm run check`          | Check every song under `songs/`; add `-- --dump` for details                 |
+| `npm test`               | Run the unit tests                                                           |
+| `npm run lint`           | Lint the source with ESLint                                                  |
+| `npm run typecheck`      | Type-check the project and the service worker                                |
+| `npm run format`         | Format the source with Prettier                                              |
+| `npm run verify`         | Lint, type-check, test, check songs, and build                               |
 
 ## Project structure
 

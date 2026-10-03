@@ -11,8 +11,10 @@ import { RIGHT_HAND_NAME } from './right-hand-name';
 
 interface GuideProps {
   performance: Performance;
-  /** Every note the player has written on this song. */
+  /** Every note the player has written on this song, or every comment a member sent. */
   playerNotes: PlayerNote[];
+  /** Whether they are the owner's notes or a member's comments to the author. */
+  notesKind?: 'notes' | 'comments';
   /** Opens the notes of the place a note refers to. */
   onOpenNote: (note: PlayerNote) => void;
 }
@@ -35,7 +37,7 @@ const PART_LETTER: Record<MeasurePart, string> = {
 };
 
 /** Explains the selected arrangement: what is new, how to practise it, and why each measure changed. */
-export function Guide({ performance, playerNotes, onOpenNote }: GuideProps) {
+export function Guide({ performance, playerNotes, notesKind = 'notes', onOpenNote }: GuideProps) {
   const { song, arrangement, introMeasures, rightHand } = performance;
   const rightPart = rightHand === 'melody' ? undefined : arrangement.rightHand[rightHand];
   const chordsPart = performance.chords ? arrangement.rightHand.harmony : undefined;
@@ -157,7 +159,7 @@ export function Guide({ performance, playerNotes, onOpenNote }: GuideProps) {
 
       {playerNotes.length > 0 && (
         <section>
-          <h3>Your notes</h3>
+          <h3>{notesKind === 'comments' ? 'Your comments' : 'Your notes'}</h3>
           <ol className="measure-notes">
             {playerNotes.map((note) => (
               <li key={note.id}>
@@ -178,7 +180,9 @@ export function Guide({ performance, playerNotes, onOpenNote }: GuideProps) {
             ))}
           </ol>
           <p className="guide__footnote">
-            Right-click a measure, or press and hold it on a phone, to write a note on it.
+            {notesKind === 'comments'
+              ? 'Right-click a measure, or press and hold it on a phone, to comment on it. Answers from the author appear with your comments.'
+              : 'Right-click a measure, or press and hold it on a phone, to write a note on it.'}
           </p>
         </section>
       )}

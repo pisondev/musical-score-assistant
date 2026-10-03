@@ -102,7 +102,7 @@ export function readNotes(data: unknown): MeasureNote[] {
 }
 
 /** Notes in the order of the piece: introduction, song by measure, interlude, ending. */
-export function sortNotes(notes: readonly MeasureNote[]): MeasureNote[] {
+export function sortNotes<T extends MeasureNote>(notes: readonly T[]): T[] {
   return [...notes].sort(
     (a, b) =>
       PARTS.indexOf(a.part) - PARTS.indexOf(b.part) ||

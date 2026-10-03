@@ -43,8 +43,9 @@ function DeleteAccountDialog({ account, onClose }: { account: AccountInfo; onClo
       onClose={onClose}
     >
       <p className="dialog__lead">
-        This removes your account from the site: your favourites, recent songs, and settings. It
-        cannot be undone. Signing in with Google again later starts a new, empty account.
+        This removes your account from the site: your favourites, recent songs, and settings
+        {account.role === 'member' && ', and your comments with their answers'}. It cannot be
+        undone. Signing in with Google again later starts a new, empty account.
       </p>
       {state === 'failed' && (
         <p className="dialog__note dialog__note--error">

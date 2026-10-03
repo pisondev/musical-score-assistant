@@ -17,10 +17,12 @@
     "check": "tsx scripts/check-songs.ts",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run check && npm run build",
     "prepare": "node scripts/install-git-hooks.mjs",
-    "build:server": "esbuild server/main.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist-server/main.js --log-level=warning",
+    "build:server": "esbuild server/main.ts server/admin.ts --bundle --platform=node --format=esm --target=node22 --outdir=dist-server --log-level=warning",
     "start": "node scripts/node-with-sqlite.mjs dist-server/main.js",
     "deploy": "tsx scripts/deploy.ts",
     "notes:pull": "tsx scripts/pull-notes.ts",
+    "comments:pull": "tsx scripts/pull-comments.ts",
+    "comments:reply": "tsx scripts/send-replies.ts",
     "songs:push": "tsx scripts/push-songs.ts"
   },
   "dependencies": {

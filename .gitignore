@@ -21,4 +21,5 @@ Thumbs.db
 songs/private/
 songs/**/source.*
 songs/**/notes.json
+songs/**/comments.json
 .local/

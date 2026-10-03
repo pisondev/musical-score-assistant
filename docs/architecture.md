@@ -225,6 +225,8 @@ for every song, starting from the left hand remembered for it.
 | `FullScreenButton` | Gives the whole screen to the app, where the browser can                  |
 | `useWakeLock`      | Keeps the screen on while a song page is open                             |
 | `InstallCard`      | Offers to install the app, or explains the Share menu of an iPhone        |
+| `CommentDialog`    | A member's comments on one measure, where they stand, and the answers     |
+| `RepliesCard`      | Tells a member on the home page that the author has answered              |
 | `usePlayhead`      | Follows the audio clock and highlights the slots being played             |
 | `MeasureMenu`      | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
 | `useMeasureMenu`   | Opens that menu on a right click or a long press; a click selects         |
@@ -445,8 +447,10 @@ into `dist-server/main.js`.
 | `notes-store.ts`   | `notes.json` per song, under `<song id>/notes.json` in a store              |
 | `private-songs.ts` | Reads the songs under `songs/private` on disk                               |
 | `user-state.ts`    | The state document of each account; moving it over from before the database |
-| `database.ts`      | The SQLite database: users and their state, brought up to date when opened  |
+| `database.ts`      | The SQLite database: users, state, comments; brought up to date when opened |
 | `backup.ts`        | A daily copy of the database in the bucket, the last 14 kept                |
+| `comments.ts`      | What a comment may be, and how its writer sees it                           |
+| `admin.ts`         | The author's tasks on the database: fetch comments, write answers           |
 | `static-files.ts`  | Serves the built site, with long caching for hashed assets                  |
 | `request-url.ts`   | Reads the path of a request; `//` stays a path instead of naming a host     |
 | `config.ts`        | Reads the settings of the server from its environment                       |
@@ -510,6 +514,19 @@ bucket with the token in `.env.production`).
 `useMeasureNotes` asks the API only for an owner; a guest keeps notes in `localStorage`, and
 they join the account the next time its owner signs in on that browser.
 
+Comments are the members' side of notes (`server/comments.ts`). A comment is stored in the
+`comments` table with its place on the sheet (read like a note, through `readNotes`), and waits
+there: the server never answers it. The author fetches them with `admin.js comments`, which
+marks them as read and lists them with the name of their writer and a short tag instead of the
+address, and answers with `admin.js replies`. `scripts/comments.ts` runs both over SSH (or on
+the local database) and keeps the comments in `comments.json` beside each song. A member may
+send 30 comments a day of up to 1000 characters, only on songs they may open.
+
+In the app, `useMeasureComments` takes the place of `useMeasureNotes` for a member: a comment
+has the shape of a note plus where it stands (`readAt`, `reply`, `replySeen`), so the sheet
+marks it and the guide lists it the same way, while `CommentDialog` shows the answers and marks
+them as seen. `RepliesCard` on the home page lists the songs with answers not seen yet.
+
 The dev plugin and the song index plugin are loaded by `vite.config.ts`, so everything they
 import becomes part of the configuration, the engine included. That is why the modules of
 `src/core` name the files they import with their extension.
@@ -534,7 +551,8 @@ import becomes part of the configuration, the engine included. That is why the m
   writing, reading back, and removing the file in a temporary folder;
 - the server: signed values and cookies, every check of the Google sign-in (with a stand-in
   for Google), who may use which route on a running API (guest, member, owner), deleting an
-  account, the database and moving state into it, the daily copies, the files it keeps, the built site it
+  account, the database and moving state into it, the daily copies, and comments: what may be
+  sent, the daily limit, reading and answering them, and the files they are kept in here, the files it keeps, the built site it
   serves without leaving its folder, and its configuration;
 - storage: objects on disk and in R2 (with a stand-in for its S3 API that pages its listings),
   the signature of every request, and the catalog that reads private songs from the bucket and

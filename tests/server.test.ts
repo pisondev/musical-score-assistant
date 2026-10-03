@@ -302,6 +302,84 @@ describe('the API on the public server', () => {
     }
   });
 
+  it('takes comments from a member on the songs they may open', async () => {
+    const headers = { cookie: memberSession, origin: ORIGIN, 'Content-Type': 'application/json' };
+    const place = {
+      part: 'song',
+      measure: 2,
+      where: 'Measure 2',
+      context: { leftHandName: 'Gospel' },
+    };
+    const send = (body: unknown, extra: Record<string, string> = {}) =>
+      api.request('/api/comments', {
+        method: 'POST',
+        headers: { ...headers, ...extra },
+        body: JSON.stringify(body),
+      });
+    expect(
+      (await send({ song: 'public-song', ...place, text: 'x' }, { origin: 'https://evil.test' }))
+        .status,
+    ).toBe(403);
+    expect((await send({ song: 'public-song', ...place, text: '' })).status).toBe(400);
+    // A member does not know the licensed songs, so cannot comment on one.
+    expect((await send({ song: 'private/kj-1-song', ...place, text: 'x' })).status).toBe(404);
+    expect((await send({ song: 'no-such-song', ...place, text: 'x' })).status).toBe(404);
+    const sent = await send({ song: 'public-song', ...place, text: 'The F sounds wrong.' });
+    expect(sent.status).toBe(201);
+    const { comment } = await sent.json();
+    expect(comment).toMatchObject({ songId: 'public-song', where: 'Measure 2', readAt: null });
+
+    const list = await (
+      await api.request('/api/comments?song=public-song', { headers: { cookie: memberSession } })
+    ).json();
+    expect(list.comments.map((found: { text: string }) => found.text)).toEqual([
+      'The F sounds wrong.',
+    ]);
+    // The author reads it and answers; the member sees both, then marks the answer seen.
+    expect(api.database.inbox().map((found) => found.text)).toEqual(['The F sounds wrong.']);
+    api.database.reply(Number(comment.id), 'Fixed, thank you.');
+    const answered = await (
+      await api.request('/api/comments', { headers: { cookie: memberSession } })
+    ).json();
+    expect(answered.comments[0]).toMatchObject({ reply: 'Fixed, thank you.', replySeen: false });
+    const seen = await api.request('/api/comments/seen', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ids: [Number(comment.id)] }),
+    });
+    expect(seen.status).toBe(200);
+    expect(api.database.commentsOf(MEMBER)[0].replySeenAt).not.toBeNull();
+
+    // A comment can be taken back, by its writer only.
+    const second = await (await send({ song: 'public-song', ...place, text: 'Another' })).json();
+    const remove = (cookie: string) =>
+      api.request(`/api/comments?id=${second.comment.id}`, {
+        method: 'DELETE',
+        headers: { cookie, origin: ORIGIN },
+      });
+    const stranger = cookieOf(await signIn('stranger@example.test'), 'msa_session')!;
+    expect((await remove(stranger)).status).toBe(404);
+    expect((await remove(memberSession)).status).toBe(200);
+    expect(api.database.commentsOf(MEMBER)).toHaveLength(1);
+  });
+
+  it('stops a member who sends too many comments in a day', async () => {
+    const headers = { cookie: memberSession, origin: ORIGIN, 'Content-Type': 'application/json' };
+    const body = JSON.stringify({
+      song: 'public-song',
+      part: 'song',
+      measure: 1,
+      where: 'Measure 1',
+      context: {},
+      text: 'Again',
+    });
+    let status = 201;
+    for (let count = 0; count < 40 && status === 201; count += 1) {
+      status = (await api.request('/api/comments', { method: 'POST', headers, body })).status;
+    }
+    expect(status).toBe(429);
+  });
+
   it('deletes an account with everything kept for it, from the site only', async () => {
     const headers = { cookie: memberSession };
     const remove = (origin: string) =>
@@ -313,6 +391,7 @@ describe('the API on the public server', () => {
     expect(cookieOf(response, 'msa_session')).toBe('msa_session=');
     expect(api.database.user(MEMBER)).toBeNull();
     expect(api.database.stateOf(MEMBER)).toBeNull();
+    expect(api.database.commentsOf(MEMBER)).toEqual([]);
   });
 
   it('signs the owner in and returns to where they were', async () => {

@@ -92,6 +92,12 @@ Things to keep in mind:
   `docs/song-format.md`). Each note names the measure and the arrangement it was written
   about. Act on them, say which notes were handled and how, and leave the file itself to the
   player: do not delete or rewrite notes unless asked.
+- **Read the users' comments as well.** Members comment on measures on the public site; the
+  comments wait on the server. `npm run comments:pull` brings them into `comments.json` in the
+  folder of the song (git-ignored; format in `docs/song-format.md`) and marks them as read. Draft
+  answers in the `reply` fields when asked, and show them to the player; `npm run
+comments:reply` publishes them to the users, so run it only when the player asks. Comments
+  change nothing by themselves: decide with the player what to act on.
 - After writing or changing any song file, run `npm run check -- <folder> --dump` and resolve every
   error and warning before handing the song over.
 - The player this tool serves reads numbered notation, plays as a hobby, and has so far used one

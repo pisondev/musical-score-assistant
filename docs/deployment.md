@@ -34,7 +34,7 @@ On the server, everything lives in `~/projects/musical-score-assistant/` of the 
 | `.env`                           | Settings and secrets of the server (see below), mode 600     | no                   |
 | `compose.yaml`                   | Copy of `deploy/compose.yaml`                                | no (`--setup`)       |
 | `bin/receive`                    | Copy of `deploy/receive.sh`: takes a version, switches to it | no (`--setup`)       |
-| `app/dist`, `app/dist-server`    | The built site and the bundled server                        | yes                  |
+| `app/dist`, `app/dist-server`    | The built site, the bundled server, and `admin.js`           | yes                  |
 | `songs/`                         | The public song folders                                      | yes                  |
 | `app.previous`, `songs.previous` | The version before the last deploy                           | yes                  |
 | `data/app.db`                    | The users and their state (SQLite, with `-wal` and `-shm`)   | no                   |
@@ -176,6 +176,24 @@ npm run notes:pull
 
 Each `songs/<id>/notes.json` then holds the bucket's notes, plus any note that exists only on
 this computer (reported as such).
+
+## The users' comments
+
+Members' comments are kept in the database on the server. The server answers nothing by
+itself, and the author's tools do not listen on the network: `dist-server/admin.js` runs inside
+the container, reached over SSH with `docker exec`.
+
+```bash
+npm run comments:pull            # new comments into songs/<id>/comments.json, marked as read
+npm run comments:pull -- --all   # every comment again, with the answers sent so far
+npm run comments:reply           # sends the answers written into the reply fields
+```
+
+The same by hand, on the server:
+
+```bash
+ssh vps-hestia 'docker exec musical-score-assistant node dist-server/admin.js comments --peek'
+```
 
 ## Caching
 

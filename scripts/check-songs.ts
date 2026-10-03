@@ -37,6 +37,7 @@ const SONG_FILE = 'song.txt';
 const ARRANGEMENT_FILE = 'arrangements.json';
 const ANALYSIS_FILE = 'analysis.md';
 const NOTES_FILE = 'notes.json';
+const COMMENTS_FILE = 'comments.json';
 const SONGS_ROOT = 'songs';
 const RIGHT_HAND_LABEL: Record<RightHandPartKind, string> = {
   harmony: 'chords under the melody',
@@ -139,6 +140,21 @@ function describeReading(folder: string): string {
     : `not written yet; read the text and the tune and write ${ANALYSIS_FILE} before arranging`;
 }
 
+/** How many comments users have sent on the song, and how many have no answer yet. */
+function countComments(folder: string): { all: number; open: number } {
+  const file = join(folder, COMMENTS_FILE);
+  if (!existsSync(file)) return { all: 0, open: 0 };
+  try {
+    const { comments } = JSON.parse(readFileSync(file, 'utf8')) as {
+      comments?: { replySent?: string }[];
+    };
+    const list = Array.isArray(comments) ? comments : [];
+    return { all: list.length, open: list.filter((comment) => !comment.replySent).length };
+  } catch {
+    return { all: 0, open: 0 };
+  }
+}
+
 /** How many notes the player has left on the measures of the song. */
 function countPlayerNotes(folder: string): number {
   const file = join(folder, NOTES_FILE);
@@ -220,6 +236,12 @@ function checkFolder(folder: string, dump: boolean): boolean {
   if (playerNotes > 0) {
     console.log(
       `  player's notes: ${playerNotes} in ${NOTES_FILE}; read them before revising the song`,
+    );
+  }
+  const comments = countComments(folder);
+  if (comments.all > 0) {
+    console.log(
+      `  users' comments: ${comments.all} in ${COMMENTS_FILE}, ${comments.open} without an answer; read them before revising the song`,
     );
   }
   [...fileIssues, ...issues].forEach((issue) => console.log(describeIssue(issue, song)));
