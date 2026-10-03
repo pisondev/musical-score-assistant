@@ -233,6 +233,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- On a phone the library shows the songs alone: the totals above it and the counts on each
+  card are left out, and the All/Favourites switch and the sorting each fill a row.
 - A deploy no longer carries private songs; it sends the code and the public songs only, and
   `compose.yaml` and `.env` of the server are installed by `npm run deploy -- --setup-only`.
 - The account button shows the profile picture in a round frame, with a menu of name, address,

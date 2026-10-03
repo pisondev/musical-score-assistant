@@ -92,7 +92,8 @@ with the account.
   the bar leads there.
 - **Made for the phone on the music stand.** In a narrow window the controls stay in reach in
   one row at the top, menus open as sheets from the bottom edge, and the playback bar shrinks
-  to two short rows, so most of the screen is left for the score.
+  to two short rows, so most of the screen is left for the score. The library shows the songs
+  without totals and counts, with the filter and the sorting a full row each.
 - **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
   key, and introduction. It prints in black with the browser's default settings; "Background
   graphics" does not have to be switched on.
