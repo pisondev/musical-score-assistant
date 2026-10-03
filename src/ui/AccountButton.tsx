@@ -5,6 +5,7 @@ import {
   PRIVACY_URL,
   signInUrl,
   signOut,
+  TERMS_URL,
   useAccount,
   type AccountInfo,
 } from '../account';
@@ -114,6 +115,7 @@ export function AccountButton() {
             </button>
             <p className="account-menu__links">
               <a href={PRIVACY_URL}>Privacy</a>
+              <a href={TERMS_URL}>Terms</a>
               <button
                 type="button"
                 className="account-menu__delete"

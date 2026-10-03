@@ -237,9 +237,14 @@ lasts 30 days; deleting the account in the app ends it.
 For anybody but test users to sign in, the consent screen of the client has to be published
 (Google Cloud Console → Google Auth Platform → Audience → _Publish app_, from _Testing_ to _In
 production_). The app asks only for `openid`, `email`, and `profile`, which need no review by
-Google. The branding page of the consent screen takes the home page
-(`https://music-assistant.tierratie.com`) and the privacy policy
-(`https://music-assistant.tierratie.com/privacy.html`, from `public/privacy.html`).
+Google. The branding page of the consent screen takes:
+
+| Field                 | Value                                                                        |
+| --------------------- | ---------------------------------------------------------------------------- |
+| Application home page | `https://music-assistant.tierratie.com`                                      |
+| Privacy policy link   | `https://music-assistant.tierratie.com/privacy.html` (`public/privacy.html`) |
+| Terms of service link | `https://music-assistant.tierratie.com/terms.html` (`public/terms.html`)     |
+| Authorized domains    | `tierratie.com`: the registered domain, not the subdomain                    |
 
 The localhost entries let the production server be tried on this computer:
 

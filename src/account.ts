@@ -92,3 +92,6 @@ export async function deleteAccount(): Promise<void> {
 
 /** The page that says what the site keeps about the people who sign in. */
 export const PRIVACY_URL = `${import.meta.env.BASE_URL}privacy.html`;
+
+/** The terms of use of the site. */
+export const TERMS_URL = `${import.meta.env.BASE_URL}terms.html`;

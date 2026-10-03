@@ -9,6 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Terms of use (`terms.html`), linked from the home page, the account menu, and the privacy
+  page, and given to the consent screen of the Google client with the privacy page.
 - Comments on measures for members: a message to the author about a place in a song, sent with
   what was on the sheet. It changes nothing; it waits on the server, and the author fetches it
   (`npm run comments:pull`, into `comments.json` beside the song) and answers whenever there

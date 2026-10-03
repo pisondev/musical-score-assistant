@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { formatNoteName, hymnalName, songReference } from '../core';
-import { PRIVACY_URL, signInUrl, useAccount } from '../account';
+import { PRIVACY_URL, signInUrl, TERMS_URL, useAccount } from '../account';
 import { PRIVATE_HINT, useLibrary, type SongEntry } from '../library';
 import { useHistory } from '../store/history';
 import { cx } from './classnames';
@@ -388,6 +388,7 @@ export function Home() {
       {signIn === 'google' && (
         <footer className="home__foot">
           <a href={PRIVACY_URL}>Privacy</a>
+          <a href={TERMS_URL}>Terms of use</a>
         </footer>
       )}
     </main>

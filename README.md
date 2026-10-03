@@ -86,7 +86,7 @@ The owner also sees the licensed hymnal songs and keeps notes for their revision
   favourites, recent songs, and settings follow the account from the laptop to the phone.
   Users choose songs; they do not add them. The owner's account also holds the licensed songs
   (kept out of the repository) and the notes. Guests see the public songs, and what they mark
-  stays in their browser. The account menu leads to the privacy page and deletes the account
+  stays in their browser. The account menu leads to the privacy page and the terms of use, and deletes the account
   with everything kept for it.
 - **Controls that stay out of the way.** Everything that decides what is on the sheet sits
   behind one **Options** button in the top bar: a short list of settings with their current
