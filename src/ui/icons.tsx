@@ -269,3 +269,29 @@ export function GoogleIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+/** The Share button of Safari: a box with an arrow leaving it upwards. */
+export function ShareIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M12 3v12M8 7l4-4 4 4" />
+      <path d="M8 10H6v11h12V10h-2" />
+    </Icon>
+  );
+}
+
+export function FullScreenIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+    </Icon>
+  );
+}
+
+export function ExitFullScreenIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+    </Icon>
+  );
+}

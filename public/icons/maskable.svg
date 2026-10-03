@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Full bleed, with the note inside the circle that every mask leaves visible. -->
   <defs>
     <linearGradient id="brand" x1="-0.09" y1="0.16" x2="1.09" y2="0.84">
       <stop offset="0" stop-color="#10b981" />
@@ -6,9 +7,9 @@
       <stop offset="1" stop-color="#1d6fe0" />
     </linearGradient>
   </defs>
-  <rect width="32" height="32" rx="8" fill="url(#brand)" />
+  <rect width="32" height="32" fill="url(#brand)" />
   <path
-    transform="translate(1.5 0)"
+    transform="translate(16 16) scale(0.72) translate(-14.5 -15.95)"
     d="M13 22.5a3 3 0 1 1-2-2.83V9.6a1 1 0 0 1 .76-.97l9-2.25A1 1 0 0 1 22 7.35V19.5a3 3 0 1 1-2-2.83v-6.04l-7 1.75z"
     fill="#fff"
   />

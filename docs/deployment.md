@@ -164,8 +164,16 @@ this computer (reported as such).
 Cloudflare keeps files with extensions such as `.js`, `.css`, `.woff2`, and `.mp3` at its edge;
 the page itself and `/api` are always passed through. Files under `assets/` carry a hash in
 their names, so a deploy never meets an old copy. The piano samples do not: they are requested
-with `?v=<SAMPLE_VERSION>` (`src/audio/engine.ts`), and raising that number makes browsers and
-Cloudflare fetch them afresh. A wrong answer that Cloudflare has kept (for instance a redirect
+with `?v=<SAMPLE_VERSION>` (`src/audio/samples.ts`), and raising that number makes browsers,
+Cloudflare, and the installed app fetch them afresh.
+
+The service worker of the installed app, `sw.js`, has no hash in its name either. The server
+sends it with `no-cache`, like the page, and browsers check it whenever the app starts, so a
+deploy reaches installed apps on their next start. It asks the network first for the page and
+the API, and keeps only what it can tell apart by name (see the installed app in
+[architecture.md](architecture.md)). Should the worker ever have to go, deploy a `sw.js` that
+unregisters itself when it activates (`self.registration.unregister()`); browsers pick it up
+at their next check. A wrong answer that Cloudflare has kept (for instance a redirect
 from before the certificate was in place) disappears with a purge of that address in the
 Cloudflare dashboard (Caching → Configuration → Purge Cache → Custom Purge).
 

@@ -5,6 +5,7 @@ import { PRIVATE_HINT, useLibrary, type SongEntry } from '../library';
 import { useHistory } from '../store/history';
 import { cx } from './classnames';
 import { AlertIcon, ArrowRightIcon, LockIcon, PlusIcon, SearchIcon, StarIcon } from './icons';
+import { InstallCard } from './InstallCard';
 import {
   groupByHymnal,
   lastOpened,
@@ -202,6 +203,8 @@ export function Home() {
           </dl>
         )}
       </section>
+
+      <InstallCard />
 
       {resume && (
         <section className="card resume" aria-label="Continue practising">

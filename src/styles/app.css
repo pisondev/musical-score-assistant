@@ -450,6 +450,30 @@ code {
   font-variant-numeric: tabular-nums;
 }
 
+/* Full screen, beside the zoom: a round button of the same height. */
+.view-button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-left: -6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+}
+
+.view-button:hover {
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+}
+
+.view-button[aria-pressed='true'] {
+  border-color: var(--primary);
+  color: var(--primary-strong);
+}
+
 /*
  * The gradient is fixed to the window, not to a stretch, so it runs through all stretches
  * as one sweep: green where the piece begins, blue where it ends.
@@ -1629,6 +1653,28 @@ a.button {
     0 -10px 30px -18px rgb(11 111 184 / 35%);
 }
 
+/*
+ * The page fills the whole screen (viewport-fit=cover), so on a phone held sideways the notch
+ * and the rounded corners lie over its sides. The bars reach under them with their background;
+ * their content and the page keep clear.
+ */
+#root {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.topbar {
+  margin-left: calc(-1 * env(safe-area-inset-left));
+  margin-right: calc(-1 * env(safe-area-inset-right));
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.transport {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
 /* The same hairline as under the top bar, here along the top edge. */
 .transport::before {
   content: '';
@@ -1931,17 +1977,13 @@ a.button {
   }
 }
 
-/* A phone held sideways: every row of the window counts, so playback gets one row. */
-@media (max-height: 520px) and (min-width: 721px) {
-  :root {
-    --transport-height: 58px;
-  }
-
-  /*
-   * As on a phone held upright: the first row, with the name and the song, scrolls away, and
-   * the controls of the song stay at the top with a little room above them, together with the
-   * line that says where one is. They share one row, so little height is lost.
-   */
+/*
+ * A phone held sideways, and a tablet: as on a phone held upright, the first row, with the
+ * name and the song, scrolls away, and the controls of the song stay at the top with a little
+ * room above them, together with the line that says where one is. A tablet keeps its height
+ * for the score this way.
+ */
+@media (max-height: 520px) and (min-width: 721px), (pointer: coarse) and (min-width: 721px) {
   .topbar {
     top: calc(-52px - env(safe-area-inset-top));
   }
@@ -1970,6 +2012,13 @@ a.button {
   /* The name of the app leads back to all songs; the extra button is not needed here. */
   .topbar__nav > .button--quiet {
     display: none;
+  }
+}
+
+/* A phone held sideways: every row of the window counts, so playback gets one row. */
+@media (max-height: 520px) and (min-width: 721px) {
+  :root {
+    --transport-height: 58px;
   }
 
   .transport__inner {
@@ -2760,6 +2809,72 @@ a.button {
   color: var(--stat-ink);
 }
 
+/* The offer to install the app: the mark of the app, a line of text, and the button. */
+.install {
+  display: flex;
+  align-items: center;
+  gap: 14px 16px;
+  padding: 14px 14px 14px 18px;
+}
+
+.install__mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--brand);
+  box-shadow: 0 6px 14px -8px rgb(6 150 190 / 80%);
+}
+
+.install__text {
+  flex: 1 1 auto;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.install h2 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.install p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.install__share {
+  vertical-align: -2px;
+  color: var(--primary);
+}
+
+.install__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.install__close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+}
+
+.install__close:hover {
+  color: var(--ink);
+  background: var(--bg);
+}
+
 .resume {
   position: relative;
   display: flex;
@@ -3190,6 +3305,27 @@ a.button {
   }
 
   .resume .button--solid {
+    width: 100%;
+  }
+
+  .install {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .install__actions {
+    display: contents;
+  }
+
+  .install__close {
+    grid-column: 3;
+    grid-row: 1;
+    margin: -6px -4px 0 0;
+  }
+
+  .install .button--solid {
+    grid-column: 1 / -1;
     width: 100%;
   }
 }

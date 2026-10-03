@@ -57,7 +57,10 @@ The web app itself never generates music; it displays, plays, and explains.
 - Songs grouped by hymnal (Kidung Keesaan, Pelengkap Kidung Jemaat, Kidung Jemaat, Kidung
   Pasamuwan Jawi) and cited by code and number.
 - A layout for phones and tablets: the controls in one row at the top, menus as bottom sheets,
-  and a compact playback bar.
+  and a compact playback bar; about two measures per line on a phone held upright and four held
+  sideways, and a zoom on every screen.
+- The app installed on a phone, tablet, or computer: a window of its own, use without a
+  connection, a screen that stays on during a song, and full screen.
 - The settings of the score behind one Options button in the top bar.
 - A progress bar that names the part of the piece in view and leads to the other parts.
 - A look in one family of colours, from emerald through cyan and ocean blue to navy.
@@ -81,7 +84,6 @@ The web app itself never generates music; it displays, plays, and explains.
 - **Pattern library** shared across songs: patterns the player liked, and ideas that were
   rejected, so new arrangements build on that history.
 - **More styles** as they are asked for: ragtime, pop, Latin.
-- **Installing the app on a phone** so it opens full screen and works without a connection.
 
 ## Later
 

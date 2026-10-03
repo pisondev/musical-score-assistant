@@ -9,6 +9,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The app can be installed on a phone, tablet, or computer from the browser (a web app
+  manifest, icons, and a service worker). It opens in a window of its own and works without a
+  connection: the app, the piano samples, and the staff engraver once used are kept, and so are
+  the private songs and notes of the owner, which are forgotten on signing out. The page and
+  the API are asked first, so a deploy arrives as soon as the network answers.
+- A card on the home page offers to install the app where the browser can (Chrome, Edge,
+  Samsung Internet) and explains the Share menu on an iPhone or iPad. Put away once, it stays
+  away on that device.
+- The screen stays on while a song is open, where the browser supports the Screen Wake Lock.
+- A full-screen button beside the zoom, which also hides the status bar of a phone or tablet.
+- An app icon in the colours of the app, replacing the blue one, also as the icon of the page.
 - The public site at https://music-assistant.tierratie.com, on the VPS beside the other
   `tierratie.com` sites: a container behind nginx of HestiaCP and Cloudflare, with a Let's
   Encrypt certificate. `npm run deploy` builds the app, checks that no private song is in the
@@ -233,6 +244,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- On a tablet the first row of the top bar scrolls away, as on a phone, so the controls and
+  the progress bar take 93 pixels of the height instead of 136, and the button with four
+  squares is left out. The content keeps clear of the notch of a phone held sideways.
+- The names of the piano samples moved from the audio engine to `src/audio/samples.ts`, which
+  the service worker shares.
 - On a phone the score is scaled so that about two measures fit on a line when the phone is
   held upright and four when it is held sideways, instead of one large measure per line.
 - Zoom for the score on every screen: `−`, the size in percent, and `+` at the right of the

@@ -27,6 +27,7 @@ import { DownloadDialog } from './DownloadDialog';
 import { Guide } from './Guide';
 import { CloseIcon, LoopIcon, MoreIcon, PencilIcon, PlayIcon, PlusIcon } from './icons';
 import { FormProgress } from './FormProgress';
+import { FullScreenButton } from './FullScreenButton';
 import { IssueList } from './IssueList';
 import { MeasureOverlay } from './MeasureOverlay';
 import { MeasureMenu, type MeasureMenuItem } from './MeasureMenu';
@@ -46,6 +47,7 @@ import { MAX_TRANSPOSE, Toolbar } from './Toolbar';
 import { TransportBar } from './TransportBar';
 import { useMeasureMenu } from './useMeasureMenu';
 import { useMeasureNotes } from './useMeasureNotes';
+import { useWakeLock } from './useWakeLock';
 import { zoomIn, zoomOut } from './zoom';
 import { ZoomControl } from './ZoomControl';
 
@@ -100,6 +102,9 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
   const showDynamics = useSettings((state) => state.showDynamics);
   const guideOpen = useSettings((state) => state.guideOpen);
   const zoom = useSettings((state) => state.zoom);
+
+  // A score on the music stand keeps the screen on.
+  useWakeLock(true);
 
   const arrangement = useMemo(
     () =>
@@ -391,6 +396,7 @@ export function SongPage({ entry, tools, progress }: SongPageProps) {
           createPortal(
             <FormProgress performance={performance}>
               <ZoomControl />
+              <FullScreenButton />
             </FormProgress>,
             progress,
           )}

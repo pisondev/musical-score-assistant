@@ -1,6 +1,7 @@
 import type * as ToneModule from 'tone';
 import { PPQ, velocityToGain, type NoteEvent, type Track } from '../core';
 import { RECORDING_TAIL } from './mp3';
+import { SAMPLE_FOLDER, SAMPLE_NOTES, sampleFile } from './samples';
 
 type Tone = typeof ToneModule;
 
@@ -26,29 +27,7 @@ export interface LoopRange {
   rest?: number;
 }
 
-/** One sample every three semitones; the sampler pitch-shifts the notes in between. */
-const SAMPLE_NOTES = [
-  'A1',
-  'C2',
-  'D#2',
-  'F#2',
-  'A2',
-  'C3',
-  'D#3',
-  'F#3',
-  'A3',
-  'C4',
-  'D#4',
-  'F#4',
-  'A4',
-  'C5',
-  'D#5',
-  'F#5',
-  'A5',
-  'C6',
-];
-
-const SAMPLE_BASE_URL = `${import.meta.env.BASE_URL}samples/piano/`;
+const SAMPLE_BASE_URL = `${import.meta.env.BASE_URL}${SAMPLE_FOLDER}`;
 const TRACKS: Track[] = ['right', 'left', 'voice'];
 /**
  * Level of each track, in decibels. The instruments are driven with the gain of
@@ -67,16 +46,6 @@ const FADE_IN = 0.04;
 const RECORDING_SAMPLE_RATE = 44100;
 const CLICK_ACCENT = 'C6';
 const CLICK_BEAT = 'G5';
-
-/**
- * The samples have no hash in their names, and browsers and Cloudflare keep them for a month.
- * Raising the version makes every one of them fetch the files afresh.
- */
-const SAMPLE_VERSION = 1;
-
-function sampleFile(note: string): string {
-  return `${note.replace('#', 's')}.mp3?v=${SAMPLE_VERSION}`;
-}
 
 /**
  * Plays a score with two independent piano voices, one per hand, so either

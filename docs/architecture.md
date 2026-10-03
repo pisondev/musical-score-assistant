@@ -142,7 +142,8 @@ Key ideas:
 ### `src/audio`: playback
 
 `PlaybackEngine` wraps Tone.js. It is loaded on first use, together with the piano samples, to
-keep the first page view light.
+keep the first page view light. The names, folder, and version of the samples live in
+`samples.ts`, which the service worker shares to fetch them ahead of time.
 
 - Each hand has its own sampler and channel, sharing one set of decoded sample buffers. Behind
   each channel sits a gain that lets the track through or not. Switching between both hands,
@@ -218,6 +219,9 @@ for every song, starting from the left hand remembered for it.
 | `ZoomControl`      | Smaller, the size in percent (a click resets it), larger                  |
 | `zoom.ts`          | The steps of the zoom, from 50 to 180 percent                             |
 | `useScreenShape`   | Whether the screen is a phone's, and whether it is held sideways          |
+| `FullScreenButton` | Gives the whole screen to the app, where the browser can                  |
+| `useWakeLock`      | Keeps the screen on while a song page is open                             |
+| `InstallCard`      | Offers to install the app, or explains the Share menu of an iPhone        |
 | `usePlayhead`      | Follows the audio clock and highlights the slots being played             |
 | `MeasureMenu`      | The menu of one measure: at the pointer, or a bottom sheet on a phone     |
 | `useMeasureMenu`   | Opens that menu on a right click or a long press; a click selects         |
@@ -358,6 +362,46 @@ known and adds them to the list. A song address that names a private song waits 
 asks a guest to sign in. With the development server running, editing a song file reloads the
 page; for private songs the development API triggers the reload.
 
+### The installed app: `src/installed-app.ts` and `src/service-worker/`
+
+The site is a web app that can be installed: `public/manifest.webmanifest` names it, gives its
+icons, and asks for a window of its own (`display: standalone`); `index.html` links it and adds
+what iPhone and iPad read instead (`apple-touch-icon`, the title). The PNG icons in
+`public/icons/` are renders of `public/favicon.svg` (192 and 512 pixels) and of
+`public/icons/maskable.svg` (the maskable icon, and the 180-pixel `apple-touch-icon.png`);
+render them again when the mark changes.
+
+`installed-app.ts` registers `sw.js` in the built site only (during development a worker would
+serve old files), and keeps the browser's offer to install (`beforeinstallprompt`) in a small
+store. `InstallCard` on the home page shows that offer, or the Share menu on an iPhone or iPad.
+`useWakeLock` keeps the screen on while a song page is open, and `FullScreenButton` asks for
+full screen where the browser has it for pages.
+
+The worker is written in `src/service-worker/worker.ts`. It has a type check of its own
+(`src/service-worker/tsconfig.json`, with the types of a worker instead of the DOM), and
+`scripts/service-worker-plugin.ts` bundles it with esbuild into `dist/sw.js` at the end of the
+build. The plugin hands it, as `BUILD`, the files of the shell (the page as `./`, every file of
+the build up to 1 MB, and the files at the top of `public/`), every file under `assets/`, and a
+version: a hash of the whole build. The rules are in `routes.ts`, which has no worker types so
+that the tests can run it:
+
+| Request                                        | Answer                                                        |
+| ---------------------------------------------- | ------------------------------------------------------------- |
+| A page (navigation)                            | The network, kept as the one copy of the page; the copy when  |
+|                                                | the network fails, errs (5xx), or takes more than 4 seconds   |
+| `assets/…`, `samples/…`                        | The kept copy; a file seen for the first time is kept         |
+| Other files of the site                        | The copy of the shell, otherwise the network                  |
+| `api/me`, `api/private-songs`, `api/notes` GET | As a page; a 401, or `/api/me` without an account, clears the |
+|                                                | kept copies of the account                                    |
+| Any other request, the sign-in, every write    | Not touched                                                   |
+
+The caches are `msa-shell-<version>` (the shell of one build), `msa-kept` (files with a hash,
+and the samples with their version), and `msa-account`. On installing, the worker fetches the
+shell and the samples it does not have yet; on activating, it deletes the shells of earlier
+builds and the files of `msa-kept` that the build no longer names. It takes over at once
+(`skipWaiting`, `clients.claim`): pages and API answers come from the network first, so an open
+page loses nothing, and the next start has the new version.
+
 ### `scripts/check-songs.ts`
 
 Runs the same engine from the command line and prints the issues for every song, arrangement,
@@ -456,6 +500,8 @@ imports names its files with their extension.
 - storage: objects on disk and in R2 (with a stand-in for its S3 API that pages its listings),
   the signature of every request, and the catalog that reads private songs from the bucket and
   fetches a file again only when it changed;
+- the service worker: which strategy answers which request, when the account is forgotten, and
+  which files of a build are fetched on installing;
 - every committed song must load without errors or warnings.
 
 The audio engine and the React components are thin layers over the tested core and are verified

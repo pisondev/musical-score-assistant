@@ -99,6 +99,11 @@ with the account.
   and `+` at the right of the progress bar make the score smaller or larger on any screen (50
   to 180 percent), and a click on the percentage returns to the fitted size. Each device keeps
   its own size.
+- **An app on the phone and the tablet.** Installed from the browser, the app opens from the
+  home screen in a window of its own, without the bars of the browser, and works without a
+  connection: the songs, the private ones included once the owner has signed in, the notes, and
+  the piano sound. On a song the screen stays on, and a button beside the zoom gives the whole
+  screen to the score. See [Installing the app](#installing-the-app).
 - **Print or save as PDF.** The sheet is laid out for A4 paper with the current arrangement,
   key, and introduction. It prints in black with the browser's default settings; "Background
   graphics" does not have to be switched on.
@@ -139,8 +144,8 @@ left hand that was selected; a click on a card opens that song. The songs are li
 hymnal; the row of buttons above them (**All hymnals**, **KK**, **PKJ**, **KJ**, **KPJ**) narrows
 the list to one hymnal and shows how many songs each has. The star marks a favourite, and the
 search box looks at titles, hymnals, numbers ("pkj 184"), credits, and styles. On a song page,
-**All songs** or the name of the app in the top bar leads back, as does the Back button of the
-browser. Every song has an address of its own (`#song=amazing-grace`), so it can be bookmarked.
+the name of the app in the top bar leads back, as do **All songs** beside it on a computer and
+the Back button of the browser. Every song has an address of its own (`#song=amazing-grace`), so it can be bookmarked.
 
 On a song page, the top bar decides what is shown; the bar at the bottom controls playback.
 Under the controls runs the progress bar. It is divided into the parts of the piece, each as
@@ -226,6 +231,31 @@ accompanies; the row marked V is what the singers sing. The intro, the right-han
 visible rows, the favourites, and the left hand last used for each song are remembered between
 visits: with the account when the owner is signed in, otherwise in this browser.
 
+## Installing the app
+
+The public site can be installed as an app; nothing comes from an app store.
+
+| Device                                    | How to install                                                              |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| Android phone or tablet (Chrome, Samsung) | **Install** on the card of the home page, or the browser menu → Install app |
+| iPhone or iPad (Safari)                   | Share → **Add to Home Screen**; the card on the home page says the same     |
+| Computer (Chrome, Edge)                   | **Install** on the card, or the install icon in the address bar             |
+
+The card can be put away with its cross; the browser menu still installs the app afterwards.
+
+What the installed app does differently:
+
+- It opens in a window of its own, with the whole height of the screen for the score.
+- It works without a connection. The app and the piano sound are fetched when it is installed;
+  the staff notation the first time it is shown; the private songs and the notes whenever the
+  owner opens them while connected. Without a connection the app uses what it has kept, and
+  when the network answers again it takes the newest version, so a deploy reaches the app on
+  its next start. Signing out removes what was kept of the account.
+- On a song page the screen does not dim or lock while the page is in front.
+- **Full screen** (the button with four corners, beside the zoom) hides the status bar of the
+  phone or tablet as well; press it again, or swipe from the edge, to leave. Safari on an
+  iPhone has no full screen for pages, so the button is missing there.
+
 ## Adding a song
 
 1. Create a folder under `songs/` (or under `songs/private/` for copyrighted material), named
@@ -266,7 +296,7 @@ server ([docs/deployment.md](docs/deployment.md)).
 | `npm run check`      | Check every song under `songs/`; add `-- --dump` for details                 |
 | `npm test`           | Run the unit tests                                                           |
 | `npm run lint`       | Lint the source with ESLint                                                  |
-| `npm run typecheck`  | Type-check the project                                                       |
+| `npm run typecheck`  | Type-check the project and the service worker                                |
 | `npm run format`     | Format the source with Prettier                                              |
 | `npm run verify`     | Lint, type-check, test, check songs, and build                               |
 
@@ -278,12 +308,13 @@ src/core/           music engine: parsing, chords, arrangements, validation (no 
 src/audio/          playback engine built on Tone.js
 src/store/          player state, display settings, and what was opened
 src/ui/             React components: home page, song page, score, and controls
+src/service-worker/ the service worker of the installed app: what it keeps and when
 server/             the server: Google sign-in, private songs, notes, account state
 scripts/            command-line tools, deploy, and the API inside the development server
 deploy/             the Docker Compose file and the receive script of the server
 tests/              unit tests
 docs/               format reference, architecture, deployment, roadmap
-public/samples/     piano samples
+public/             the manifest and icons of the installed app, and the piano samples
 ```
 
 More detail is in [docs/architecture.md](docs/architecture.md). Planned work is listed in

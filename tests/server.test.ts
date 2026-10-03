@@ -439,6 +439,8 @@ describe('the files of the server', () => {
     mkdirSync(join(site, 'assets'), { recursive: true });
     writeFileSync(join(site, 'index.html'), '<!doctype html><title>App</title>');
     writeFileSync(join(site, 'assets', 'app-1234.js'), 'console.log(1)');
+    writeFileSync(join(site, 'sw.js'), 'self.addEventListener("fetch", () => {})');
+    writeFileSync(join(site, 'manifest.webmanifest'), '{}');
     writeFileSync(join(root, 'secret.txt'), 'secret');
 
     expect(resolveStaticPath(site, '/../secret.txt')).toBe(join(site, 'secret.txt'));
@@ -455,6 +457,12 @@ describe('the files of the server', () => {
       expect(page.headers.get('cache-control')).toBe('no-cache');
       const asset = await fetch(`${base}/assets/app-1234.js`);
       expect(asset.headers.get('cache-control')).toContain('immutable');
+      // The service worker has no hash in its name: browsers must ask for it again.
+      const worker = await fetch(`${base}/sw.js`);
+      expect(worker.headers.get('content-type')).toContain('text/javascript');
+      expect(worker.headers.get('cache-control')).toBe('no-cache');
+      const manifest = await fetch(`${base}/manifest.webmanifest`);
+      expect(manifest.headers.get('content-type')).toContain('application/manifest+json');
       expect((await fetch(`${base}/missing.js`)).status).toBe(404);
       expect((await fetch(`${base}/`, { method: 'POST' })).status).toBe(405);
     } finally {
