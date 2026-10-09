@@ -38,7 +38,9 @@ The owner also sees the licensed hymnal songs and keeps notes for their revision
   lower row, aligned beat for beat, with chords above, lyrics below the melody, and dynamics
   between the hands. Notes that are struck together are written one above the other.
 - **Left-hand arrangements by level and style.** Every song starts with _My style_, a plain
-  root-fifth-octave pattern on the printed chords. Further arrangements are grouped as easy,
+  root-fifth-octave pattern on the printed chords. A song can also start with _My style_ left
+  empty, as the place to note measure by measure what the left hand should do, before
+  anything is arranged. Further arrangements are grouped as easy,
   intermediate, and advanced, and each teaches a style: ballad, hymn, classical, gospel,
   majestic, jazz. A guide explains the new patterns and every changed measure.
 - **Three roles for the right hand.** _Melody_ plays the printed tune. _Melody + fills_ keeps

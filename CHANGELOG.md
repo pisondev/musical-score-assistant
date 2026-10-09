@@ -9,6 +9,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- A song can leave the left hand of _My style_ empty: `"baseline": { "leftHand": "empty" }` in
+  `arrangements.json` makes it a rest on every beat under the printed chords, tagged _Empty_,
+  with nothing to check. It is the place to note, measure by measure, what the left hand should
+  do before anything is arranged.
 - Terms of use (`terms.html`), linked from the home page, the account menu, and the privacy
   page, and given to the consent screen of the Google client with the privacy page.
 - Comments on measures for members: a message to the author about a place in a song, sent with

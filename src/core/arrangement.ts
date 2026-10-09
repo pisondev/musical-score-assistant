@@ -10,6 +10,7 @@ import { parseNotationLine } from './notation.ts';
 import { beatTicks } from './time.ts';
 import type {
   Arrangement,
+  BaselineLeftHand,
   ArrangementMeasure,
   ArrangementSpec,
   ChordMark,
@@ -127,17 +128,25 @@ function buildBaselineMeasure(
   return { slots, chords: measure.chords.map((mark) => ({ ...mark })) };
 }
 
-/** The player's habitual left hand: root, fifth, octave on the printed chords. */
-export function buildBaseline(song: Song): Arrangement {
-  const printed = chordTimeline(song.measures);
+/**
+ * The player's habitual left hand: root, fifth, octave on the printed chords. With
+ * `leftHand` set to `empty` it is silent instead, a rest on every beat under the printed
+ * chords: the place where the player notes, measure by measure, what the left hand should do.
+ */
+export function buildBaseline(song: Song, leftHand: BaselineLeftHand = 'pattern'): Arrangement {
+  const empty = leftHand === 'empty';
+  // Without chords to follow, every beat of the pattern is a rest.
+  const printed = empty ? [] : chordTimeline(song.measures);
   const beat = beatTicks(song.meta.time);
   const context = leftContext(song);
   return {
     id: BASELINE_ID,
     name: 'My style',
-    summary: 'Root, fifth, octave on the printed chords: the pattern you already play.',
+    summary: empty
+      ? 'Left empty on purpose: this left hand is still to be written. Write a note on a measure to say what it should do there.'
+      : 'Root, fifth, octave on the printed chords: the pattern you already play.',
     level: 'easy',
-    style: 'Basic',
+    style: empty ? 'Empty' : 'Basic',
     baseline: true,
     tips: [],
     patterns: [],

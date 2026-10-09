@@ -315,14 +315,24 @@ export interface IntroSpec {
   written?: PassageSpec[];
 }
 
+/**
+ * How the baseline writes the left hand: `pattern` is root, fifth, octave on the printed
+ * chords; `empty` leaves it silent, for a song whose left hand the player still wants to work
+ * out, measure by measure, in notes.
+ */
+export type BaselineLeftHand = 'pattern' | 'empty';
+
 export interface ArrangementFile {
   intro?: IntroSpec;
   /** The passage that lifts the key before the song is repeated. */
   modulation?: { measures: IntroMeasureSpec[] };
   /** Written endings, offered after the last measure of the song. */
   endings?: PassageSpec[];
-  /** Additions to the generated baseline, which has no entry under `arrangements`. */
-  baseline?: { rightHand?: RightHandSpec };
+  /**
+   * What the file says about the generated baseline, which has no entry under `arrangements`:
+   * whether its left hand is the usual pattern or left empty, and its right-hand parts.
+   */
+  baseline?: { leftHand?: BaselineLeftHand; rightHand?: RightHandSpec };
   arrangements: ArrangementSpec[];
 }
 

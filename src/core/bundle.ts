@@ -6,6 +6,7 @@ import { parseSong } from './song.ts';
 import type {
   Arrangement,
   ArrangementSpec,
+  BaselineLeftHand,
   IntroMeasureSpec,
   IntroSpec,
   Issue,
@@ -110,6 +111,18 @@ function readRightHandSpec(value: unknown, label: string, issues: Issue[]): Righ
     };
   }
   return spec;
+}
+
+/** Reads how the baseline writes the left hand: the usual pattern unless the file says "empty". */
+export function readBaselineLeftHand(data: unknown, issues: Issue[]): BaselineLeftHand {
+  if (!isRecord(data) || !isRecord(data.baseline)) return 'pattern';
+  const value = data.baseline.leftHand;
+  if (value === undefined || value === 'pattern' || value === 'empty') return value ?? 'pattern';
+  issues.push({
+    severity: 'error',
+    message: 'The "leftHand" of the baseline must be "pattern" or "empty".',
+  });
+  return 'pattern';
 }
 
 /** Reads what the file adds to the generated baseline: its right-hand parts. */
@@ -321,8 +334,11 @@ function addRightHand(song: Song, arrangement: Arrangement, spec: RightHandSpec 
 export function createSongBundle(songText: string, arrangementData?: unknown): SongBundle {
   const issues: Issue[] = [];
   const song = parseSong(songText);
-  const baseline = buildBaseline(song);
-  baseline.issues.push(...validateArrangement(song, baseline));
+  const leftHand = readBaselineLeftHand(arrangementData, issues);
+  const baseline = buildBaseline(song, leftHand);
+  // A left hand left empty on purpose sounds nothing, so there is nothing of it to check: no
+  // chord to clash with the melody, and no beat to keep through the gaps.
+  if (leftHand !== 'empty') baseline.issues.push(...validateArrangement(song, baseline));
   addRightHand(song, baseline, readBaselineSpec(arrangementData, issues));
 
   const arrangements = readArrangementSpecs(arrangementData, issues).map((spec) => {

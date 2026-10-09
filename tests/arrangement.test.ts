@@ -66,6 +66,59 @@ describe('buildBaseline', () => {
     const baseline = buildBaseline(FOUR_FOUR);
     expect(leftNotes(baseline, 3)).toEqual([[40], [43], [48], [43]]); // E2 G2 C3 G2
   });
+
+  it('is silent when the song asks for an empty left hand, under the printed chords', () => {
+    const baseline = buildBaseline(FOUR_FOUR, 'empty');
+    expect(baseline.name).toBe('My style');
+    expect(baseline.style).toBe('Empty');
+    expect(baseline.summary).toMatch(/empty on purpose/);
+    for (const measure of baseline.measures) {
+      expect(measure.slots.every((slot) => slot.kind === 'rest' && slot.pitches.length === 0)).toBe(
+        true,
+      );
+    }
+    // One rest per beat, also where a chord changes within a beat; the chords stay on the sheet.
+    expect(baseline.measures[2].slots.map((slot) => slot.duration)).toEqual([480, 480, 480, 480]);
+    expect(baseline.measures[2].chords.map((mark) => mark.symbol)).toEqual([
+      'Bb',
+      'Gm',
+      'Bb',
+      'G/B',
+    ]);
+    expect(buildNoteEvents(FOUR_FOUR, baseline).some((event) => event.track === 'left')).toBe(
+      false,
+    );
+  });
+});
+
+describe('a baseline left empty in the arrangement file', () => {
+  // A long note in measure 2 (a gap), and a melody note a half step from the seventh of D7.
+  const SONG = `
+key: G
+time: 4/4
+| [G]1 2 3 4 | [D7]3 . . . | [G]1 . . . ||
+`;
+
+  it('is the only left hand, with nothing to check', () => {
+    const usual = createSongBundle(SONG);
+    expect(usual.arrangements[0].issues.length).toBeGreaterThan(0);
+
+    const bundle = createSongBundle(SONG, { baseline: { leftHand: 'empty' }, arrangements: [] });
+    expect(bundle.issues).toEqual([]);
+    expect(bundle.arrangements.map((arrangement) => arrangement.name)).toEqual(['My style']);
+    expect(bundle.arrangements[0].issues).toEqual([]);
+    expect(leftNotes(bundle.arrangements[0], 1)).toEqual([[], [], [], []]);
+  });
+
+  it('keeps the usual pattern unless the file says otherwise', () => {
+    const named = createSongBundle(SONG, { baseline: { leftHand: 'pattern' }, arrangements: [] });
+    expect(leftNotes(named.arrangements[0], 0)).toEqual([[43], [50], [55], [50]]); // G2 D3 G3 D3
+    const wrong = createSongBundle(SONG, { baseline: { leftHand: 'none' }, arrangements: [] });
+    expect(wrong.issues.map((issue) => [issue.severity, issue.message])).toEqual([
+      ['error', 'The "leftHand" of the baseline must be "pattern" or "empty".'],
+    ]);
+    expect(leftNotes(wrong.arrangements[0], 0)).toEqual([[43], [50], [55], [50]]);
+  });
 });
 
 describe('buildArrangement', () => {

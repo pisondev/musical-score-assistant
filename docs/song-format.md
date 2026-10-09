@@ -215,7 +215,8 @@ L: ma-zing _ grace! how
 
 Left-hand arrangements, the right-hand parts that go with them, and what is played around the
 song: introductions, the key lift for a repeat, and endings. The app always adds one more
-arrangement by itself, called **My style**: root, fifth, octave on the printed chords.
+arrangement by itself, called **My style**: root, fifth, octave on the printed chords, unless
+the file leaves it empty (see [An empty "My style"](#an-empty-my-style)).
 
 ```json
 {
@@ -317,6 +318,24 @@ arrangement by itself, called **My style**: root, fifth, octave on the printed c
 | `rightHand`          | Right-hand parts written for this left hand (see [Right-hand parts](#right-hand-parts))      |
 
 A measure that is missing from the list falls back to the baseline.
+
+### An empty "My style"
+
+A song may leave the baseline's left hand empty, for a player who wants to work out a left hand
+of their own before anything is arranged:
+
+```json
+{
+  "baseline": { "leftHand": "empty" },
+  "arrangements": []
+}
+```
+
+**My style** is then silent: a rest on every beat under the printed chords, tagged _Empty_
+instead of _Basic_, and nothing of it is checked. It stays the place to write notes on measures;
+the left hand is written from those notes later, as an arrangement or in a file that goes back
+to `"leftHand": "pattern"`, the default. A song with an empty baseline and no arrangements
+shows this one left hand only.
 
 The level also sets how far the hand may stretch before the checker warns: an octave for `easy`
 and `intermediate`, a tenth for `advanced`.

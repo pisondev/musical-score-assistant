@@ -45,6 +45,11 @@ Read `docs/song-format.md` before writing any file. It is the authority on synta
 Ask the user to listen with **Right** selected and confirm the melody before spending effort on
 arrangements, unless they asked for everything in one go.
 
+When the player asks for the melody only, with an empty "My style" to write their wishes on,
+stop here: write an `arrangements.json` that holds nothing but
+`"baseline": { "leftHand": "empty" }` and `"arrangements": []`, and leave the reading, the
+dynamics, and everything in the following steps for the revision that follows their notes.
+
 ## 3. Read the song before arranging it
 
 Nothing is arranged before the song has been read as a text set to music. This step comes
