@@ -121,6 +121,69 @@ time: 4/4
   });
 });
 
+describe('a left hand written for My style', () => {
+  const SONG = `
+key: G
+time: 4/4
+| [G]1 2 3 4 | [C]3 . . . | [G]1 . . . ||
+`;
+  const written = (extra: Record<string, unknown> = {}) => ({
+    baseline: {
+      level: 'intermediate',
+      style: 'Groove',
+      summary: 'Octaves, written for this song.',
+      measures: [{ measure: 1, left: "[G]<1 1'> (. 1') <1 1'> (. 1')", note: 'The groove.' }],
+      ...extra,
+    },
+    arrangements: [],
+  });
+
+  it('takes the place of the generated pattern, under the same name', () => {
+    const bundle = createSongBundle(SONG, written());
+    expect(bundle.issues).toEqual([]);
+    expect(bundle.arrangements).toHaveLength(1);
+    const [mine] = bundle.arrangements;
+    expect(mine).toMatchObject({
+      id: 'baseline',
+      name: 'My style',
+      baseline: true,
+      baselineKind: 'written',
+      level: 'intermediate',
+      style: 'Groove',
+      summary: 'Octaves, written for this song.',
+    });
+    expect(leftNotes(mine, 0)).toEqual([[43, 55], [], [55], [43, 55], [], [55]]); // G2+G3, G3
+    expect(mine.measures[0].note).toBe('The groove.');
+    // A measure it does not write gets the pattern, and is checked like any arrangement.
+    expect(leftNotes(mine, 1)).toEqual([[36], [43], [48], [43]]); // C2 G2 C3 G2
+    expect(mine.issues.some((issue) => issue.severity === 'warning')).toBe(true);
+  });
+
+  it('leaves the measures it does not write empty when the song says so', () => {
+    const [mine] = createSongBundle(SONG, written({ leftHand: 'empty' })).arrangements;
+    expect(leftNotes(mine, 0)).toEqual([[43, 55], [], [55], [43, 55], [], [55]]);
+    expect(leftNotes(mine, 1)).toEqual([[], [], [], []]);
+    expect(mine.issues.map((issue) => issue.message)).toContain(
+      'No left-hand part is written for this measure; it stays empty.',
+    );
+  });
+
+  it('reports measures that are not well formed', () => {
+    const broken = createSongBundle(SONG, { baseline: { measures: 'none' }, arrangements: [] });
+    expect(broken.issues.map((issue) => issue.message)).toEqual([
+      'The "measures" of the baseline must be an array.',
+    ]);
+    expect(broken.arrangements[0].baselineKind).toBe('pattern');
+    const partly = createSongBundle(SONG, {
+      baseline: { measures: [{ measure: 1 }] },
+      arrangements: [],
+    });
+    expect(partly.issues.map((issue) => issue.message)).toEqual([
+      'The baseline has a measure without a numeric "measure" and a text "left".',
+    ]);
+  });
+});
+
 describe('buildArrangement', () => {
   it('resolves chord degrees from the chord root', () => {
     const arrangement = buildArrangement(

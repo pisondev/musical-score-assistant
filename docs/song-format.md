@@ -216,7 +216,8 @@ L: ma-zing _ grace! how
 Left-hand arrangements, the right-hand parts that go with them, and what is played around the
 song: introductions, the key lift for a repeat, and endings. The app always adds one more
 arrangement by itself, called **My style**: root, fifth, octave on the printed chords, unless
-the file leaves it empty (see [An empty "My style"](#an-empty-my-style)).
+the file leaves it empty or writes it for the song (see
+["My style" for one song](#my-style-for-one-song)).
 
 ```json
 {
@@ -319,10 +320,10 @@ the file leaves it empty (see [An empty "My style"](#an-empty-my-style)).
 
 A measure that is missing from the list falls back to the baseline.
 
-### An empty "My style"
+### "My style" for one song
 
-A song may leave the baseline's left hand empty, for a player who wants to work out a left hand
-of their own before anything is arranged:
+For a player who wants to work out a left hand of their own, a song can make **My style** its
+only left hand and build it up from their notes. It starts empty:
 
 ```json
 {
@@ -332,10 +333,36 @@ of their own before anything is arranged:
 ```
 
 **My style** is then silent: a rest on every beat under the printed chords, tagged _Empty_
-instead of _Basic_, and nothing of it is checked. It stays the place to write notes on measures;
-the left hand is written from those notes later, as an arrangement or in a file that goes back
-to `"leftHand": "pattern"`, the default. A song with an empty baseline and no arrangements
-shows this one left hand only.
+instead of _Basic_, and nothing of it is checked. It is the place to write notes on measures.
+
+When the notes say what the left hand should do, it is written into the baseline itself, with
+the fields of an arrangement except `id` and `name`:
+
+```json
+{
+  "baseline": {
+    "level": "intermediate",
+    "style": "Groove",
+    "summary": "One or two sentences shown in the guide.",
+    "tips": ["…"],
+    "patterns": [{ "name": "…", "notation": "1 (. 1') 1 (. 1')", "description": "…" }],
+    "measures": [{ "measure": 1, "left": "[G]1 (. 1') 1 (. 1')", "note": "…" }],
+    "rightHand": { "accompaniment": { "summary": "…", "measures": [] } }
+  },
+  "arrangements": []
+}
+```
+
+| Field of `baseline`                             | Meaning                                                                                |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `leftHand`                                      | `pattern` (the default) or `empty`: what a measure gets that `measures` does not write |
+| `measures`                                      | The written left hand, as in an arrangement. With it, **My style** is checked like one |
+| `level`, `style`, `summary`, `tips`, `patterns` | As in an arrangement; they replace what the generated baseline says about itself       |
+| `rightHand`                                     | The right-hand parts that go with it (see [Right-hand parts](#right-hand-parts))       |
+
+The name stays **My style** and the song still has this one left hand only, so the player's
+earlier notes keep pointing at it. `"leftHand": "empty"` together with `measures` writes a
+left hand piece by piece: the measures that are listed sound, the others stay silent.
 
 The level also sets how far the hand may stretch before the checker warns: an octave for `easy`
 and `intermediate`, a tenth for `advanced`.

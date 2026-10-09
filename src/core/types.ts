@@ -231,8 +231,13 @@ export interface Arrangement {
   level: Level;
   /** Musical style the arrangement teaches, such as "Gospel" or "Jazz". */
   style: string;
-  /** True for the automatically generated root-fifth-octave baseline. */
+  /** True for "My style", the left hand every song has without an entry under `arrangements`. */
   baseline: boolean;
+  /**
+   * For "My style": the generated root-fifth-octave pattern, a left hand left empty, or one
+   * written for the song.
+   */
+  baselineKind?: 'pattern' | 'empty' | 'written';
   tips: string[];
   patterns: PatternIdea[];
   /** One entry per song measure, in the same order. */
@@ -316,9 +321,9 @@ export interface IntroSpec {
 }
 
 /**
- * How the baseline writes the left hand: `pattern` is root, fifth, octave on the printed
- * chords; `empty` leaves it silent, for a song whose left hand the player still wants to work
- * out, measure by measure, in notes.
+ * How the baseline writes the left hand where the file writes none: `pattern` is root, fifth,
+ * octave on the printed chords; `empty` leaves it silent, for a song whose left hand the
+ * player still wants to work out, measure by measure, in notes.
  */
 export type BaselineLeftHand = 'pattern' | 'empty';
 
@@ -329,10 +334,14 @@ export interface ArrangementFile {
   /** Written endings, offered after the last measure of the song. */
   endings?: PassageSpec[];
   /**
-   * What the file says about the generated baseline, which has no entry under `arrangements`:
-   * whether its left hand is the usual pattern or left empty, and its right-hand parts.
+   * What the file says about "My style", which has no entry under `arrangements`: whether its
+   * left hand is the usual pattern or left empty, a left hand written for this song
+   * (`measures`, with the same fields as an arrangement), and its right-hand parts.
    */
-  baseline?: { leftHand?: BaselineLeftHand; rightHand?: RightHandSpec };
+  baseline?: Partial<Omit<ArrangementSpec, 'id' | 'name' | 'rightHand'>> & {
+    leftHand?: BaselineLeftHand;
+    rightHand?: RightHandSpec;
+  };
   arrangements: ArrangementSpec[];
 }
 

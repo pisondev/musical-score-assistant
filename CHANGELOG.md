@@ -13,6 +13,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `arrangements.json` makes it a rest on every beat under the printed chords, tagged _Empty_,
   with nothing to check. It is the place to note, measure by measure, what the left hand should
   do before anything is arranged.
+- A song can write _My style_ itself: `baseline.measures`, with `level`, `style`, `summary`,
+  `tips`, and `patterns`, is a left hand written for that song under the same name, checked
+  like an arrangement and listed with its style. Measures it leaves out follow `leftHand`.
 - Terms of use (`terms.html`), linked from the home page, the account menu, and the privacy
   page, and given to the consent screen of the Google client with the privacy page.
 - Comments on measures for members: a message to the author about a place in a song, sent with

@@ -1,4 +1,4 @@
-import { buildArrangement, buildBaseline } from './arrangement.ts';
+import { BASELINE_ID, BASELINE_NAME, buildArrangement, buildBaseline } from './arrangement.ts';
 import { lastPhraseStart } from './intro.ts';
 import { buildPassage } from './passage.ts';
 import { buildRightHandPart, RIGHT_HAND_PARTS } from './right-hand.ts';
@@ -163,40 +163,69 @@ export function readArrangementSpecs(data: unknown, issues: Issue[]): Arrangemen
       return;
     }
 
-    const measures: ArrangementSpec['measures'] = [];
-    for (const measure of entry.measures) {
-      if (
-        !isRecord(measure) ||
-        typeof measure.measure !== 'number' ||
-        typeof measure.left !== 'string'
-      ) {
-        issues.push({
-          severity: 'error',
-          message: `${label} has a measure without a numeric "measure" and a text "left".`,
-        });
-        continue;
-      }
-      measures.push({
-        measure: measure.measure,
-        left: measure.left,
-        note: typeof measure.note === 'string' ? measure.note : undefined,
-      });
-    }
-
     seen.add(entry.id);
     specs.push({
       id: entry.id,
       name: entry.name,
-      summary: typeof entry.summary === 'string' ? entry.summary : undefined,
-      level: LEVELS.includes(entry.level as Level) ? (entry.level as Level) : undefined,
-      style: typeof entry.style === 'string' ? entry.style : undefined,
-      tips: readStrings(entry.tips),
-      patterns: readPatterns(entry.patterns),
-      measures,
+      ...readLeftHand(entry, entry.measures, label, issues),
       rightHand: readRightHandSpec(entry.rightHand, label, issues),
     });
   });
   return specs;
+}
+
+/** Reads what describes a written left hand: its measures, and the words that explain it. */
+function readLeftHand(
+  entry: Record<string, unknown>,
+  list: unknown[],
+  label: string,
+  issues: Issue[],
+): Omit<ArrangementSpec, 'id' | 'name' | 'rightHand'> {
+  const measures: ArrangementSpec['measures'] = [];
+  for (const measure of list) {
+    if (
+      !isRecord(measure) ||
+      typeof measure.measure !== 'number' ||
+      typeof measure.left !== 'string'
+    ) {
+      issues.push({
+        severity: 'error',
+        message: `${label} has a measure without a numeric "measure" and a text "left".`,
+      });
+      continue;
+    }
+    measures.push({
+      measure: measure.measure,
+      left: measure.left,
+      note: typeof measure.note === 'string' ? measure.note : undefined,
+    });
+  }
+  return {
+    summary: typeof entry.summary === 'string' ? entry.summary : undefined,
+    level: LEVELS.includes(entry.level as Level) ? (entry.level as Level) : undefined,
+    style: typeof entry.style === 'string' ? entry.style : undefined,
+    tips: readStrings(entry.tips),
+    patterns: readPatterns(entry.patterns),
+    measures,
+  };
+}
+
+/**
+ * Reads the left hand the file writes for "My style", or null when it writes none and the
+ * baseline is generated.
+ */
+export function readBaselineWritten(
+  data: unknown,
+  issues: Issue[],
+): Omit<ArrangementSpec, 'id' | 'name' | 'rightHand'> | null {
+  if (!isRecord(data) || !isRecord(data.baseline) || data.baseline.measures === undefined) {
+    return null;
+  }
+  if (!Array.isArray(data.baseline.measures)) {
+    issues.push({ severity: 'error', message: 'The "measures" of the baseline must be an array.' });
+    return null;
+  }
+  return readLeftHand(data.baseline, data.baseline.measures, 'The baseline', issues);
 }
 
 /** Reads the measures of one written passage. */
@@ -335,10 +364,20 @@ export function createSongBundle(songText: string, arrangementData?: unknown): S
   const issues: Issue[] = [];
   const song = parseSong(songText);
   const leftHand = readBaselineLeftHand(arrangementData, issues);
-  const baseline = buildBaseline(song, leftHand);
+  const written = readBaselineWritten(arrangementData, issues);
+  // "My style" is written for the song where the file does so; otherwise it is generated.
+  const baseline: Arrangement = written
+    ? {
+        ...buildArrangement(song, { ...written, id: BASELINE_ID, name: BASELINE_NAME }, leftHand),
+        baseline: true,
+        baselineKind: 'written',
+      }
+    : buildBaseline(song, leftHand);
   // A left hand left empty on purpose sounds nothing, so there is nothing of it to check: no
   // chord to clash with the melody, and no beat to keep through the gaps.
-  if (leftHand !== 'empty') baseline.issues.push(...validateArrangement(song, baseline));
+  if (written || leftHand !== 'empty') {
+    baseline.issues.push(...validateArrangement(song, baseline));
+  }
   addRightHand(song, baseline, readBaselineSpec(arrangementData, issues));
 
   const arrangements = readArrangementSpecs(arrangementData, issues).map((spec) => {

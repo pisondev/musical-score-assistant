@@ -69,7 +69,7 @@ export function Guide({ performance, playerNotes, notesKind = 'notes', onOpenNot
         <p>{arrangement.summary}</p>
       </header>
 
-      {arrangement.baseline && (
+      {arrangement.baseline && (arrangement.baselineKind ?? 'pattern') === 'pattern' && (
         <p className="guide__hint">
           This is the pattern you already play. Pick another left hand, then switch back here at any
           time to compare.

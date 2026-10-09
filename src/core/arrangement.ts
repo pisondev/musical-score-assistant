@@ -22,6 +22,8 @@ import type {
 } from './types.ts';
 
 export const BASELINE_ID = 'baseline';
+/** The name of the left hand every song has: the player's own. */
+export const BASELINE_NAME = 'My style';
 
 export interface TimedChord {
   /** Absolute tick at which the chord takes effect. */
@@ -141,13 +143,14 @@ export function buildBaseline(song: Song, leftHand: BaselineLeftHand = 'pattern'
   const context = leftContext(song);
   return {
     id: BASELINE_ID,
-    name: 'My style',
+    name: BASELINE_NAME,
     summary: empty
       ? 'Left empty on purpose: this left hand is still to be written. Write a note on a measure to say what it should do there.'
       : 'Root, fifth, octave on the printed chords: the pattern you already play.',
     level: 'easy',
     style: empty ? 'Empty' : 'Basic',
     baseline: true,
+    baselineKind: leftHand,
     tips: [],
     patterns: [],
     measures: song.measures.map((measure) => buildBaselineMeasure(measure, printed, beat, context)),
@@ -214,7 +217,12 @@ export function buildLeftMeasure(
 }
 
 /** Builds an arrangement from its stored description, measure by measure. */
-export function buildArrangement(song: Song, spec: ArrangementSpec): Arrangement {
+export function buildArrangement(
+  song: Song,
+  spec: ArrangementSpec,
+  /** What a measure gets that the arrangement does not write: the pattern, or rests. */
+  unwritten: BaselineLeftHand = 'pattern',
+): Arrangement {
   const issues: Issue[] = [];
   const printed = chordTimeline(song.measures);
   const beat = beatTicks(song.meta.time);
@@ -246,13 +254,16 @@ export function buildArrangement(song: Song, spec: ArrangementSpec): Arrangement
     const entry = byNumber.get(number);
     const fallback = (): ArrangementMeasure => {
       carried = chordAt(printed, measure.startTick + measure.length - 1)?.chord ?? carried;
-      return buildBaselineMeasure(measure, printed, beat, context);
+      return buildBaselineMeasure(measure, unwritten === 'empty' ? [] : printed, beat, context);
     };
 
     if (!entry) {
       issues.push({
         severity: 'info',
-        message: 'No left-hand part is written for this measure; the baseline is used.',
+        message:
+          unwritten === 'empty'
+            ? 'No left-hand part is written for this measure; it stays empty.'
+            : 'No left-hand part is written for this measure; the baseline is used.',
         measure: measure.index,
         hand: 'left',
       });

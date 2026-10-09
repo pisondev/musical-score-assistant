@@ -50,6 +50,13 @@ stop here: write an `arrangements.json` that holds nothing but
 `"baseline": { "leftHand": "empty" }` and `"arrangements": []`, and leave the reading, the
 dynamics, and everything in the following steps for the revision that follows their notes.
 
+When those notes arrive, read the song (step 3), then write what they ask for into the baseline
+itself (`baseline.measures`, with `level`, `style`, `summary`, `tips`, `patterns`, and the
+right-hand parts under `baseline.rightHand`; see '"My style" for one song' in
+`docs/song-format.md`). The song keeps one left hand, "My style", unless the player asks for
+more. Write only the parts the notes ask for, and say in the hand-over how each note was
+handled.
+
 ## 3. Read the song before arranging it
 
 Nothing is arranged before the song has been read as a text set to music. This step comes

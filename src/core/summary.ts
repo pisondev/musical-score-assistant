@@ -33,7 +33,9 @@ export function summarizeSong(bundle: SongBundle): SongSummary {
   const styles: string[] = [];
   for (const arrangement of arrangements) {
     levels[arrangement.level] += 1;
-    if (!arrangement.baseline && arrangement.style && !styles.includes(arrangement.style)) {
+    // The generated "My style" is no style of its own; one written for the song is.
+    const named = !arrangement.baseline || arrangement.baselineKind === 'written';
+    if (named && arrangement.style && !styles.includes(arrangement.style)) {
       styles.push(arrangement.style);
     }
   }
