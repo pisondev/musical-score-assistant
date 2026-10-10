@@ -3,7 +3,9 @@ import type { HandMode } from '../audio/engine';
 import { estimateMp3Bytes, RECORDING_TAIL } from '../audio/mp3';
 import {
   buildNoteEvents,
+  elapsedTicks,
   exportFileName,
+  findFermatas,
   noteNameToText,
   ticksToSeconds,
   toMidiFile,
@@ -50,6 +52,7 @@ export function midiFileOf(performance: Performance, tempo: number, tracks: Trac
   return toMidiFile(song, buildNoteEvents(song, arrangement), {
     tempo,
     tracks,
+    fermatas: findFermatas(song, arrangement),
     // The repeat in a higher key announces itself with a new key signature.
     keyChanges: sections.map((section) => ({
       tick: song.measures[section.start].startTick,
@@ -82,9 +85,11 @@ export function useExportFacts(performance: Performance): ExportFacts {
   const voiceGuide = usePlayer((state) => state.voiceGuide);
 
   return useMemo(() => {
-    const { song } = performance;
+    const { song, arrangement } = performance;
     const tracks = tracksOf(performance, handMode, voiceGuide);
-    const seconds = ticksToSeconds(song.totalTicks, tempo, song.meta.time);
+    // The fermatas of the piece are part of its length.
+    const played = elapsedTicks(findFermatas(song, arrangement), song.totalTicks);
+    const seconds = ticksToSeconds(played, tempo, song.meta.time);
     return {
       tempo,
       handMode,

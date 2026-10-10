@@ -67,6 +67,9 @@ The owner also sees the licensed hymnal songs and keeps notes for their revision
 - **Rolled chords.** A chord can be written as rolled: its notes follow each other within a
   few hundredths of a second instead of sounding at once, on the sheet (a wavy line), in the
   playback, and in the MIDI file.
+- **Fermatas.** A fermata printed over a note is written with it, drawn on the sheet and on
+  the staff, and played: the music waits on that note with both hands, and so do the
+  playhead, the metronome, and the MIDI and MP3 files.
 - **A beginning, a repeat, and an ending.** An introduction leads into the song over a bridge
   that cues the singers. The song can be repeated a half step or a whole step higher (a
   modulation): an interlude lifts the key, and the score continues below with the repeat. A

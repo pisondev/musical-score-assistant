@@ -3,6 +3,7 @@ import { engine, type HandMode } from '../audio/engine';
 import {
   beatTicks,
   buildNoteEvents,
+  findFermatas,
   loopRestBeats,
   quarterNotesPerMinute,
   type Arrangement,
@@ -97,6 +98,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     activeSong = song;
     engine.setScore({
       events: buildNoteEvents(song, arrangement),
+      fermatas: findFermatas(song, arrangement),
       totalTicks: song.totalTicks,
       measures: song.measures.map(({ startTick, length }) => ({ startTick, length })),
       beatTicks: beatTicks(song.meta.time),

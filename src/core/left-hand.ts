@@ -112,6 +112,7 @@ export function resolveLeftMeasure(
       beams: slot.beams,
       tuplet: slot.tuplet,
       rolled: slot.rolled || undefined,
+      fermata: slot.fermata || undefined,
     };
   });
 

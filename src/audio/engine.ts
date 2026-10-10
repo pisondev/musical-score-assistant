@@ -1,5 +1,13 @@
 import type * as ToneModule from 'tone';
-import { PPQ, velocityToGain, type NoteEvent, type Track } from '../core';
+import {
+  elapsedTicks,
+  paceAt,
+  PPQ,
+  velocityToGain,
+  type FermataSpan,
+  type NoteEvent,
+  type Track,
+} from '../core';
 import { RECORDING_TAIL } from './mp3';
 import { SAMPLE_FOLDER, SAMPLE_NOTES, sampleFile } from './samples';
 
@@ -13,6 +21,8 @@ type Instrument = ToneModule.Sampler | ToneModule.PolySynth;
 /** Everything the engine needs to play one song with one arrangement. */
 export interface Score {
   events: NoteEvent[];
+  /** Where the music lingers: inside these stretches the clock runs slower. */
+  fermatas: FermataSpan[];
   totalTicks: number;
   /** Start and length of every measure, used to accent the metronome. */
   measures: { startTick: number; length: number }[];
@@ -68,6 +78,8 @@ export class PlaybackEngine {
   private parts: ToneModule.Part[] = [];
   private endEvent: number | null = null;
   private metronomeEvent: number | null = null;
+  /** The events that change the tempo of the transport where a fermata begins or ends. */
+  private tempoEvents: number[] = [];
 
   private score: Score | null = null;
   private handMode: HandMode = 'both';
@@ -115,8 +127,8 @@ export class PlaybackEngine {
     this.instruments = instruments;
     this.click = this.createClick(tone);
 
-    transport.bpm.value = this.quarterTempo;
     transport.ticks = this.pendingTick;
+    this.applyTempo();
     this.applyHandMode(true);
     this.applyLoop();
     this.rebuild();
@@ -153,7 +165,7 @@ export class PlaybackEngine {
         if (this.inRest(event.tick)) return;
         instrument.triggerAttackRelease(
           tone.Frequency(event.midi, 'midi').toNote(),
-          tone.Ticks(event.duration).toSeconds(),
+          this.secondsBetween(event.tick, event.tick + event.duration),
           time,
           velocityToGain(event.velocity),
         );
@@ -170,7 +182,60 @@ export class PlaybackEngine {
       tone.getDraw().schedule(() => this.handleEnd(), time);
     }, `${totalTicks}i`);
 
+    this.scheduleTempo();
     this.applyMetronome();
+  }
+
+  /**
+   * Makes the transport follow the fermatas. At every tick where the pace
+   * changes, the tempo is set for what follows. The start of the piece and the
+   * start of a loop are such points too, because the transport can jump there
+   * out of a fermata.
+   */
+  private scheduleTempo(): void {
+    if (!this.tone) return;
+    const transport = this.tone.getTransport();
+    for (const event of this.tempoEvents) transport.clear(event);
+
+    const fermatas = this.score?.fermatas ?? [];
+    const points = new Set<number>();
+    if (fermatas.length > 0) {
+      points.add(0);
+      if (this.loop) points.add(this.loop.start);
+      for (const span of fermatas) points.add(span.start).add(span.end);
+    }
+    this.tempoEvents = [...points].map((tick) =>
+      transport.schedule((time) => {
+        transport.bpm.setValueAtTime(this.tempoAt(tick), time);
+      }, `${tick}i`),
+    );
+    this.applyTempo();
+  }
+
+  /** The tempo at a tick, in quarter notes per minute: slower than the slider inside a fermata. */
+  private tempoAt(tick: number): number {
+    // The rest of a loop is counted in tempo, whatever the music after the loop does there.
+    const pace = this.inRest(tick) ? 1 : paceAt(this.score?.fermatas ?? [], tick);
+    return this.quarterTempo * pace;
+  }
+
+  /**
+   * Sets the tempo that belongs at a tick, from now on: where the transport
+   * is, or where it has just been sent. A running transport takes a new
+   * position on its next tick, so right after a jump it still reports the old
+   * one.
+   */
+  private applyTempo(tick?: number): void {
+    if (!this.tone) return;
+    const transport = this.tone.getTransport();
+    transport.bpm.value = this.tempoAt(tick ?? transport.ticks);
+  }
+
+  /** How long the music takes from one tick to another at the tempo of the slider, in seconds. */
+  private secondsBetween(from: number, to: number): number {
+    const fermatas = this.score?.fermatas ?? [];
+    const ticks = elapsedTicks(fermatas, to) - elapsedTicks(fermatas, from);
+    return (ticks * 60) / (this.quarterTempo * PPQ);
   }
 
   /** True for a tick in the silent stretch between the end of a loop and its next start. */
@@ -209,7 +274,7 @@ export class PlaybackEngine {
     const transport = tone.getTransport();
     if (transport.state === 'started') return;
 
-    if (this.score && transport.ticks >= this.score.totalTicks) transport.ticks = 0;
+    if (this.score && transport.ticks >= this.score.totalTicks) this.moveTo(0);
 
     const countInSeconds = this.metronome ? this.scheduleCountIn() : 0;
     this.startsAt = tone.now() + countInSeconds + 0.05;
@@ -277,9 +342,8 @@ export class PlaybackEngine {
   stop(): void {
     this.pendingTick = this.loop?.start ?? 0;
     if (!this.tone) return;
-    const transport = this.tone.getTransport();
-    transport.stop();
-    transport.ticks = this.pendingTick;
+    this.tone.getTransport().stop();
+    this.moveTo(this.pendingTick);
     this.startsAt = 0;
     this.silence();
   }
@@ -288,8 +352,15 @@ export class PlaybackEngine {
     this.pendingTick = tick;
     this.insideLoop = false;
     if (!this.tone) return;
-    this.tone.getTransport().ticks = tick;
+    this.moveTo(tick);
     this.releaseAll();
+  }
+
+  /** Puts the transport at a tick, with the tempo that belongs there. */
+  private moveTo(tick: number): void {
+    if (!this.tone) return;
+    this.tone.getTransport().ticks = tick;
+    this.applyTempo(tick);
   }
 
   /** Current position in ticks. */
@@ -323,7 +394,7 @@ export class PlaybackEngine {
   /** Sets the tempo in quarter notes per minute. Takes effect immediately. */
   setTempo(quarterNotesPerMinute: number): void {
     this.quarterTempo = quarterNotesPerMinute;
-    if (this.tone) this.tone.getTransport().bpm.value = quarterNotesPerMinute;
+    this.applyTempo();
   }
 
   setHandMode(mode: HandMode): void {
@@ -405,8 +476,7 @@ export class PlaybackEngine {
     const score = this.score;
     if (!score) throw new Error('No score is loaded.');
 
-    const secondsPerTick = 60 / (this.quarterTempo * PPQ);
-    const duration = score.totalTicks * secondsPerTick + RECORDING_TAIL;
+    const duration = this.secondsBetween(0, score.totalTicks) + RECORDING_TAIL;
     const rendered = await tone.Offline(
       () => {
         for (const track of tracks) {
@@ -415,8 +485,8 @@ export class PlaybackEngine {
             if (event.track !== track) continue;
             instrument.triggerAttackRelease(
               tone.Frequency(event.midi, 'midi').toNote(),
-              event.duration * secondsPerTick,
-              event.tick * secondsPerTick,
+              this.secondsBetween(event.tick, event.tick + event.duration),
+              this.secondsBetween(0, event.tick),
               velocityToGain(event.velocity),
             );
           }
@@ -436,6 +506,7 @@ export class PlaybackEngine {
     this.loop = range;
     this.insideLoop = false;
     this.applyLoop();
+    this.scheduleTempo();
   }
 
   private applyLoop(): void {

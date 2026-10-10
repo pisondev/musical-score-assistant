@@ -180,6 +180,21 @@ function RollMark({ cells }: { cells: number }) {
   );
 }
 
+/** The fermata sign over a symbol: an arc with a dot under it. */
+function FermataMark({ beamed }: { beamed: boolean }) {
+  return (
+    <svg
+      className={cx('fermata', beamed && 'fermata--beamed')}
+      viewBox="0 0 14 8"
+      role="img"
+      aria-label="fermata"
+    >
+      <path d="M1.2 7 A5.8 5.8 0 0 1 12.8 7" />
+      <circle cx="7" cy="5.9" r="1.1" />
+    </svg>
+  );
+}
+
 function StaffRow({ slots, length, quiet = false }: StaffRowProps) {
   // Beams within one beat share a height, set by the tallest stack under them.
   const beamHeights = new Map<number, number>();
@@ -224,6 +239,7 @@ function StaffRow({ slots, length, quiet = false }: StaffRowProps) {
             )}
             {startsTuplet && <span className="tuplet">{slot.tuplet}</span>}
             {slot.rolled && slot.pitches.length > 1 && <RollMark cells={slot.pitches.length} />}
+            {slot.fermata && <FermataMark beamed={slot.beams > 0} />}
             <span className="slot__body">
               {slot.kind === 'note' &&
                 [...slot.pitches]

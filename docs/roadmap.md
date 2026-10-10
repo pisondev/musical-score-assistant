@@ -71,13 +71,14 @@ The web app itself never generates music; it displays, plays, and explains.
 - A written reading of each song (text, tune, mood) that its arrangements follow.
 - A tempo that can be typed as well as dragged.
 - Fills as a second voice: the melody keeps its long notes on the sheet and in the sound.
+- Fermatas that are written, drawn, and played: the music waits on the marked note.
 - Validation of range, hand span, low close intervals, slash-chord bass, and melody clashes.
 
 ## Next
 
 - **Repeats in playback.** Repeat barlines are displayed but played straight through.
-- **Tempo changes** such as ritardando and a fermata on the last chord; endings are played in
-  strict time for now.
+- **Ritardando.** A fermata holds a note, but a gradual slowing down, at the end of a song or
+  in an ending, cannot be written yet.
 - **More than one verse**, so that a repeat can carry the words of the next verse.
 - **Dynamics per arrangement**, so that a majestic version can be louder than a ballad.
 - **Volume balance** between the hands and the voice guide.

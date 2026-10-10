@@ -70,12 +70,14 @@ function describeIssue(issue: Issue, song: Song, rightName = 'melody', indent = 
 function describeSlots(slots: Slot[]): string {
   return slots
     .map((slot) => {
-      if (slot.kind === 'hold') return '.';
-      if (slot.kind === 'rest') return '0';
+      // A fermata is shown the way it is written, behind its symbol.
+      const fermata = slot.fermata ? '^' : '';
+      if (slot.kind === 'hold') return `.${fermata}`;
+      if (slot.kind === 'rest') return `0${fermata}`;
       const names = slot.pitches.map(
         (pitch) => `${midiToText(pitch.midi)}=${toneToText(pitch.tone)}`,
       );
-      return names.length > 1 ? `<${names.join(' ')}>` : names[0];
+      return (names.length > 1 ? `<${names.join(' ')}>` : names[0]) + fermata;
     })
     .join('  ');
 }
@@ -129,6 +131,21 @@ function describeGaps(song: Song): string {
     return `${position(gap.start)} to ${position(gap.end)}`;
   });
   return gaps.length > 0 ? gaps.join('; ') : 'none';
+}
+
+/** Lists the notes of the melody that carry a fermata. */
+function describeFermatas(song: Song): string {
+  const beat = beatTicks(song.meta.time);
+  return song.measures
+    .flatMap((measure) =>
+      measure.slots
+        .filter((slot) => slot.fermata)
+        .map((slot) => {
+          const label = measure.number === null ? 'pickup' : `m.${measure.number}`;
+          return `${label} beat ${Number((slot.start / beat + 1).toFixed(2))}`;
+        }),
+    )
+    .join('; ');
 }
 
 /** Whether the reading of the song, which precedes its arrangements, is written. */
@@ -213,6 +230,8 @@ function checkFolder(folder: string, dump: boolean): boolean {
   );
   reportable(song.issues).forEach((issue) => console.log(describeIssue(issue, song)));
   console.log(`  gaps to fill: ${describeGaps(song)}`);
+  const fermatas = describeFermatas(song);
+  if (fermatas) console.log(`  fermatas: ${fermatas}`);
   console.log(`  reading: ${describeReading(folder)}`);
   const placement = placeSong(meta);
   console.log(

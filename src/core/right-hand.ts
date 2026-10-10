@@ -67,13 +67,18 @@ function restMeasure(measure: Measure, prefix: string): RightHandMeasure {
  */
 function addedVoice(measure: Measure, slots: Slot[]): Slot[] {
   const melody = new Map<number, number>();
+  const held = new Set<number>();
   for (const slot of measure.slots) {
     const top = slot.pitches[slot.pitches.length - 1];
     if (slot.kind === 'note' && top) melody.set(slot.start, top.midi);
+    if (slot.fermata) held.add(slot.start);
   }
 
   let sounding = false;
-  return slots.map((slot): Slot => {
+  return slots.map((written): Slot => {
+    // A fermata that the melody carries is drawn once, on the melody.
+    const slot =
+      written.fermata && held.has(written.start) ? { ...written, fermata: undefined } : written;
     const silent: Slot = { ...slot, kind: 'rest', pitches: [] };
     // A hold dot continues the added note before it, or the melody, which needs nothing here.
     if (slot.kind === 'hold') return sounding ? slot : silent;
@@ -186,6 +191,7 @@ export function buildRightHandPart(
       tuplet: slot.tuplet,
       rolled: slot.rolled || undefined,
       uncertain: slot.uncertain || undefined,
+      fermata: slot.fermata || undefined,
     }));
 
     let left: ArrangementMeasure | undefined;

@@ -293,6 +293,7 @@ export function parseSong(text: string): Song {
           tuplet: slot.tuplet,
           rolled: slot.rolled || undefined,
           uncertain: slot.uncertain || undefined,
+          fermata: slot.fermata || undefined,
         };
 
         if (slot.kind === 'note') {

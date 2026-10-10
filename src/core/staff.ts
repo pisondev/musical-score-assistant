@@ -63,6 +63,8 @@ export interface StaffEvent {
   lyric?: string;
   /** True where a rolled chord is struck; it gets an arpeggio line in front of it. */
   rolled?: boolean;
+  /** True for the symbol a fermata stands over. */
+  fermata?: boolean;
 }
 
 interface Chain {
@@ -75,6 +77,8 @@ interface Chain {
   rolled?: boolean;
   /** Ids of the slots that begin inside the chain, by their start tick. */
   ids: Map<number, string>;
+  /** Start ticks of the slots inside the chain that carry a fermata. */
+  fermatas: number[];
   /** True when the chain continues a note from the previous measure. */
   tiedFromPrevious: boolean;
   triplet?: GroupPosition;
@@ -166,10 +170,12 @@ function buildChains(slots: Slot[], carried: Pitch[] | null): Chain[] {
     // Inside a triplet every slot is written on its own, so the bracket stays intact.
     const mergeable = triplet === undefined && open !== null && open.triplet === undefined;
 
+    const fermatas = slot.fermata ? [slot.start] : [];
     if (slot.kind === 'hold') {
       if (open && open.kind === 'note' && mergeable) {
         open.duration += slot.duration;
         open.ids.set(slot.start, slot.id);
+        open.fermatas.push(...fermatas);
         return;
       }
       const previous: Pitch[] | null =
@@ -181,6 +187,7 @@ function buildChains(slots: Slot[], carried: Pitch[] | null): Chain[] {
         duration: slot.duration,
         pitches: previous ?? [],
         ids: new Map([[slot.start, slot.id]]),
+        fermatas,
         tiedFromPrevious: previous !== null,
         triplet,
       };
@@ -191,6 +198,7 @@ function buildChains(slots: Slot[], carried: Pitch[] | null): Chain[] {
     if (slot.kind === 'rest' && open?.kind === 'rest' && mergeable) {
       open.duration += slot.duration;
       open.ids.set(slot.start, slot.id);
+      open.fermatas.push(...fermatas);
       return;
     }
 
@@ -203,6 +211,7 @@ function buildChains(slots: Slot[], carried: Pitch[] | null): Chain[] {
       lyric: slot.lyric,
       rolled: slot.rolled,
       ids: new Map([[slot.start, slot.id]]),
+      fermatas,
       tiedFromPrevious: false,
       triplet,
     };
@@ -290,6 +299,11 @@ export function engraveRow(
           triplet: chain.triplet,
           lyric: index === 0 ? chain.lyric : undefined,
           rolled: (index === 0 && chain.rolled && chain.pitches.length > 1) || undefined,
+          // The sign stands over the piece of the note in which the marked symbol begins.
+          fermata:
+            chain.fermatas.some(
+              (tick) => tick >= piece.start && tick < piece.start + piece.duration,
+            ) || undefined,
         };
         events.push(event);
       });

@@ -489,6 +489,31 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* A fermata: an arc with a dot, centred over its symbol and clear of a beam. */
+.fermata {
+  position: absolute;
+  left: calc(var(--digit-width) / 2 - 6.5px);
+  bottom: calc(100% - var(--dot-zone) + 4px);
+  width: 13px;
+  height: 7.5px;
+  overflow: visible;
+}
+
+.fermata--beamed {
+  bottom: calc(var(--beam-cells, 1) * var(--cell-height) + 9px);
+}
+
+.fermata path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.fermata circle {
+  fill: currentColor;
+}
+
 /* Beams sit above the tallest stack of their beat. */
 .beam {
   position: absolute;
@@ -545,6 +570,12 @@
 .track--fills .tuplet,
 .track--voice .tuplet {
   bottom: calc(100% + 5px);
+}
+
+.track--right .fermata--beamed,
+.track--fills .fermata--beamed,
+.track--voice .fermata--beamed {
+  bottom: calc(100% + 9px);
 }
 
 .slot--uncertain .slot__body {

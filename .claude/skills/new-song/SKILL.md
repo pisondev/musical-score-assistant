@@ -29,6 +29,8 @@ Read `docs/song-format.md` before writing any file. It is the authority on synta
    - a digit crossed by `/` is sharpened (`#4`), crossed by `\` is flattened (`b7`);
    - a dot on the baseline holds the previous note; under a beam it holds for half a beat, so
      `3 . 5` with the dot and the 5 under one beam is `3 (. 5)`;
+   - an arc with a dot over a digit is a fermata: write `^` behind the note (`4^`), after
+     its octave marks;
    - a comma-like tick between notes is a breath mark and is not transcribed.
 2. Copy the header from the score: `title`, `book` (the hymnal code in capitals: `PKJ`),
    `number`, `key` (from "do = f"), `time`, `tempo`. A song from no hymnal names its

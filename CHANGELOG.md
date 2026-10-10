@@ -9,6 +9,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Fermatas: `^` behind a note, a stack, a rest, or a hold dot (`4^`). The sign is drawn over
+  the symbol in numbered and in staff notation, and the playback waits on it: the whole
+  performance runs slower for as long as the marked note lasts, which holds a short note twice
+  as long and a long note two beats longer. The playhead, the metronome, a loop, the MIDI file
+  (as a change of tempo), and the MP3 wait with it, and the length shown before a download
+  counts it in. `npm run check` lists the fermatas of a song.
 - A song can leave the left hand of _My style_ empty: `"baseline": { "leftHand": "empty" }` in
   `arrangements.json` makes it a rest on every beat under the printed chords, tagged _Empty_,
   with nothing to check. It is the place to note, measure by measure, what the left hand should

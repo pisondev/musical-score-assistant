@@ -205,6 +205,20 @@ export function toMei(
       for (const event of rows.flat()) {
         if (event.rolled) controls.push(`<arpeg plist="#${staffElementId(event.id)}"/>`);
       }
+      // A fermata stands over its note or rest; under it, for the left hand.
+      const marked: [StaffEvent[], 'above' | 'below'][] = [
+        [right[position], 'above'],
+        // The second voice draws no rests, so only its notes can carry the sign.
+        [added.filter((event) => event.kind === 'note'), 'above'],
+        [left[position], 'below'],
+        ...(voice ? [[voice[position], 'above'] as [StaffEvent[], 'above']] : []),
+      ];
+      for (const [events, place] of marked) {
+        for (const event of events) {
+          if (!event.fermata) continue;
+          controls.push(`<fermata startid="#${staffElementId(event.id)}" place="${place}"/>`);
+        }
+      }
       for (const chord of parts[position].chords) {
         controls.push(
           `<harm staff="1" place="above" tstamp="${timestamp(chord.start, beat)}">${escapeXml(formatChordSymbol(chord.symbol))}</harm>`,

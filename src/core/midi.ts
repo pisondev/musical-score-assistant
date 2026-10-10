@@ -1,3 +1,4 @@
+import type { FermataSpan } from './fermata.ts';
 import { keySignatureFifths } from './staff.ts';
 import { PPQ, quarterNotesPerMinute } from './time.ts';
 import type { NoteEvent, NoteName, Song, Track } from './types.ts';
@@ -7,7 +8,8 @@ import type { NoteEvent, NoteName, Song, Track } from './types.ts';
  * with tempo, time signature, and key, then one track per hand and one for
  * the sung melody when it is included. The file uses the same 480 ticks per
  * quarter note as the rest of the engine, so every note lands exactly where
- * it is played in the app.
+ * it is played in the app. A fermata is written as a slower tempo for the
+ * length of its note, which leaves the notes on their beats.
  */
 
 export interface MidiOptions {
@@ -17,6 +19,8 @@ export interface MidiOptions {
   tracks: Track[];
   /** Keys that take over later in the piece, each from its tick on. */
   keyChanges?: { tick: number; key: NoteName }[];
+  /** The fermatas of the piece: the tempo drops for each of them. */
+  fermatas?: FermataSpan[];
 }
 
 const CHANNEL: Record<Track, number> = { right: 0, left: 1, voice: 2 };
@@ -107,9 +111,20 @@ function noteEvents(events: NoteEvent[], name: Track): TimedBytes[] {
 /** Builds the bytes of a MIDI file for a song and the notes of a performance. */
 export function toMidiFile(song: Song, events: NoteEvent[], options: MidiOptions): Uint8Array {
   const { time, key, title } = song.meta;
-  const microsecondsPerQuarter = Math.round(
-    60_000_000 / quarterNotesPerMinute(options.tempo, time),
-  );
+  const quarterTempo = quarterNotesPerMinute(options.tempo, time);
+  /** A tempo mark that runs the clock at the given share of the tempo. */
+  const tempoEvent = (tick: number, pace: number): TimedBytes => {
+    const microsecondsPerQuarter = Math.round(60_000_000 / (quarterTempo * pace));
+    return {
+      tick,
+      order: 0,
+      bytes: metaEvent(0x51, [
+        (microsecondsPerQuarter >> 16) & 0xff,
+        (microsecondsPerQuarter >> 8) & 0xff,
+        microsecondsPerQuarter & 0xff,
+      ]),
+    };
+  };
   const endTick = Math.max(song.totalTicks, ...events.map((event) => event.tick + event.duration));
 
   const conductor: TimedBytes[] = [
@@ -121,16 +136,13 @@ export function toMidiFile(song: Song, events: NoteEvent[], options: MidiOptions
     },
     // Key signature: sharps or flats as a signed byte, then 0 for major.
     { tick: 0, order: 0, bytes: metaEvent(0x59, [keySignatureFifths(key) & 0xff, 0]) },
-    {
-      tick: 0,
-      order: 0,
-      bytes: metaEvent(0x51, [
-        (microsecondsPerQuarter >> 16) & 0xff,
-        (microsecondsPerQuarter >> 8) & 0xff,
-        microsecondsPerQuarter & 0xff,
-      ]),
-    },
+    tempoEvent(0, 1),
   ];
+  // A fermata slows the tempo down where its note begins; the tempo returns where it ends.
+  for (const span of options.fermatas ?? []) {
+    const length = span.end - span.start;
+    conductor.push(tempoEvent(span.start, length / (length + span.extra)), tempoEvent(span.end, 1));
+  }
   // A later key gets a signature of its own, but only where the signature really changes.
   let fifths = keySignatureFifths(key);
   for (const change of [...(options.keyChanges ?? [])].sort((a, b) => a.tick - b.tick)) {

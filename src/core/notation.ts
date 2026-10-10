@@ -12,6 +12,7 @@ import type { Barline, DynamicSign, Issue, SlotKind } from './types.ts';
  *   [C]        a chord symbol that applies from the next note onward
  *   {mf}       a dynamic mark (pp p mp mf f ff); {<} and {>} start a hairpin
  *   ?          marks the preceding note as uncertain
+ *   ^          puts a fermata on the preceding note, stack, rest, or hold dot
  *   | || |: :| barlines
  */
 
@@ -31,6 +32,8 @@ export interface RawSlot {
   tuplet?: number;
   tones: RawTone[];
   uncertain: boolean;
+  /** True for a symbol written with "^": it carries a fermata. */
+  fermata: boolean;
   /** True for stacked notes written with "~": a rolled chord. */
   rolled: boolean;
   column: number;
@@ -76,6 +79,7 @@ type Token =
       kind: SlotKind;
       tones: RawTone[];
       uncertain: boolean;
+      fermata: boolean;
       rolled: boolean;
       column: number;
     };
@@ -85,6 +89,7 @@ interface LeafNode {
   kind: SlotKind;
   tones: RawTone[];
   uncertain: boolean;
+  fermata: boolean;
   rolled: boolean;
   column: number;
   chords: { symbol: string; column: number }[];
@@ -99,8 +104,13 @@ interface GroupNode {
 
 type Node = LeafNode | GroupNode;
 
-const NOTE_PATTERN = /^([#b]?)([1-7])([',]*)(\??)/;
+const NOTE_PATTERN = /^([#b]?)([1-7])([',]*)([?^]*)/;
 const DYNAMIC_SIGNS: readonly string[] = ['pp', 'p', 'mp', 'mf', 'f', 'ff', '<', '>'];
+
+/** The marks at the start of a text: "?" for an uncertain reading, "^" for a fermata. */
+function readMarks(text: string): string {
+  return /^[?^]*/.exec(text)?.[0] ?? '';
+}
 
 function parseTone(match: RegExpExecArray): RawTone {
   const accidental = match[1] === '#' ? 1 : match[1] === 'b' ? -1 : 0;
@@ -176,7 +186,10 @@ function tokenize(text: string, line: number, issues: Issue[]): Token[] {
         break;
       }
       const tones: RawTone[] = [];
-      let uncertain = false;
+      // Marks behind the closing bracket belong to the whole stack.
+      const marks = readMarks(text.slice(end + 1));
+      let uncertain = marks.includes('?');
+      let fermata = marks.includes('^');
       for (const part of text
         .slice(index + 1, end)
         .trim()
@@ -187,27 +200,38 @@ function tokenize(text: string, line: number, issues: Issue[]): Token[] {
           continue;
         }
         tones.push(parseTone(match));
-        if (match[4] === '?') uncertain = true;
+        if (match[4].includes('?')) uncertain = true;
+        if (match[4].includes('^')) fermata = true;
       }
       if (tones.length > 0) {
-        tokens.push({ type: 'leaf', kind: 'note', tones, uncertain, rolled, column });
+        tokens.push({ type: 'leaf', kind: 'note', tones, uncertain, fermata, rolled, column });
       }
       rolled = false;
-      index = end + 1;
+      index = end + 1 + marks.length;
     } else if (char === '.') {
+      const fermata = text[index + 1] === '^';
       tokens.push({
         type: 'leaf',
         kind: 'hold',
         tones: [],
         uncertain: false,
+        fermata,
         rolled: false,
         column,
       });
-      index += 1;
+      index += fermata ? 2 : 1;
     } else if (char === '0') {
-      const uncertain = text[index + 1] === '?';
-      tokens.push({ type: 'leaf', kind: 'rest', tones: [], uncertain, rolled: false, column });
-      index += uncertain ? 2 : 1;
+      const marks = readMarks(text.slice(index + 1));
+      tokens.push({
+        type: 'leaf',
+        kind: 'rest',
+        tones: [],
+        uncertain: marks.includes('?'),
+        fermata: marks.includes('^'),
+        rolled: false,
+        column,
+      });
+      index += 1 + marks.length;
     } else {
       const match = NOTE_PATTERN.exec(rest);
       if (match) {
@@ -215,7 +239,8 @@ function tokenize(text: string, line: number, issues: Issue[]): Token[] {
           type: 'leaf',
           kind: 'note',
           tones: [parseTone(match)],
-          uncertain: match[4] === '?',
+          uncertain: match[4].includes('?'),
+          fermata: match[4].includes('^'),
           rolled: false,
           column,
         });
@@ -268,6 +293,7 @@ function layOut(
         tuplet,
         tones: node.tones,
         uncertain: node.uncertain,
+        fermata: node.fermata,
         rolled: node.rolled,
         column: node.column,
       });
@@ -397,6 +423,7 @@ export function parseNotationLine(text: string, beat: number, line: number): Par
           kind: token.kind,
           tones: token.tones,
           uncertain: token.uncertain,
+          fermata: token.fermata,
           rolled: token.rolled,
           column: token.column,
           chords: pendingChords,

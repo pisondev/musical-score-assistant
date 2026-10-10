@@ -30,6 +30,7 @@ export { findGaps, type Gap } from './gaps.ts';
 export { noteContext, notesAt, noteTarget, type NoteTarget } from './measure-notes.ts';
 export { readNotes, sortNotes, type MeasureNote, type NoteContext } from './notes-file.ts';
 export { KEYBOARD_HIGHEST, KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard.ts';
+export { elapsedTicks, findFermatas, paceAt, type FermataSpan } from './fermata.ts';
 export { exportFileName, toMidiFile, type MidiOptions } from './midi.ts';
 export { formatNoteName, midiToText, noteNameToText, toneToText } from './notes.ts';
 export {

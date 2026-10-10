@@ -74,6 +74,8 @@ export interface Slot {
   lyric?: string;
   /** Marked with "?" in the source: the transcription needs a second look. */
   uncertain?: boolean;
+  /** Marked with "^": a fermata. The symbol is held longer than written, and the music waits. */
+  fermata?: boolean;
 }
 
 export interface ChordMark {

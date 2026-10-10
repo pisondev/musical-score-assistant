@@ -59,6 +59,7 @@ in the command-line checker.
 | `intro.ts`          | Locates the last phrase of a song                                            |
 | `passage.ts`        | Builds written passages: introductions, the bridge, the key lift, endings    |
 | `dynamics.ts`       | Dynamic levels and hairpins on one timeline; loudness at any tick            |
+| `fermata.ts`        | Finds the fermatas of a performance; how much slower the clock runs in them  |
 | `gaps.ts`           | Finds the places where the melody waits and the left hand must fill          |
 | `keyboard.ts`       | Range of the target instrument, a 61-key keyboard                            |
 | `staff.ts`          | Staff notation for a row of slots: note values, ties, beams, accidentals     |
@@ -123,6 +124,13 @@ Key ideas:
   line) and in the written notes the checker reads; `buildNoteEvents` spreads its notes in
   time afterwards, so the audio engine and the MIDI writer need to know nothing about it. The
   notes under the top note of a right-hand chord are played slightly softer than the top.
+- **A fermata slows the clock, not the notes.** A slot marked `fermata` keeps its written
+  length, and every position stays counted in ticks. `findFermatas` lists the stretches the
+  marks cover, each with the time it adds; `paceAt(tick)` says how fast the clock runs there,
+  and `elapsedTicks(tick)` how much time has passed when the music gets there. Whatever turns
+  ticks into time asks those two: the transport, the offline rendering, the MIDI writer, and
+  the length shown before a download. Both hands therefore wait together, whichever row the
+  mark is written on.
 - **Transposition keeps the digits.** Numbered notation is relative to "1", so transposing
   changes pitches, chord symbols, and the key, and leaves every written tone as it is.
 - **Dynamics are a timeline.** Level marks and hairpins from all measures form one timeline.
@@ -162,6 +170,11 @@ keep the first page view light. The names, folder, and version of the samples li
   the position.
 - Left-hand notes ring until the next chord symbol or the end of the measure, which imitates a
   sustain pedal changed on every chord.
+- A fermata is a slower tempo of the transport. An event at every tick where the pace changes
+  (the start and the end of each fermata, the start of the piece, the start of a loop) sets
+  the tempo for what follows, and a seek sets it for where it lands. The slider gives the tempo
+  outside a fermata. The length of a note in seconds is computed from the fermatas it sounds
+  through, because the transport would convert it at the tempo of the moment it starts.
 - The metronome is a repeating transport event; the count-in is scheduled on the audio clock
   before the transport starts.
 - A loop is the loop of the transport, made longer by a rest: the range of ticks plus two or
@@ -294,7 +307,8 @@ Layout notes:
 - MIDI download: `midi.ts` writes the same note events the audio engine plays, so the file
   matches what is heard: one conductor track with tempo, meter, and key, one track per hand,
   and one for the voice when it plays. The ticks are the engine's own (480 per quarter note),
-  so nothing is rounded.
+  so nothing is rounded. A fermata is two tempo marks in the conductor track: slower where
+  its note begins, back to the tempo where it ends.
 - Sizes before a download: `useExportFacts` follows the playback bar and says what a file
   would hold at this moment. The MIDI file is small and quick to write, so its size is taken
   from the file itself. An MP3 takes seconds to render, so its size is computed instead: the

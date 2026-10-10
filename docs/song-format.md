@@ -128,6 +128,7 @@ search use them too.
 | `[C]`           | Chord that takes effect on the next note                             | `[F]3 . [C7]2 1` |
 | `{mf}`          | Dynamic mark that takes effect on the next note (see below)          | `{p}1 2 {<}3 4`  |
 | `?`             | Marks the preceding note as uncertain so it is listed by the checker | `5?`             |
+| `^`             | Fermata on the preceding note, stack, rest, or hold dot (see below)  | `4^`             |
 | `\|`            | Barline                                                              |                  |
 | `\|\|`          | Final barline                                                        |                  |
 | `\|:` and `:\|` | Repeat barlines (displayed; playback does not repeat yet)            |                  |
@@ -161,6 +162,31 @@ time.
 Roll a chord where it should bloom instead of strike: a long chord at the end of a phrase, the
 chords of an _Amen_, a final chord, a chord too wide to reach at once. Leave rhythmic chords
 solid.
+
+### Fermatas
+
+A `^` behind a symbol puts a fermata on it: `4^`, `<1 3 5>^`, `0^`. It follows the octave
+marks of its note (`1'^`) and goes with the `?` of an uncertain note in either order (`4?^`).
+The numbered sheet and the staff draw the sign over the symbol; under it for the left hand on
+the staff.
+
+A fermata holds everything that sounds at that moment, not only the note it is written on. For
+as long as the marked note lasts, with the hold dots that follow it, the whole performance
+runs slower, so both hands and the voice guide stay together:
+
+- a note is held twice as long: a marked quarter note lasts two beats;
+- a long note gets two beats on top and no more: `5^ . .` lasts five beats, not six.
+
+One mark is enough. Write it in `song.txt` where the page prints it; every arrangement, every
+right-hand part, and the last phrase played as an introduction then wait there too, without a
+mark of their own. A written introduction or an ending marks its own, in either hand, for
+example on its last chord: `~<3 5 1'>^ . . .`. Marks that sound at the same time in several
+rows count as one fermata. A mark on a hold dot (`5 . .^`) stretches only that part of a long
+note.
+
+The playhead, the metronome, and a loop wait with the music. The MIDI file writes a fermata as
+a slower tempo for the length of its note, so the notes stay on their beats, and the MP3 is as
+long as what is heard. `npm run check` lists the fermatas of a song.
 
 ### Dynamics
 

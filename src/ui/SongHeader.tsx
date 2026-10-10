@@ -26,6 +26,11 @@ export function SongHeader({ song, isPrivate }: SongHeaderProps) {
   const octaves = Math.round((song.rightDo - song.leftDo) / 12);
   const hasVoice = song.measures.some((measure) => measure.voice !== undefined);
   const hasFills = song.measures.some((measure) => measure.fills !== undefined);
+  const hasFermata = song.measures.some((measure) =>
+    [measure.slots, measure.voice ?? [], measure.fills ?? []].some((row) =>
+      row.some((slot) => slot.fermata),
+    ),
+  );
 
   return (
     <section className="song-header">
@@ -66,6 +71,8 @@ export function SongHeader({ song, isPrivate }: SongHeaderProps) {
             ' The small row marked V is the melody the singers carry while the right hand accompanies.'}
           {hasFills &&
             ' The row marked + holds the notes the right hand adds to the melody; a long melody note above it keeps sounding while they are played.'}
+          {hasFermata &&
+            ' An arc with a dot over a note is a fermata: the note is held longer than written, and the playback waits on it with both hands.'}
         </p>
       </details>
     </section>
