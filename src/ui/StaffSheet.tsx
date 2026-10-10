@@ -3,7 +3,7 @@ import { measureNames, type Performance, type PerformanceSection, type SlotSpan 
 import { measureElementId, toMei } from '../core/mei';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
-import { PencilIcon } from './icons';
+import { CheckIcon, PencilIcon } from './icons';
 import { keepInView } from './keep-in-view';
 import { measureAtPoint } from './measure-box';
 import { SectionHeading } from './SectionHeading';
@@ -75,6 +75,8 @@ interface StaffSheetProps {
   printing: boolean;
   /** Indexes of the measures the player has written notes on. */
   noted: ReadonlySet<number>;
+  /** Of those, the measures whose notes have all been dealt with. */
+  settled: ReadonlySet<number>;
   /** Opens the notes of the measure at an index. */
   onOpenNotes: (index: number) => void;
   /** Size relative to the size that suits the screen; paper ignores it. */
@@ -96,6 +98,7 @@ export function StaffSheet({
   showDynamics,
   printing,
   noted,
+  settled,
   onOpenNotes,
   zoom,
 }: StaffSheetProps) {
@@ -250,13 +253,25 @@ export function StaffSheet({
                 <button
                   key={index}
                   type="button"
-                  className="measure__note staff-view__note"
+                  className={cx(
+                    'measure__note',
+                    'staff-view__note',
+                    settled.has(index) && 'measure__note--done',
+                  )}
                   data-measure={index}
-                  title="Your notes on this measure"
-                  aria-label={`Notes on ${names[index]?.long ?? 'this measure'}`}
+                  title={
+                    settled.has(index)
+                      ? 'Your notes on this measure: done'
+                      : 'Your notes on this measure'
+                  }
+                  aria-label={`Notes on ${names[index]?.long ?? 'this measure'}${settled.has(index) ? ', done' : ''}`}
                   onClick={() => onOpenNotes(index)}
                 >
-                  <PencilIcon width={11} height={11} />
+                  {settled.has(index) ? (
+                    <CheckIcon width={11} height={11} />
+                  ) : (
+                    <PencilIcon width={11} height={11} />
+                  )}
                 </button>
               ))}
           </div>

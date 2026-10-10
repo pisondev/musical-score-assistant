@@ -171,6 +171,17 @@
   background: #d97706;
 }
 
+/* Every note on the measure has been dealt with: a check mark, in green. */
+.measure__note--done {
+  color: var(--emerald-strong);
+  background: var(--emerald-soft);
+}
+
+.measure__note--done:hover {
+  color: #fff;
+  background: var(--emerald);
+}
+
 .measure__staff {
   border-right: 1.5px solid var(--bar);
   border-radius: 0;

@@ -200,6 +200,13 @@ function readLeftHand(
       note: typeof measure.note === 'string' ? measure.note : undefined,
     });
   }
+  const mode = entry.rightHandMode;
+  if (mode !== undefined && mode !== 'fills' && mode !== 'accompaniment') {
+    issues.push({
+      severity: 'warning',
+      message: `${label}: "rightHandMode" must be "fills" or "accompaniment"; it is ignored.`,
+    });
+  }
   return {
     summary: typeof entry.summary === 'string' ? entry.summary : undefined,
     level: LEVELS.includes(entry.level as Level) ? (entry.level as Level) : undefined,
@@ -207,6 +214,7 @@ function readLeftHand(
     tips: readStrings(entry.tips),
     patterns: readPatterns(entry.patterns),
     measures,
+    rightHandMode: mode === 'fills' || mode === 'accompaniment' ? mode : undefined,
   };
 }
 
@@ -352,6 +360,16 @@ function addRightHand(song: Song, arrangement: Arrangement, spec: RightHandSpec 
     const part = buildRightHandPart(song, arrangement, mode, partSpec);
     part.issues.push(...validateRightHand(song, arrangement, part));
     arrangement.rightHand[mode] = part;
+  }
+  // The mode a left hand was written for has to be one that is written.
+  const wanted = arrangement.rightHandMode;
+  if (wanted && !arrangement.rightHand[wanted]) {
+    arrangement.issues.push({
+      severity: 'warning',
+      message: `"rightHandMode" asks for the ${wanted} part, which is not written.`,
+      hand: 'right',
+    });
+    arrangement.rightHandMode = undefined;
   }
 }
 

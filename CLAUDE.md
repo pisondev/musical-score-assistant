@@ -90,8 +90,17 @@ Things to keep in mind:
   the app, mostly on the public site, which keeps them in the R2 bucket. Run
   `npm run notes:pull` first; it copies them into `notes.json` in the folder of the song (git-ignored, format in
   `docs/song-format.md`). Each note names the measure and the arrangement it was written
-  about. Act on them, say which notes were handled and how, and leave the file itself to the
-  player: do not delete or rewrite notes unless asked.
+  about. Act on them, say which notes were handled and how, and leave what the player wrote
+  to the player: do not delete or rewrite notes unless asked.
+- **Answer the notes you act on.** Write into each note that was handled a `reply` (what was
+  done, in a sentence or two, in the player's language), `repliedAt`, and `"resolved": true`;
+  an answer that asks back leaves `resolved` out. The app shows the answer under the note,
+  signed "Composer Admin", and marks the measure with a green check. `npm run notes:reply`
+  publishes the answers to the public site; like a deploy, run it only when the player asks.
+- **Say which right hand a written "My style" is for.** When "My style" is written from the
+  player's notes with one right-hand part (fills, or an accompaniment), name it in
+  `baseline.rightHandMode`, so that the song opens with it and the player hears what was
+  written without choosing the mode first.
 - **Read the users' comments as well.** Members comment on measures on the public site; the
   comments wait on the server. `npm run comments:pull` brings them into `comments.json` in the
   folder of the song (git-ignored; format in `docs/song-format.md`) and marks them as read. Draft

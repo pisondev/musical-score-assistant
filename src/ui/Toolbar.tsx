@@ -75,6 +75,8 @@ interface ToolbarProps {
   onSelectArrangement: (id: string) => void;
   /** What the right hand plays, after falling back when a part is not written. */
   rightHand: RightHandMode;
+  /** Chooses what the right hand plays. */
+  onSelectRightHand: (mode: RightHandMode) => void;
   /** Whether the chords under the melody are on the sheet. */
   chords: boolean;
   /** The introduction in effect, after falling back when one is unavailable. */
@@ -184,8 +186,8 @@ function LeftHandChoices({
 function RightHandChoices({
   arrangement,
   rightHand,
-}: Pick<ToolbarProps, 'arrangement' | 'rightHand'>) {
-  const setRightHand = useSettings((state) => state.setRightHand);
+  onSelectRightHand,
+}: Pick<ToolbarProps, 'arrangement' | 'rightHand' | 'onSelectRightHand'>) {
   const wantsChords = useSettings((state) => state.chords);
   const toggleChords = useSettings((state) => state.toggleChords);
   const chordsWritten = arrangement.rightHand.harmony !== undefined;
@@ -196,7 +198,7 @@ function RightHandChoices({
       <Choices
         label="Right hand"
         selected={rightHand}
-        onSelect={setRightHand}
+        onSelect={onSelectRightHand}
         choices={RIGHT_HAND_OPTIONS.map(({ mode, description }) => {
           const written = mode === 'melody' || arrangement.rightHand[mode] !== undefined;
           return {
@@ -471,7 +473,11 @@ function ScoreSettings(props: ToolbarProps) {
         }
         {...section('right')}
       >
-        <RightHandChoices arrangement={arrangement} rightHand={rightHand} />
+        <RightHandChoices
+          arrangement={arrangement}
+          rightHand={rightHand}
+          onSelectRightHand={props.onSelectRightHand}
+        />
       </Section>
       <Section label="Intro" value={introName(bundle, intro)} {...section('intro')}>
         <IntroChoices bundle={bundle} intro={intro} />

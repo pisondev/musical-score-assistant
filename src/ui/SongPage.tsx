@@ -9,14 +9,17 @@ import {
   formatNoteName,
   INTRO_LAST_PHRASE,
   INTRO_OFF,
+  allResolved,
   measureNames,
   noteContext,
   notesAt,
   noteTarget,
+  reopened,
   type EndingChoice,
   type IntroChoice,
   type MeasureNote,
   type NoteTarget,
+  type RightHandMode,
   type SongBundle,
 } from '../core';
 import type { SongEntry } from '../library';
@@ -102,7 +105,7 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
   const introSetting = useSettings((state) => state.intro);
   const endingSetting = useSettings((state) => state.ending);
   const lift = useSettings((state) => state.lift);
-  const rightHand = useSettings((state) => state.rightHand);
+  const rightHandSetting = useSettings((state) => state.rightHand);
   const chords = useSettings((state) => state.chords);
   const notation = useSettings((state) => state.notation);
   const showLyrics = useSettings((state) => state.showLyrics);
@@ -118,6 +121,22 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
       bundle.arrangements.find((candidate) => candidate.id === arrangementId) ??
       bundle.arrangements[0],
     [bundle, arrangementId],
+  );
+
+  // What the right hand plays: the player's standing choice, unless the left hand on the
+  // sheet was written for one mode, which it then brings along. A choice made on this page
+  // replaces both for as long as that left hand stays, and becomes the standing choice.
+  const [picked, setPicked] = useState<{ arrangement: string; mode: RightHandMode } | null>(null);
+  const rightHand =
+    picked?.arrangement === arrangement.id
+      ? picked.mode
+      : (arrangement.rightHandMode ?? rightHandSetting);
+  const selectRightHand = useCallback(
+    (mode: RightHandMode) => {
+      setPicked({ arrangement: arrangement.id, mode });
+      useSettings.getState().setRightHand(mode);
+    },
+    [arrangement.id],
   );
 
   // An introduction written for another song falls back to the last phrase of this one.
@@ -277,6 +296,14 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
     });
     return indexes;
   }, [targets, marks]);
+  // Of those, the measures whose notes have all been dealt with: marked with a check.
+  const settled = useMemo(() => {
+    const indexes = new Set<number>();
+    targets.forEach((target, index) => {
+      if (allResolved(notesAt(marks, target))) indexes.add(index);
+    });
+    return indexes;
+  }, [targets, marks]);
   const openNotes = useCallback((index: number) => setNoteTargetOpen(targets[index]), [targets]);
   const openNote = useCallback((note: MeasureNote) => {
     const { part, measure, passage, where } = note;
@@ -288,7 +315,7 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
     const existing = playerNotes.notes.find((note) => note.id === id);
     void playerNotes.save(
       existing
-        ? { ...existing, text, updatedAt: now }
+        ? reopened(existing, text, now)
         : {
             id: globalThis.crypto?.randomUUID?.() ?? `note-${Date.now()}`,
             ...noteTargetOpen,
@@ -398,6 +425,7 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
               arrangement={arrangement}
               onSelectArrangement={setArrangementId}
               rightHand={performance.rightHand}
+              onSelectRightHand={selectRightHand}
               chords={performance.chords}
               intro={intro}
               ending={ending}
@@ -439,6 +467,7 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
                 showDynamics={showDynamics}
                 printing={printing}
                 noted={noted}
+                settled={settled}
                 onOpenNotes={openNotes}
                 zoom={zoom}
               />
@@ -450,6 +479,7 @@ export function SongPage({ entry, bundle, tools, progress }: SongPageProps) {
                 showDynamics={showDynamics}
                 printing={printing}
                 noted={noted}
+                settled={settled}
                 onOpenNotes={openNotes}
                 zoom={zoom}
               />

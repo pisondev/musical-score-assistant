@@ -175,7 +175,15 @@ npm run notes:pull
 ```
 
 Each `songs/<id>/notes.json` then holds the bucket's notes, plus any note that exists only on
-this computer (reported as such).
+this computer (reported as such), and keeps the answers written here that are not published
+yet. After a revision, the answers written into those files go to the site with:
+
+```bash
+npm run notes:reply -- --dry-run   # lists what would be published
+npm run notes:reply
+```
+
+Only answers travel this way; the notes themselves are the player's and are never replaced.
 
 ## The users' comments
 

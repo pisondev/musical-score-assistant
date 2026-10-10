@@ -6,9 +6,10 @@
  * The notes the player writes on the public site are kept in the bucket
  * (`notes/<song id>/notes.json`). This copies them next to `song.txt` of each
  * song, where they are read before the song is revised. The bucket's list
- * wins; a note that exists only here is kept and reported.
+ * wins; a note that exists only here is kept and reported, and so is an answer
+ * that was written here and not published yet (`npm run notes:reply`).
  */
-import { readNotes } from '../src/core/notes-file.ts';
+import { readNotes, takeReplies } from '../src/core/notes-file.ts';
 import { loadNotes, NOTES_FILE, storeNotes } from '../server/notes-store.ts';
 import { FileStore, scopedStore } from '../server/object-store.ts';
 import { folderCatalog } from '../server/song-catalog.ts';
@@ -34,7 +35,8 @@ async function main(): Promise<void> {
     }
     const onServer = new Set(fromServer.map((note) => note.id));
     const onlyHere = here.filter((note) => !onServer.has(note.id));
-    await storeNotes(local, catalog, songId, { notes: [...fromServer, ...onlyHere] });
+    const { notes } = takeReplies(fromServer, here);
+    await storeNotes(local, catalog, songId, { notes: [...notes, ...onlyHere] });
     songs += 1;
     total += fromServer.length;
     const extra = onlyHere.length > 0 ? `, and ${onlyHere.length} that exist only here` : '';

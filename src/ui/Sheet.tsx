@@ -17,7 +17,7 @@ import {
 } from '../core';
 import { usePlayer } from '../store/player';
 import { cx } from './classnames';
-import { PencilIcon } from './icons';
+import { CheckIcon, PencilIcon } from './icons';
 import { keepInView } from './keep-in-view';
 import { SectionHeading } from './SectionHeading';
 import {
@@ -68,6 +68,8 @@ interface SheetProps {
   printing: boolean;
   /** Indexes of the measures the player has written notes on. */
   noted: ReadonlySet<number>;
+  /** Of those, the measures whose notes have all been dealt with. */
+  settled: ReadonlySet<number>;
   /** Opens the notes of a measure. */
   onOpenNotes: (index: number) => void;
   /** Size relative to the size that suits the screen; paper ignores it. */
@@ -355,6 +357,8 @@ interface MeasureViewProps {
   showDynamics: boolean;
   /** True when the player has written a note on this measure. */
   hasNotes: boolean;
+  /** True when every note on this measure has been dealt with. */
+  notesSettled: boolean;
   onSelect: (index: number) => void;
   onOpenNotes: (index: number) => void;
 }
@@ -375,6 +379,7 @@ const MeasureView = memo(function MeasureView({
   showLyrics,
   showDynamics,
   hasNotes,
+  notesSettled,
   onSelect,
   onOpenNotes,
 }: MeasureViewProps) {
@@ -409,15 +414,19 @@ const MeasureView = memo(function MeasureView({
         {hasNotes && (
           <button
             type="button"
-            className="measure__note"
-            title="Your notes on this measure"
-            aria-label={`Notes on ${name}`}
+            className={cx('measure__note', notesSettled && 'measure__note--done')}
+            title={notesSettled ? 'Your notes on this measure: done' : 'Your notes on this measure'}
+            aria-label={`Notes on ${name}${notesSettled ? ', done' : ''}`}
             onClick={(event) => {
               event.stopPropagation();
               onOpenNotes(measure.index);
             }}
           >
-            <PencilIcon width={11} height={11} />
+            {notesSettled ? (
+              <CheckIcon width={11} height={11} />
+            ) : (
+              <PencilIcon width={11} height={11} />
+            )}
           </button>
         )}
       </div>
@@ -548,6 +557,7 @@ export function Sheet({
   showDynamics,
   printing,
   noted,
+  settled,
   onOpenNotes,
   zoom,
 }: SheetProps) {
@@ -744,6 +754,7 @@ export function Sheet({
                 showLyrics={lyrics}
                 showDynamics={dynamics}
                 hasNotes={noted.has(index)}
+                notesSettled={settled.has(index)}
                 onSelect={seekToMeasure}
                 onOpenNotes={onOpenNotes}
               />

@@ -287,6 +287,7 @@ export function buildArrangement(
     patterns: spec.patterns ?? [],
     measures,
     rightHand: {},
+    rightHandMode: spec.rightHandMode,
     issues,
   };
 }

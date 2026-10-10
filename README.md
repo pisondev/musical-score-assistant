@@ -250,6 +250,13 @@ to its number, which opens the notes again, and the guide lists all notes of the
 **Your notes**. A note on a measure of the song also shows in the repeat; a note on an
 introduction or an ending belongs to that introduction or ending.
 
+**Notes get an answer.** When a song has been revised from your notes, each note that was
+acted on carries an answer under it, signed _Composer Admin_: what was done, in a sentence or
+two. The notes of a measure read like a conversation, your note to the right and the answer
+below it to the left. A note that has been dealt with turns green with a check mark, and the
+pencil on its measure becomes a green check once every note there is done. An answered note
+can be deleted but no longer edited; a further wish is a new note.
+
 Where notes are kept depends on who writes them. The owner's notes on the public site are kept
 in the R2 bucket with the account; `npm run notes:pull` copies them into
 `songs/<song>/notes.json` on this computer, a git-ignored file that is read whenever the song is
@@ -339,6 +346,7 @@ server ([docs/deployment.md](docs/deployment.md)).
 | `npm run deploy`         | Build and put the app on the server (GitHub Actions does this on every push) |
 | `npm run songs:push`     | Send the private songs to the R2 bucket; `-- --dry-run` only lists changes   |
 | `npm run notes:pull`     | Copy the owner's notes from the R2 bucket into the song folders              |
+| `npm run notes:reply`    | Publish the answers written into `notes.json`; `-- --dry-run` lists them     |
 | `npm run comments:pull`  | Bring the users' comments into `comments.json` in the song folders           |
 | `npm run comments:reply` | Send the answers written into `comments.json`; `-- --dry-run` lists them     |
 | `npm run check`          | Check every song under `songs/`; add `-- --dump` for details                 |

@@ -246,6 +246,11 @@ export interface Arrangement {
   measures: ArrangementMeasure[];
   /** Right-hand parts written to go with this left hand. */
   rightHand: RightHandParts;
+  /**
+   * The right-hand mode this left hand was written for. The song plays in it when this left
+   * hand is on the sheet, until the player chooses another.
+   */
+  rightHandMode?: WrittenRightHandMode;
   issues: Issue[];
 }
 
@@ -278,6 +283,8 @@ export interface ArrangementSpec {
   patterns?: PatternIdea[];
   measures: ArrangementMeasureSpec[];
   rightHand?: RightHandSpec;
+  /** The right-hand mode the left hand was written for: "fills" or "accompaniment". */
+  rightHandMode?: WrittenRightHandMode;
 }
 
 export interface ArrangementMeasureSpec {

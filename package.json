@@ -21,6 +21,7 @@
     "start": "node scripts/node-with-sqlite.mjs dist-server/main.js",
     "deploy": "tsx scripts/deploy.ts",
     "notes:pull": "tsx scripts/pull-notes.ts",
+    "notes:reply": "tsx scripts/reply-notes.ts",
     "comments:pull": "tsx scripts/pull-comments.ts",
     "comments:reply": "tsx scripts/send-replies.ts",
     "songs:push": "tsx scripts/push-songs.ts"

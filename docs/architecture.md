@@ -72,7 +72,7 @@ in the command-line checker.
 | `playback.ts`       | Converts a performance to timed note events                                  |
 | `bundle.ts`         | Reads `arrangements.json` and assembles everything for one song              |
 | `form-stretches.ts` | Divides a performance into its named parts: intro, verse, refrain, ending    |
-| `notes-file.ts`     | The player's notes as stored in `notes.json`: reading and sorting them       |
+| `notes-file.ts`     | The player's notes as stored in `notes.json`, and the answers they are given |
 | `measure-notes.ts`  | Where a note belongs in a performance, and what was on the sheet             |
 
 Key ideas:
@@ -248,7 +248,7 @@ for every song, starting from the left hand remembered for it.
 | `MeasureOverlay`     | Something laid over one measure of either notation: corner or centre      |
 | `measure-box.ts`     | The box of a measure on the page, and the measure at a point              |
 | `Dialog`             | The frame of a dialog: centred, or a bottom sheet on a phone              |
-| `NoteDialog`         | The notes on one measure: read, write, change, delete                     |
+| `NoteDialog`         | The notes on one measure as a conversation: notes, answers, a new note    |
 | `DownloadDialog`     | Lists what a file will hold and asks before it is made                    |
 | `song-export.ts`     | What a download holds right now: tracks, tempo, length, file name, sizes  |
 | `useMeasureNotes`    | Loads and saves the notes of a song: in its folder, or in the browser     |
@@ -533,7 +533,10 @@ and a rename, so a reader never sees half of one. The R2 store signs its request
 
 `npm run notes:pull` reads the notes from the bucket and brings them into the song folders
 here, and `npm run songs:push` sends the private songs the other way (`scripts/r2.ts` opens the
-bucket with the token in `.env.production`).
+bucket with the token in `.env.production`). `npm run notes:reply` sends back only the
+answers written into the notes here: `takeReplies` joins them into the notes the bucket has,
+by id, and leaves a note alone that says something else by now. The same function lets a
+pull keep an answer that is not published yet.
 `useMeasureNotes` asks the API only for an owner; a guest keeps notes in `localStorage`, and
 they join the account the next time its owner signs in on that browser.
 

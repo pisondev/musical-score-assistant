@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import type { MeasureNote, NoteTarget } from '../core';
+import { REPLY_AUTHOR, type MeasureNote, type NoteTarget } from '../core';
+import { cx } from './classnames';
 import { Dialog } from './Dialog';
+import { CheckIcon } from './icons';
 import { noteByline } from './note-byline';
 import type { NotesHome } from './useMeasureNotes';
 
@@ -17,9 +19,18 @@ interface NoteDialogProps {
   onClose: () => void;
 }
 
+const day = (iso: string | undefined) => {
+  const date = iso ? new Date(iso) : null;
+  return date && !Number.isNaN(date.getTime())
+    ? date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+    : '';
+};
+
 /**
- * The notes on one measure: what is written already, and a field for a new
- * note or for changing an old one. Ctrl+Enter saves, Escape closes.
+ * The notes on one measure, as a conversation: each note of the player to the right, and
+ * under it, to the left, the answer of the author who acted on it. A note that has been
+ * dealt with is green and carries a check mark. Below is the field for a new note, or for
+ * changing one that has no answer yet. Ctrl+Enter saves, Escape closes.
  */
 export function NoteDialog({ target, notes, home, onSave, onDelete, onClose }: NoteDialogProps) {
   const [text, setText] = useState('');
@@ -47,34 +58,63 @@ export function NoteDialog({ target, notes, home, onSave, onDelete, onClose }: N
     >
       <>
         {notes.length > 0 && (
-          <ul className="notes">
+          <ul className="chat">
             {notes.map((note) => (
-              <li key={note.id} className={editing === note.id ? 'is-editing' : undefined}>
-                <p className="notes__text">{note.text}</p>
-                <p className="notes__byline">{noteByline(note)}</p>
-                <div className="notes__actions">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditing(note.id);
-                      setText(note.text);
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (editing === note.id) {
-                        setEditing(null);
-                        setText('');
-                      }
-                      onDelete(note.id);
-                    }}
-                  >
-                    Delete
-                  </button>
+              <li
+                key={note.id}
+                className={cx(
+                  'chat__turn',
+                  note.resolved && 'is-resolved',
+                  editing === note.id && 'is-editing',
+                )}
+              >
+                <div className="chat__note">
+                  <p className="notes__text">{note.text}</p>
+                  <p className="notes__byline">
+                    {note.resolved && (
+                      <span className="chat__done">
+                        <CheckIcon width={12} height={12} />
+                        Done
+                      </span>
+                    )}
+                    {noteByline(note)}
+                  </p>
+                  <div className="notes__actions">
+                    {/* An answered note stays as it was answered; a new wish is a new note. */}
+                    {!note.reply && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditing(note.id);
+                          setText(note.text);
+                        }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (editing === note.id) {
+                          setEditing(null);
+                          setText('');
+                        }
+                        onDelete(note.id);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
+                {note.reply && (
+                  <div className="chat__reply">
+                    <p className="chat__name">
+                      {REPLY_AUTHOR}
+                      {day(note.repliedAt) && <span>{day(note.repliedAt)}</span>}
+                    </p>
+                    <p className="notes__text">{note.reply}</p>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

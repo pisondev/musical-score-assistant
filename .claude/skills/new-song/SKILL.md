@@ -59,6 +59,13 @@ right-hand parts under `baseline.rightHand`; see '"My style" for one song' in
 more. Write only the parts the notes ask for, and say in the hand-over how each note was
 handled.
 
+Name the right-hand part that was written in `baseline.rightHandMode` (`fills` or
+`accompaniment`), so that the song opens with it. Where the player asks for fills, give the
+right hand a note on every beat for as long as the melody waits; a fill with holes in it
+still sounds empty to them. Then answer each note in `notes.json`: `reply` (what was done, in
+the player's language), `repliedAt`, and `"resolved": true`. `npm run notes:reply` publishes
+the answers; run it when the player asks, together with `npm run songs:push`.
+
 ## 3. Read the song before arranging it
 
 Nothing is arranged before the song has been read as a text set to music. This step comes

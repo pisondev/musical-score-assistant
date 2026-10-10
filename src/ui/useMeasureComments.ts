@@ -9,9 +9,7 @@ import { readNotes, sortNotes, type MeasureNote, type NoteContext, type NoteTarg
 export interface MeasureComment extends MeasureNote {
   /** When the author fetched it to read; null while it waits. */
   readAt: string | null;
-  reply: string | null;
-  repliedAt: string | null;
-  /** Whether the writer has seen the reply. */
+  /** Whether the writer has seen the reply, which a comment carries like a note does. */
   replySeen: boolean;
 }
 
@@ -34,8 +32,6 @@ export function readComments(list: unknown): MeasureComment[] {
     return {
       ...note,
       readAt: text(entry.readAt),
-      reply: text(entry.reply),
-      repliedAt: text(entry.repliedAt),
       replySeen: entry.replySeen === true,
     };
   });

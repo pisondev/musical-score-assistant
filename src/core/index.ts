@@ -28,7 +28,16 @@ export { DynamicsTimeline, velocityToGain, type Hairpin } from './dynamics.ts';
 export { formStretches, stretchAt, type FormStretch } from './form-stretches.ts';
 export { findGaps, type Gap } from './gaps.ts';
 export { noteContext, notesAt, noteTarget, type NoteTarget } from './measure-notes.ts';
-export { readNotes, sortNotes, type MeasureNote, type NoteContext } from './notes-file.ts';
+export {
+  allResolved,
+  readNotes,
+  reopened,
+  REPLY_AUTHOR,
+  takeReplies,
+  sortNotes,
+  type MeasureNote,
+  type NoteContext,
+} from './notes-file.ts';
 export { KEYBOARD_HIGHEST, KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard.ts';
 export { elapsedTicks, findFermatas, paceAt, type FermataSpan } from './fermata.ts';
 export { exportFileName, toMidiFile, type MidiOptions } from './midi.ts';

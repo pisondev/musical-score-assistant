@@ -9,6 +9,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Answers to the player's notes. A note in `notes.json` can carry a `reply`, `repliedAt`, and
+  `resolved`, written by whoever revised the song. The notes of a measure read like a
+  conversation, the note to the right and the answer under it to the left, signed _Composer
+  Admin_; a note that has been dealt with is green with a check mark, and the pencil on its
+  measure becomes a green check once every note there is done. `npm run notes:reply`
+  publishes the answers to the bucket without touching what the player wrote, and
+  `npm run notes:pull` keeps answers that are not published yet.
+- `rightHandMode` for an arrangement and for a written _My style_: the right-hand mode the
+  left hand was written for. The song plays in it whenever that left hand is on the sheet,
+  until the player chooses another mode there, so fills or an accompaniment written from the
+  player's notes are heard without being switched on first.
 - Menus of the app's own in place of the selects of the browser: the song in the top bar, the
   sorting of the library, and the two measures of a loop. They open the same panel as the
   other menus, a sheet on a phone, follow the arrow keys, `Home`, `End`, `Enter`, and `Esc`,

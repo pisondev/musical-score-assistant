@@ -3004,6 +3004,80 @@ a.button {
   background: rgb(255 255 255 / 80%);
 }
 
+/*
+ * The notes of the player as a conversation: each note a little to the right, and under it,
+ * a little to the left, the answer of the author. A note that has been dealt with is green.
+ */
+.chat {
+  display: grid;
+  gap: 14px;
+  list-style: none;
+}
+
+.chat__turn {
+  display: grid;
+  gap: 6px;
+}
+
+.chat__note,
+.chat__reply {
+  padding: 10px 12px;
+  border: 1px solid;
+}
+
+.chat__note {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  margin-left: 34px;
+  border-color: #fde68a;
+  border-radius: 14px 14px 4px;
+  background: #fffbeb;
+}
+
+.chat__turn.is-resolved .chat__note {
+  border-color: var(--emerald);
+  background: var(--emerald-soft);
+}
+
+.chat__turn.is-editing .chat__note {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.chat__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-right: 8px;
+  font-weight: 650;
+  color: var(--emerald-strong);
+  vertical-align: bottom;
+}
+
+.chat__reply {
+  margin-right: 34px;
+  border-color: var(--line);
+  border-radius: 4px 14px 14px;
+  background: var(--surface);
+}
+
+.chat__name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--emerald-strong);
+}
+
+.chat__name span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
 /* Where a member's comment stands: sent, read by the author, or answered. */
 .comment-status {
   display: inline-block;

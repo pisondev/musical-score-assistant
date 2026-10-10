@@ -343,6 +343,7 @@ the file leaves it empty or writes it for the song (see
 | `measures[].left`    | Left-hand notation for that measure (see below), without barlines                            |
 | `measures[].note`    | Short explanation shown in the guide                                                         |
 | `rightHand`          | Right-hand parts written for this left hand (see [Right-hand parts](#right-hand-parts))      |
+| `rightHandMode`      | `fills` or `accompaniment`: the right-hand mode this left hand was written for (see below)   |
 
 A measure that is missing from the list falls back to the baseline.
 
@@ -385,6 +386,14 @@ the fields of an arrangement except `id` and `name`:
 | `measures`                                      | The written left hand, as in an arrangement. With it, **My style** is checked like one |
 | `level`, `style`, `summary`, `tips`, `patterns` | As in an arrangement; they replace what the generated baseline says about itself       |
 | `rightHand`                                     | The right-hand parts that go with it (see [Right-hand parts](#right-hand-parts))       |
+| `rightHandMode`                                 | `fills` or `accompaniment`: the right-hand mode it was written for (see below)         |
+
+A left hand that is written for one right-hand mode says so with `rightHandMode`. The song
+then plays in that mode whenever this left hand is on the sheet, whatever the player's
+standing choice is, until they choose another mode on that page. Use it for a **My style**
+that is written from the player's notes: an accompaniment asked for is heard as one, and fills
+asked for are heard without being switched on first. The part it names has to be written; the
+checker warns when it is not.
 
 The name stays **My style** and the song still has this one left hand only, so the player's
 earlier notes keep pointing at it. `"leftHand": "empty"` together with `measures` writes a
@@ -702,7 +711,10 @@ player wants corrected, changed, or kept.
         "key": "A"
       },
       "createdAt": "2026-10-03T08:15:00.000Z",
-      "updatedAt": "2026-10-03T08:15:00.000Z"
+      "updatedAt": "2026-10-03T08:15:00.000Z",
+      "reply": "Done. The fill is two plain thirds now.",
+      "repliedAt": "2026-10-05T19:30:00.000Z",
+      "resolved": true
     }
   ]
 }
@@ -717,11 +729,24 @@ player wants corrected, changed, or kept.
 | `text`      | What the player wrote, in their own language                                                                                                                                                                                        |
 | `context`   | What was on the sheet: the arrangement (`leftHand`, `leftHandName`), the right-hand mode, whether the chords under the melody were on, the introduction, the ending, the lift of the repeat in half steps, and the key that sounded |
 | `createdAt` | When the note was written; `updatedAt` when it was last changed                                                                                                                                                                     |
+| `reply`     | The answer of whoever acted on the note, in the player's language; the player does not write it. The app shows it under the note, signed _Composer Admin_                                                                           |
+| `repliedAt` | When the answer was written                                                                                                                                                                                                         |
+| `resolved`  | `true` once the note has been dealt with: the note turns green with a check mark, and so does the mark on its measure when every note there is resolved. An answer that asks back leaves it out                                     |
 
 A note is about what its `context` names. A remark on measure 12 written with the gospel left
 hand and _Melody + fills_ is about that left hand and that right-hand part, not about measure
 12 of every arrangement, unless the text says so (a wrong melody note, for example, concerns
 `song.txt`).
+
+**Answering a note.** After a revision, write into each note that was acted on what was done
+(`reply`), when (`repliedAt`), and `"resolved": true`. Leave everything else of the note as
+the player wrote it. `npm run notes:reply` publishes the answers to the bucket
+(`-- --dry-run` lists them first): an answer goes to a note that is still on the site and
+still says what was answered, so a note the player changed or deleted meanwhile is left
+alone, and so are notes written since. `npm run notes:pull` keeps an answer that was written
+here and not published yet. In the app the notes of a measure read like a conversation: the
+note to the right, the answer under it to the left. An answered note can be deleted but not
+edited; a further wish is a new note. Changing the text of a note takes its answer away.
 
 The file can be edited by hand. Entries that are not well formed are dropped the next time the
 app saves.
