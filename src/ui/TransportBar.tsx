@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { HandMode } from '../audio/engine';
 import type { MeasureName, Song } from '../core';
 import { MAX_TEMPO, MIN_TEMPO, usePlayer } from '../store/player';
@@ -12,6 +12,8 @@ import {
   StopIcon,
   VoiceIcon,
 } from './icons';
+import { loopMeasureGroups } from './loop-measures';
+import { Select } from './Select';
 
 const HAND_MODES: { mode: HandMode; label: string; hint: string }[] = [
   // In the order of the hands on the keyboard: the left hand on the left.
@@ -126,18 +128,17 @@ export function TransportBar({ song, names }: TransportBarProps) {
     null,
   );
 
+  const measures = useMemo(() => loopMeasureGroups(song, names), [song, names]);
   const loopSelect = (value: number, onChange: (index: number) => void, label: string) => (
-    <select
+    <Select
+      label={label}
       value={value}
-      onChange={(event) => onChange(Number(event.target.value))}
-      aria-label={label}
-    >
-      {song.measures.map((measure) => (
-        <option key={measure.index} value={measure.index}>
-          {names[measure.index]?.short ?? ''}
-        </option>
-      ))}
-    </select>
+      groups={measures}
+      onChange={onChange}
+      layout="grid"
+      side="above"
+      align="right"
+    />
   );
 
   return (

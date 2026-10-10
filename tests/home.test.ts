@@ -4,7 +4,13 @@ import { categoryName, placeSong } from '../src/core/categories';
 import { hymnalName, songReference } from '../src/core/hymnals';
 import { parseSong } from '../src/core/song';
 import { indexSong, isIndexEntry, type SongIndexEntry } from '../src/core/song-index';
-import { groupByCategory, lastOpened, selectSongs, type LibraryView } from '../src/ui/library-view';
+import {
+  DEFAULT_SORT,
+  groupByCategory,
+  lastOpened,
+  selectSongs,
+  type LibraryView,
+} from '../src/ui/library-view';
 import { timeAgo } from '../src/ui/time-ago';
 
 const MUSIC = `
@@ -130,6 +136,29 @@ describe('selectSongs', () => {
 
   it('sorts by number, with unnumbered songs last', () => {
     expect(ids({ sort: 'number' })).toEqual(['holy', 'private/night', 'joy', 'grace', 'ode']);
+  });
+
+  it('starts in the order of the numbers', () => {
+    expect(DEFAULT_SORT).toBe('number');
+  });
+
+  it('sorts numbers by their value, and a letter behind a number after the number', () => {
+    const hymnal = [
+      entry('c', 'title: C\nbook: KJ\nnumber: 375'),
+      entry('b2', 'title: B two\nbook: KJ\nnumber: 369b'),
+      entry('a', 'title: A\nbook: KJ\nnumber: 26'),
+      entry('b1', 'title: B one\nbook: KJ\nnumber: 369a'),
+      entry('b0', 'title: B\nbook: KJ\nnumber: 369'),
+      entry('d', 'title: D\nbook: KJ\nnumber: 4'),
+    ];
+    expect(selectSongs(hymnal, { ...view, sort: 'number' }).map((song) => song.id)).toEqual([
+      'd',
+      'a',
+      'b0',
+      'b1',
+      'b2',
+      'c',
+    ]);
   });
 
   it('puts recently opened songs first and the rest by title', () => {

@@ -7,6 +7,7 @@ import { Home } from './ui/Home';
 import { GoogleIcon, GridIcon, LockIcon, NoteIcon } from './ui/icons';
 import { groupByCategory, selectSongs } from './ui/library-view';
 import { songHref, songIdFromLocation } from './ui/navigation';
+import { Select } from './ui/Select';
 import { SongPage } from './ui/SongPage';
 
 const APP_NAME = 'Musical Score Assistant';
@@ -171,9 +172,12 @@ export function App() {
   });
   const menu = groupByCategory(byNumber).flatMap((group) =>
     group.subcategories.map((sub) => ({
-      key: `${group.id}/${sub.id}`,
       label: sub.name === sub.id ? `${group.name} · ${sub.name}` : `${sub.id} · ${sub.name}`,
-      songs: sub.songs,
+      options: sub.songs.map((candidate) => ({
+        value: candidate.id,
+        lead: candidate.meta.number,
+        label: candidate.meta.title,
+      })),
     })),
   );
 
@@ -194,28 +198,16 @@ export function App() {
                   <GridIcon width={16} height={16} />
                   <span>All songs</span>
                 </a>
-                <label className="song-select">
-                  <span>Song</span>
-                  <select
+                <div className="song-select">
+                  <Select
+                    label="Song"
                     value={entry.id}
-                    onChange={(event) => {
-                      window.location.hash = songHref(event.target.value);
+                    groups={menu}
+                    onChange={(id) => {
+                      window.location.hash = songHref(id);
                     }}
-                  >
-                    {menu.map((group) => (
-                      <optgroup key={group.key} label={group.label}>
-                        {group.songs.map((candidate) => {
-                          const { number, title } = candidate.meta;
-                          return (
-                            <option key={candidate.id} value={candidate.id}>
-                              {number ? `${number} · ${title}` : title}
-                            </option>
-                          );
-                        })}
-                      </optgroup>
-                    ))}
-                  </select>
-                </label>
+                  />
+                </div>
               </nav>
             )}
             <div className="topbar__account">

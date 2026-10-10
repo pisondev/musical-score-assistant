@@ -9,6 +9,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Menus of the app's own in place of the selects of the browser: the song in the top bar, the
+  sorting of the library, and the two measures of a loop. They open the same panel as the
+  other menus, a sheet on a phone, follow the arrow keys, `Home`, `End`, `Enter`, and `Esc`,
+  and jump to what is typed. The measures of a loop are a grid of numbers, grouped into
+  intro, song, repeat, and ending, and open above the playback bar.
+- Every menu slides open and slides away again: a panel out from under its button, a sheet
+  up from the bottom edge of a phone. With reduced motion asked for, they appear at once.
 - Fermatas: `^` behind a note, a stack, a rest, or a hold dot (`4^`). The sign is drawn over
   the symbol in numbered and in staff notation, and the playback waits on it: the whole
   performance runs slower for as long as the marked note lasts, which holds a short note twice
@@ -289,6 +296,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   let go earlier only when the harmony moves to a chord it does not belong to.
 
 ### Changed
+
+- The library starts in the order of the numbers of each hymnal, smallest first, instead of
+  what was opened last. A letter behind a number counts after the number: 369, 369a, 369b.
 
 - On a phone the progress bar is the lower edge of the top bar, in place of its hairline. The
   name of every part stands over its stretch, small and grey, and the part one is in is larger

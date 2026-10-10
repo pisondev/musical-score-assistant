@@ -13,6 +13,9 @@ import type { OpenedSong } from '../store/history';
 export type SongSort = 'recent' | 'title' | 'number';
 export type SongFilter = 'all' | 'favourites';
 
+/** The order the library starts in: every hymnal by the numbers of its songs, smallest first. */
+export const DEFAULT_SORT: SongSort = 'number';
+
 /** The category that holds the hymnals. */
 export const CHRISTIAN = 'christian';
 
@@ -65,10 +68,22 @@ function matches(entry: SongEntry, query: string): boolean {
   return words.every((word) => text.includes(word));
 }
 
-/** Hymnal numbers sort by value; songs without a number come last. */
-function numberOf(entry: SongEntry): number {
-  const value = Number.parseInt(entry.meta.number ?? '', 10);
-  return Number.isNaN(value) ? Infinity : value;
+/**
+ * Compares two songs by their number in the hymnal, smallest first: by value, so that 26
+ * comes before 264, then by what follows the digits, so that 369a comes before 369b. Songs
+ * without a number come last.
+ */
+function byNumber(a: SongEntry, b: SongEntry): number {
+  const parts = (entry: SongEntry) => {
+    const text = (entry.meta.number ?? '').trim();
+    const value = Number.parseInt(text, 10);
+    return Number.isNaN(value)
+      ? { value: Infinity, rest: '' }
+      : { value, rest: text.replace(/^\d+/, '') };
+  };
+  const [first, second] = [parts(a), parts(b)];
+  if (first.value !== second.value) return first.value < second.value ? -1 : 1;
+  return first.rest.localeCompare(second.rest);
 }
 
 /**
@@ -88,10 +103,7 @@ export function selectSongs(entries: readonly SongEntry[], view: LibraryView): S
     .filter((entry) => matches(entry, view.query))
     .sort((a, b) => {
       if (view.sort === 'recent') return openedAt(b) - openedAt(a) || byTitle(a, b);
-      if (view.sort === 'number') {
-        const [first, second] = [numberOf(a), numberOf(b)];
-        return (first === second ? 0 : first < second ? -1 : 1) || byTitle(a, b);
-      }
+      if (view.sort === 'number') return byNumber(a, b) || byTitle(a, b);
       return byTitle(a, b);
     });
 }

@@ -228,6 +228,8 @@ for every song, starting from the left hand remembered for it.
 | `SongPage`           | One song: builds the performance, feeds the engine, handles exports       |
 | `Toolbar`            | The controls of a song in the top bar: the Options list, notation, export |
 | `Popover`            | Panel behind a button: a drop-down, or a bottom sheet on a phone          |
+| `Select`             | A field that picks one value from a list, in place of a browser select    |
+| `loop-measures.ts`   | The measures a loop can be set to, grouped by the parts of the piece      |
 | `Sheet`              | The numbered score: introduction and song sections, systems, measures     |
 | `StaffSheet`         | The same score in staff notation, engraved by Verovio as SVG              |
 | `useVerovio`         | Loads the engraver on demand                                              |
@@ -266,7 +268,13 @@ new tab work without a router. Leaving a song page stops the playback.
 The layout adapts with style sheets alone; the components render the same markup at every
 width. Below 900 pixels the playback bar becomes a two-row grid, with the tempo and the toggles
 in a wrapper that has no box of its own on wider windows. Below 720 pixels a popover panel is
-fixed to the bottom edge with a backdrop behind it. A phone held sideways gets a single-row
+fixed to the bottom edge with a backdrop behind it. A panel slides open and slides away: when
+it is closed, `Popover` keeps it in the page for a fifth of a second with the class
+`is-leaving`, and the style sheet plays the leaving animation in that time (out from under
+the button on a wide window, down into the bottom edge on a phone). A bar with a blurred
+backdrop would trap such a sheet inside itself, so the style sheet makes the bar plain for as
+long as it holds a panel. `Select` is a `Popover` whose panel is a list box: the list takes
+the keyboard when it opens, and the shortcuts of the song page leave the keys to it. A phone held sideways gets a single-row
 playback bar. `keep-in-view.ts` measures both bars before it scrolls the measure under the
 playhead back into sight, because their heights depend on the window.
 

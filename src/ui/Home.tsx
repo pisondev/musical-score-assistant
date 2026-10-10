@@ -8,6 +8,7 @@ import { AlertIcon, ArrowRightIcon, LockIcon, PlusIcon, SearchIcon, StarIcon } f
 import { InstallCard } from './InstallCard';
 import { RepliesCard } from './RepliesCard';
 import {
+  DEFAULT_SORT,
   groupByCategory,
   lastOpened,
   selectSongs,
@@ -15,6 +16,7 @@ import {
   type SongSort,
 } from './library-view';
 import { songHref } from './navigation';
+import { Select } from './Select';
 import { timeAgo } from './time-ago';
 
 const FILTERS: { filter: SongFilter; label: string }[] = [
@@ -22,10 +24,10 @@ const FILTERS: { filter: SongFilter; label: string }[] = [
   { filter: 'favourites', label: 'Favourites' },
 ];
 
-const SORTS: { sort: SongSort; label: string }[] = [
-  { sort: 'recent', label: 'Recently opened' },
-  { sort: 'title', label: 'Title' },
-  { sort: 'number', label: 'Number' },
+const SORTS: { value: SongSort; label: string }[] = [
+  { value: 'number', label: 'Number' },
+  { value: 'title', label: 'Title' },
+  { value: 'recent', label: 'Recently opened' },
 ];
 
 function plural(count: number, singular: string, pluralForm = `${singular}s`): string {
@@ -138,7 +140,7 @@ export function Home() {
   const [filter, setFilter] = useState<SongFilter>('all');
   const [category, setCategory] = useState<string | null>(null);
   const [subcategory, setSubcategory] = useState<string | null>(null);
-  const [sort, setSort] = useState<SongSort>('recent');
+  const [sort, setSort] = useState<SongSort>(DEFAULT_SORT);
   // One reading of the clock per visit keeps "opened 3 hours ago" stable while typing.
   const [now] = useState(() => Date.now());
 
@@ -266,16 +268,16 @@ export function Home() {
               </button>
             ))}
           </div>
-          <label className="song-select library-controls__sort">
-            <span>Sort</span>
-            <select value={sort} onChange={(event) => setSort(event.target.value as SongSort)}>
-              {SORTS.map((option) => (
-                <option key={option.sort} value={option.sort}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="song-select library-controls__sort">
+            <span aria-hidden="true">Sort</span>
+            <Select
+              label="Sort the songs by"
+              value={sort}
+              groups={[{ options: SORTS }]}
+              onChange={setSort}
+              align="right"
+            />
+          </div>
         </div>
       )}
 

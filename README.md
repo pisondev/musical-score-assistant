@@ -27,7 +27,7 @@ The owner also sees the licensed hymnal songs and keeps notes for their revision
 - **A home page for the library.** Every song has a card with its key, meter, tempo, styles, and
   the number of left hands, right-hand parts, and introductions written for it. The song that
   was practised last can be continued with one click; songs can be searched, sorted, and marked
-  as favourites.
+  as favourites. Every hymnal starts in the order of its numbers, smallest first.
 - **Songs by category.** The library is divided into categories (Christian, Classical,
   Traditional, Other) and each into subcategories: the hymnals under Christian (Kidung Keesaan,
   Pelengkap Kidung Jemaat, Kidung Jemaat, Kidung Pasamuwan Jawi), the composers under
@@ -96,6 +96,10 @@ The owner also sees the licensed hymnal songs and keeps notes for their revision
 - **Controls that stay out of the way.** Everything that decides what is on the sheet sits
   behind one **Options** button in the top bar: a short list of settings with their current
   values, each of which opens to show its choices.
+- **Menus of its own.** Every list to choose from is the app's own, not the browser's: the
+  song in the top bar, the sorting of the library, the measures of a loop. A menu slides out
+  from under its button and back; on a phone it rises from the bottom edge as a sheet. The
+  lists follow the arrow keys and jump to what is typed.
 - **Always know where you are.** A thin progress bar under the controls names the part of the
   piece that is in view or being played (_Intro_, _Song (verse)_, _Song (refrain)_,
   _Interlude_, _Ending_) and fills up to the right as the piece goes on. A click on a part of
@@ -158,7 +162,9 @@ category and subcategory. The first row of buttons above them (**All songs**, **
 **Classical**, …) narrows the list to one category; the second row, below a chosen category,
 to one of its subcategories (**KK**, **PKJ**, **KJ**, **KPJ**, **Hymns** under Christian). Each
 button shows how many songs it holds. The library lists the songs only; a song is loaded when
-it is opened, so it stays quick as it grows. The star marks a favourite, and the
+it is opened, so it stays quick as it grows. Within a hymnal the songs stand in the order of
+their numbers, smallest first (26 before 264, 369a before 369b); **Sort** changes that to the
+title or to what was opened last. The star marks a favourite, and the
 search box looks at titles, hymnals, numbers ("pkj 184"), credits, and styles. On a song page,
 the name of the app in the top bar leads back, as do **All songs** beside it on a computer and
 the Back button of the browser. Every song has an address of its own (`#song=amazing-grace`), so it can be bookmarked.
@@ -233,7 +239,9 @@ counted in threes (three-four, six-eight). The beats are counted in large grey n
 middle of the measure where the loop starts again, and the metronome, when it is on, keeps
 clicking through the rest. The measures of a loop are tinted, and the last of them carries a
 **Loop ✕** button at its top right corner: a click switches the loop off, and the music plays
-straight on. The **Loop** button in the playback bar does the same.
+straight on. The **Loop** button in the playback bar does the same. While a loop is on, the
+bar shows its first and its last measure; each opens a list of all measures as a grid of
+numbers, grouped into intro, song, repeat, and ending where the piece has them.
 
 **Notes stay with the song.** A note is free text: a wrong pitch, a fill that is too busy, a
 chord worth keeping. It is stored with what was on the sheet when it was written (left hand,

@@ -66,8 +66,11 @@ function saveFile(file: Blob, name: string): void {
   URL.revokeObjectURL(url);
 }
 
+/** True where the keys belong to a field: one that is typed in, or a list that is chosen from. */
 function isTypingTarget(target: EventTarget | null): boolean {
-  return target instanceof HTMLElement && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName);
+  if (!(target instanceof HTMLElement)) return false;
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return true;
+  return target.closest('[role="listbox"], [aria-haspopup="listbox"]') !== null;
 }
 
 interface SongPageProps {

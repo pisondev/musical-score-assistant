@@ -584,21 +584,8 @@ code {
   color: var(--muted);
 }
 
-.song-select select,
-.loop-range select {
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-small);
-  background: var(--surface)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236a7b97' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
-  appearance: none;
-  font-weight: 550;
-  text-overflow: ellipsis;
-}
-
-.song-select select {
+.song-select .popover__button {
   max-width: min(46vw, 300px);
-  padding: 7px 34px 7px 12px;
 }
 
 /* In the top bar the menu of songs needs no caption. */
@@ -884,6 +871,106 @@ code {
   box-shadow: var(--shadow-raised);
 }
 
+/*
+ * A panel slides out from under its button and back under it: it moves a little, fades, and
+ * is uncovered from the edge it hangs on. The clipping reaches past the box, so the shadow
+ * is there for the whole way. A closed panel stays for the time of `LEAVE_MS` in
+ * Popover.tsx.
+ */
+.popover__panel {
+  animation: panel-down 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.popover.is-leaving .popover__panel {
+  animation: panel-down-away 0.16s ease-in forwards;
+  pointer-events: none;
+}
+
+/* Above the button, for a button at the bottom of the window. */
+.popover__panel--above {
+  top: auto;
+  bottom: calc(100% + 8px);
+  animation-name: panel-up;
+}
+
+.popover.is-leaving .popover__panel--above {
+  animation-name: panel-up-away;
+}
+
+@keyframes panel-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    clip-path: inset(-48px -48px 100% -48px);
+  }
+
+  to {
+    clip-path: inset(-48px -48px -72px -48px);
+  }
+}
+
+@keyframes panel-down-away {
+  from {
+    clip-path: inset(-48px -48px -72px -48px);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+    clip-path: inset(-48px -48px 100% -48px);
+  }
+}
+
+@keyframes panel-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    clip-path: inset(100% -48px -72px -48px);
+  }
+
+  to {
+    clip-path: inset(-48px -48px -72px -48px);
+  }
+}
+
+@keyframes panel-up-away {
+  from {
+    clip-path: inset(-48px -48px -72px -48px);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+    clip-path: inset(100% -48px -72px -48px);
+  }
+}
+
+/* A sheet on a phone rises from the bottom edge and sinks back into it. */
+@keyframes sheet-rise {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sheet-sink {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover__panel,
+  .popover__backdrop {
+    animation-duration: 1ms !important;
+  }
+}
+
 .popover__panel--wide {
   width: min(460px, calc(100vw - 28px));
   max-height: calc(100vh - 150px - var(--transport-height));
@@ -1013,6 +1100,147 @@ code {
 .menu {
   display: grid;
   gap: 4px;
+}
+
+/*
+ * A select: a field that shows its value alone and opens a list to choose from. It is as
+ * high as the place it stands in asks for.
+ */
+.popover--select {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.popover--select .popover__button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px 0 12px;
+  border-radius: var(--radius-small);
+}
+
+.popover--select .popover__value {
+  flex: 1;
+  display: block;
+  font-weight: 550;
+  text-overflow: ellipsis;
+}
+
+.popover--select .popover__chevron {
+  flex: none;
+}
+
+/*
+ * The list is as wide as its longest line, and at least as wide as the field. Its text is
+ * that of a menu, whatever the place the field stands in makes of its own text.
+ */
+.popover__panel--select {
+  width: max-content;
+  min-width: 100%;
+  max-width: min(360px, calc(100vw - 28px));
+  padding: 6px;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.popover__panel--grid {
+  width: 292px;
+}
+
+.select__list {
+  max-height: min(56vh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  outline: 0;
+}
+
+.select__group + .select__group {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.select__heading {
+  padding: 6px 10px 5px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.select__options {
+  display: grid;
+  gap: 2px;
+}
+
+.select__option {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 550;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.select__option:hover,
+.select__option.is-active {
+  background: var(--bg);
+}
+
+.select__option.is-selected {
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+/* With the keyboard in the list, the option the arrow keys are on is outlined. */
+.select__list:focus-visible .select__option.is-active {
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.select__lead {
+  flex: none;
+  min-width: 2.4em;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.select__option.is-selected .select__lead {
+  color: inherit;
+}
+
+.select__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.select__check {
+  flex: none;
+  align-self: center;
+  margin-left: auto;
+}
+
+/* Short values, such as measure numbers, stand in cells; a longer one takes two. */
+.select__options--grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.select__options--grid .select__option {
+  justify-content: center;
+  padding: 8px 2px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.select__option--wide {
+  grid-column: span 2;
 }
 
 .option {
@@ -1923,9 +2151,10 @@ a.button {
   display: none;
 }
 
-.loop-range select {
+.loop-range .popover__button {
   height: 34px;
-  padding: 0 26px 0 10px;
+  min-width: 64px;
+  padding: 0 8px 0 10px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2024,7 +2253,7 @@ a.button {
     display: inline;
   }
 
-  .loop-range select {
+  .loop-range .popover__button {
     height: 38px;
   }
 }
@@ -2117,9 +2346,19 @@ a.button {
     backdrop-filter: none;
   }
 
-  /* An open menu is a sheet over the whole window, playback bar included. */
-  .topbar:has(.popover.is-open) {
+  /*
+   * An open menu is a sheet over the whole window, playback bar included. The menus of the
+   * playback bar are sheets too; its blur would trap them inside the bar, so the bar is
+   * plain while one is there.
+   */
+  .topbar:has(.popover__panel),
+  .transport:has(.popover__panel) {
     z-index: 40;
+  }
+
+  .transport:has(.popover__panel) {
+    background: var(--surface);
+    backdrop-filter: none;
   }
 
   .topbar__inner {
@@ -2255,7 +2494,7 @@ a.button {
   }
 
   /* An open menu covers the window; the floating controls step aside for it. */
-  .topbar:has(.popover.is-open) .form-progress__tools {
+  .topbar:has(.popover__panel) .form-progress__tools {
     visibility: hidden;
   }
 
@@ -2333,8 +2572,11 @@ a.button {
     min-width: 0;
   }
 
-  .topbar .song-select select {
-    width: 100%;
+  .topbar .song-select .popover--select {
+    display: block;
+  }
+
+  .topbar .song-select .popover__button {
     max-width: none;
   }
 
@@ -2381,8 +2623,6 @@ a.button {
 
   /* Typing in a field smaller than 16px makes a phone zoom in. */
   .search input,
-  .song-select select,
-  .loop-range select,
   .tempo__value {
     font-size: 16px;
   }
@@ -2411,7 +2651,11 @@ a.button {
     inset: 0;
     z-index: 50;
     background: rgb(12 34 51 / 40%);
-    animation: fade-in 0.15s ease-out;
+    animation: fade-in 0.22s ease-out;
+  }
+
+  .popover.is-leaving .popover__backdrop {
+    animation: fade-out 0.2s ease-in forwards;
   }
 
   .popover__panel,
@@ -2432,7 +2676,26 @@ a.button {
     border: 0;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -18px 50px -18px rgb(12 34 51 / 45%);
-    animation: sheet-up 0.2s ease-out;
+    animation: sheet-rise 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .popover.is-leaving .popover__panel {
+    animation: sheet-sink 0.2s ease-in forwards;
+  }
+
+  /* On a sheet the whole sheet scrolls, and a line is easier to hit when it is higher. */
+  .select__list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .select__option {
+    padding: 12px 12px;
+    font-size: 16px;
+  }
+
+  .select__options--grid .select__option {
+    padding: 12px 2px;
   }
 
   /* The open setting stays below the heading of the sheet. */
@@ -3243,8 +3506,9 @@ a.button {
   margin-left: auto;
 }
 
-.library-controls__sort select {
+.library-controls__sort .popover__button {
   height: 42px;
+  min-width: 190px;
   border-radius: 12px;
 }
 
@@ -3574,9 +3838,11 @@ a.button {
     margin-left: 0;
   }
 
-  .library-controls__sort select {
+  .library-controls__sort .popover--select {
     flex: 1;
-    width: 100%;
+  }
+
+  .library-controls__sort .popover__button {
     max-width: none;
   }
 
