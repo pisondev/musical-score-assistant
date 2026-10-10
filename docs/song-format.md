@@ -628,6 +628,10 @@ loses the beat there. Every arrangement must therefore:
   repeating the beat;
 - lead into the next entry of the melody, and use a different figure from one gap to the next.
 
+A compound meter (6/8, 9/8, 12/8) is counted in pulses of three beats, and a note of one pulse
+is the ordinary step of its tunes. There a gap is a wait of two pulses or more, the left hand
+must sound on every pulse inside it, and moving means more than one note within a pulse.
+
 With a right-hand part the two hands share that duty: between them they must sound every beat
 and, from the intermediate level on, move. A _Melody + fills_ part must add at least one note
 of its own in every gap; that is what it is for.

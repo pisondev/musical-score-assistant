@@ -1,5 +1,5 @@
 import { MAJOR_SCALE, mod, pitchClass } from './notes.ts';
-import { beatTicks } from './time.ts';
+import { pulseTicks } from './time.ts';
 import type { NoteName, Pitch, Slot, TimeSignature } from './types.ts';
 
 /**
@@ -111,13 +111,6 @@ export function spellForStaff(pitch: Pitch, key: NoteName): Omit<StaffPitch, 'ac
   };
 }
 
-/** Length of the rhythmic unit that note values should not straddle. */
-function pulseTicks(time: TimeSignature): number {
-  const beat = beatTicks(time);
-  const compound = time.unit === 8 && time.beats > 3 && time.beats % 3 === 0;
-  return compound ? beat * 3 : beat;
-}
-
 /**
  * Splits a duration into note values that read well: a value that starts off
  * the pulse stops at the next pulse, and in four-four nothing but a note from
@@ -129,6 +122,7 @@ export function splitDuration(
   measureLength: number,
   time: TimeSignature,
 ): { start: number; duration: number; value: number; dots: number }[] {
+  // Note values should not straddle a pulse.
   const pulse = pulseTicks(time);
   const half = measureLength / 2;
   const quadruple = time.beats === 4 && time.unit === 4 && measureLength === 1920;

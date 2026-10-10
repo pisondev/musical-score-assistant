@@ -1,7 +1,11 @@
-import { beatTicks } from './time.ts';
+import { beatTicks, pulseTicks } from './time.ts';
 import type { Slot, Song } from './types.ts';
 
-/** A melody note or rest is a gap when nothing new is sung for longer than this many beats. */
+/**
+ * A melody note or rest is a gap when nothing new is sung for longer than this many beats.
+ * In a compound meter the pulse is three beats long and slow, and the melody often moves
+ * once a pulse; there, a wait of this many pulses is already a gap.
+ */
 const GAP_BEATS = 2;
 
 /**
@@ -15,7 +19,10 @@ export interface Gap {
   start: number;
   /** Tick of the next melody note. */
   end: number;
-  /** Beat boundaries strictly inside the gap, as absolute ticks. */
+  /**
+   * The pulses strictly inside the gap, as absolute ticks: every beat, or every third beat
+   * in a compound meter.
+   */
   beats: number[];
 }
 
@@ -32,28 +39,33 @@ export function noteOnsets(
 
 /**
  * Finds the gaps of a song: places where consecutive melody notes begin more
- * than two beats apart. The end of the song is not a gap, because nobody has
- * to come in after it.
+ * than two beats apart, or, in a compound meter, two pulses or more. The end
+ * of the song is not a gap, because nobody has to come in after it.
  */
 export function findGaps(song: Song): Gap[] {
   const beat = beatTicks(song.meta.time);
+  const pulse = pulseTicks(song.meta.time);
+  const waits = (ticks: number) =>
+    pulse === beat ? ticks > GAP_BEATS * beat : ticks >= GAP_BEATS * pulse;
   const onsets = noteOnsets(song.measures);
   const gaps: Gap[] = [];
 
   for (let index = 0; index < onsets.length - 1; index += 1) {
     const start = onsets[index];
     const end = onsets[index + 1];
-    if (end - start <= GAP_BEATS * beat) continue;
+    if (!waits(end - start)) continue;
 
     const measure = song.measures.find(
       (candidate) => start >= candidate.startTick && start < candidate.startTick + candidate.length,
     );
     if (!measure) continue;
 
-    // Beats are counted from the barline of each measure, so a pickup does not shift them.
+    // Pulses are counted from the barline of each measure, so a pickup does not shift them;
+    // the pulses of the pickup itself are counted back from the barline that ends it.
     const beats: number[] = [];
     for (const candidate of song.measures) {
-      for (let offset = 0; offset < candidate.length; offset += beat) {
+      const lead = candidate.number === null ? candidate.length % pulse : 0;
+      for (let offset = lead; offset < candidate.length; offset += pulse) {
         const tick = candidate.startTick + offset;
         if (tick > start && tick < end) beats.push(tick);
       }

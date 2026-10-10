@@ -5,7 +5,7 @@ import { KEYBOARD_HIGHEST, KEYBOARD_LOWEST, LEFT_HAND_HIGHEST } from './keyboard
 import { formatNoteName, mod, pitchClass, toneToText } from './notes.ts';
 import { buildWrittenNotes, measureIndexAt } from './playback.ts';
 import { composeRightHand } from './right-hand.ts';
-import { beatTicks } from './time.ts';
+import { beatTicks, pulseTicks } from './time.ts';
 import type {
   Arrangement,
   ArrangementMeasure,
@@ -62,10 +62,11 @@ const BOTH_HANDS: GapWording = {
 };
 
 /**
- * Checks the places where the melody waits. Something must mark every beat
- * there, so the congregation can feel when to come in; from the intermediate
- * level on it must also move, not just repeat the pulse. `onsets` are the
- * ticks at which the hands in question strike a note.
+ * Checks the places where the melody waits. Something must mark every pulse
+ * there (every beat, or every third beat in a compound meter), so the
+ * congregation can feel when to come in; from the intermediate level on it
+ * must also move, not just repeat the pulse. `onsets` are the ticks at which
+ * the hands in question strike a note.
  */
 function checkGaps(
   song: Song,
@@ -76,6 +77,7 @@ function checkGaps(
   issues: Issue[],
 ): void {
   const beat = beatTicks(song.meta.time);
+  const pulse = pulseTicks(song.meta.time);
 
   for (const gap of gaps) {
     const silent = gap.beats.find((tick) => !onsets.includes(tick));
@@ -93,7 +95,7 @@ function checkGaps(
     if (!needsMovement) continue;
 
     const moves = gap.beats.some(
-      (tick) => new Set(onsets.filter((onset) => onset >= tick && onset < tick + beat)).size >= 2,
+      (tick) => new Set(onsets.filter((onset) => onset >= tick && onset < tick + pulse)).size >= 2,
     );
     if (!moves) {
       issues.push({

@@ -270,6 +270,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Gaps in compound meters. In 6/8, 9/8, and 12/8 the checker counted every note of three
+  beats as a place where the melody waits, so a song in nine-eight was all gaps. Such meters
+  are now counted in pulses of three beats: a gap is a wait of two pulses or more, the left
+  hand must sound on every pulse inside it, and moving means more than one note in a pulse.
+
 - A request for the path `//` stopped the server until Docker started it again, because the
   address could not be read as a URL. Request paths are now read as paths, a mistake in one
   request answers with an error instead of ending the process, and a file that disappears

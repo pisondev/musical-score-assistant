@@ -60,7 +60,7 @@ in the command-line checker.
 | `passage.ts`        | Builds written passages: introductions, the bridge, the key lift, endings    |
 | `dynamics.ts`       | Dynamic levels and hairpins on one timeline; loudness at any tick            |
 | `fermata.ts`        | Finds the fermatas of a performance; how much slower the clock runs in them  |
-| `gaps.ts`           | Finds the places where the melody waits and the left hand must fill          |
+| `gaps.ts`           | Finds the places where the melody waits, counted in pulses of the meter      |
 | `keyboard.ts`       | Range of the target instrument, a 61-key keyboard                            |
 | `staff.ts`          | Staff notation for a row of slots: note values, ties, beams, accidentals     |
 | `mei.ts`            | Serializes a performance as MEI for the staff-notation engraver              |

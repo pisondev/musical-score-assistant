@@ -259,6 +259,29 @@ describe('gaps', () => {
     expect(findGaps(held)).toEqual([]);
   });
 
+  it('are counted in pulses of three beats in a compound meter', () => {
+    // Nine-eight: a note of one pulse is the ordinary step of the tune; a note of two waits.
+    const lilting = parseSong(
+      'key: C\ntime: 9/8\n| 1 2 3 | 5 . . 5 . . 3 2 1 | 2 . . . . . 2 1 2 | 3 . . . . 3 3 . . ||',
+    );
+    const gaps = findGaps(lilting);
+    expect(gaps.map((gap) => gap.measure)).toEqual([2]);
+    // One pulse lies inside the wait: the second of the measure, on its fourth beat.
+    expect(gaps[0].beats.map((tick) => (tick - lilting.measures[2].startTick) / 240 + 1)).toEqual([
+      4,
+    ]);
+  });
+
+  it('count the pulses of a pickup back from its barline', () => {
+    // The tune starts one beat before the barline and holds its first full note for two pulses.
+    const early = parseSong('key: C\ntime: 6/8\n| 5, | 1 . . . . . | 2 . . 1 . . ||');
+    const gaps = findGaps(early);
+    expect(gaps.map((gap) => gap.measure)).toEqual([1]);
+    expect(gaps[0].beats.map((tick) => (tick - early.measures[1].startTick) / 240 + 1)).toEqual([
+      4,
+    ]);
+  });
+
   const withLeft = (level: string, left: string) =>
     createSongBundle('key: F\ntime: 4/4\n| [F]3 . 2 1 | [F]3 . (0 5,) (1 1) | [F]1 . . . ||', {
       arrangements: [

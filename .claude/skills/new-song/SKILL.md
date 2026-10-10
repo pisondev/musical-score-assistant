@@ -162,8 +162,9 @@ passages follows it, so they all start on a downbeat.
 
 This is what the player asked for above everything else. A gap is a place where the melody
 starts no new note for more than two beats: a long held note, or a rest before the next phrase.
-With only a repeated arpeggio underneath, the gaps sound monotonous and the congregation cannot
-tell when to come in.
+In a compound meter (6/8, 9/8, 12/8), which is counted in pulses of three beats, it is a wait
+of two pulses or more. With only a repeated arpeggio underneath, the gaps sound monotonous and
+the congregation cannot tell when to come in.
 
 1. Run `npm run check -- <folder>` once the melody is in place. The line `gaps to fill` lists
    every gap. Also look at notes held for exactly two beats; they profit from movement too.

@@ -8,6 +8,16 @@ export function beatTicks(time: TimeSignature): number {
   return (PPQ * 4) / time.unit;
 }
 
+/**
+ * Length of the pulse a listener counts, in ticks. It is the beat, except in a compound
+ * meter (six-eight, nine-eight, twelve-eight), where three beats make one pulse.
+ */
+export function pulseTicks(time: TimeSignature): number {
+  const beat = beatTicks(time);
+  const compound = time.unit === 8 && time.beats > 3 && time.beats % 3 === 0;
+  return compound ? beat * 3 : beat;
+}
+
 /** Length of one full measure, in ticks. */
 export function measureTicks(time: TimeSignature): number {
   return time.beats * beatTicks(time);
