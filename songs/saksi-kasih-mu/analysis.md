@@ -40,9 +40,11 @@ checked against this table.
   measure 4 and the F4-E4-D4-C4-C4 close in measure 8 retain their short-long rhythm.
 - **Refrain:** 46 attacks, C4-F5. The opening is C4, E4, G4, A4, G4, A4, E5, D5. C4-E4-G4
   is the pickup after leading rests in measure 9, and the first A4 starts measure 10 on beat one.
-  The following G4 phrase starts measure 11. Measures 11-12 include F4-E4-F4 before C5;
-  the second F4 was absent from the earlier transcription.
-  The E5-F5-E5-D5-C5 high phrase and the repeated C5 attacks near the close are preserved.
+  The following G4 phrase starts measure 11. Measure 12 opens with F4-E4-F4 before C5;
+  the second F4 was absent from the earlier transcription. Measure 13 repeats the pickup as
+  G4-A4-G4 (`5-6-5`), so measure 14 opens with the A4-G4-A4-E5-D5 figure of measure 10.
+  Measure 15 opens with the E5-F5-E5-D5-C5 high phrase, the shape of measure 11 a sixth
+  higher, and the repeated C5 attacks near the close are preserved.
 
 The pitch names above refer to sounding pitch: middle C is C4 (MIDI 60). `octave: 4` pins
 the numbered notation to this register instead of allowing automatic octave selection.
@@ -65,20 +67,33 @@ The composer clarified the join in two follow-up notes:
   two full beats, from beat 3 of measure 10 to its barline, and G4 begins measure 11 on beat
   one. G4 still lasts half a beat: its entry, rather than its note value, is corrected.
   The following notes retain their internal spacing and move half a beat later together.
+- The composer's notes on measures 11-15 apply the same rule to the rest of the refrain.
+  F4 (`4`) moves from beat 4.5 of measure 11 to the downbeat of measure 12, and C5 before
+  it holds for two beats. The G4 (`5`) that ended measure 12 therefore opens measure 13 and
+  holds for two and a half beats. Measure 13 is a second refrain entry: G4-A4-G4 (`5-6-5`)
+  takes the place of `1-3-5` on beats 3.5, 4, and 4.5, and A4 (`6`) opens measure 14 like
+  measure 10. Measure 14 closes differently, with D5 for one and a half beats and the C5-D5
+  sixteenths that lead to E5 on the downbeat of measure 15.
+- From measure 15 the closing C5s were re-quantized against the anchor of C5 on beat 3:
+  both takes place the following attacks about a quarter beat later than the earlier grid,
+  at 1.61, 1.91, 2.43, 2.73, 3.89, 4.40, 4.71, 5.49, and 6.00 beats (mean of the two takes,
+  scaled to the final C5). C5 now opens measure 16 and the final C5 opens measure 17. The
+  repeated C5 on beat 4.5 of measure 15 (1.61 beats) is written as an eighth; the takes
+  differ on whether it falls on 4.5 or 4.75.
 
 The source files are separate takes, so the composer supplies the silent verse-to-refrain
-join and the corrected metrical entry points. The score now has 17 full measures (68 beats).
+join and the corrected metrical entry points. The score has 17 full measures (68 beats).
 
 The takes do not keep one fixed tempo. Before the composer's timing corrections, fits gave
 65.46 and 72.43 BPM for the verse takes, and 68.44 and 70.70 BPM for the refrain takes.
 The fixed playback tempo is 68 BPM. That earlier alignment had residuals of approximately
-138/148 ms for the verse and 62/99 ms for the refrain. The latest rests and the extended D5
+138/148 ms for the verse and 62/99 ms for the refrain. The latest rests and the extended held notes
 follow the composer's written corrections; they do not claim to reproduce the free timing
 of the separate recordings. Short notes were not all rounded to eighth notes.
 
-With the corrected bar placement, the final C5 enters on beat 3.75 of measure 16. Letting it
-ring through the final full bar remains an editorial close: 5.25 beats, keeping the song
-at 17 full measures. Recording tail length does not determine an exact final note value.
+With the corrected bar placement, the final C5 enters on the downbeat of measure 17. Letting
+it ring through that bar remains an editorial close: four beats, keeping the song at 17 full
+measures. Recording tail length does not determine an exact final note value.
 No extra final attack, fill, introduction, key change, harmony, or lyric is inferred from
 that tail. Source timestamps and all 89 pitches remain unchanged by these timing corrections.
 

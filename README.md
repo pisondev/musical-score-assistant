@@ -13,7 +13,8 @@ as a melody-only transcription, with a [numbered score PDF](songs/saksi-kasih-mu
 a [melody MIDI](songs/saksi-kasih-mu/saksi-kasih-mu-melody.mid), and an
 [audit of the four source recordings](songs/saksi-kasih-mu/analysis.md).
 Its verse ends with a written rest in measure 8. The refrain starts in measure 9 with rests
-before the `1-3-5` pickup; `6` opens measure 10, and the next `5` phrase opens measure 11,
+before the `1-3-5` pickup; `6` opens measure 10, and every later phrase opens on a downbeat.
+Measure 13 repeats the pickup as `5-6-5`, so measures 14 and 15 open like measures 10 and 11,
 as corrected by the composer.
 
 ![The home page: the song that was practised last, and a card for every song](docs/images/home.png)

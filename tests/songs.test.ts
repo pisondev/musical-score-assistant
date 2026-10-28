@@ -128,4 +128,31 @@ describe('Saksi Kasih-Mu melody transcription', () => {
     expect(bundle.song.measures[10].startTick).toBe(40 * PPQ);
     expect(bundle.song.measures[10].slots[0].pitches[0].midi).toBe(67);
   });
+
+  it('opens every later refrain phrase on a downbeat, as the composer corrected', () => {
+    const onDownbeat = (index: number) => {
+      const { midi, tick, duration } = events[index];
+      return { midi, beat: tick / PPQ, duration: duration / PPQ };
+    };
+    // F4 opens measure 12, G4 measure 13, A4 measure 14, E5 measure 15, C5 measures 16 and 17.
+    expect([56, 64, 68, 75, 81, 88].map(onDownbeat)).toEqual([
+      { midi: 65, beat: 44, duration: 0.5 },
+      { midi: 67, beat: 48, duration: 2.5 },
+      { midi: 69, beat: 52, duration: 0.5 },
+      { midi: 76, beat: 56, duration: 0.5 },
+      { midi: 72, beat: 60, duration: 0.5 },
+      { midi: 72, beat: 64, duration: 4 },
+    ]);
+    // Measure 13 repeats the refrain's pickup rhythm with G4-A4-G4 instead of C4-E4-G4.
+    expect(events.slice(65, 68).map(({ midi, tick }) => ({ midi, beat: tick / PPQ }))).toEqual([
+      { midi: 67, beat: 50.5 },
+      { midi: 69, beat: 51 },
+      { midi: 67, beat: 51.5 },
+    ]);
+    // Measure 14 opens like measure 10, and measure 15 like measure 11.
+    const shape = (from: number, to: number) =>
+      events.slice(from, to).map(({ tick, duration }) => [(tick / PPQ) % 4, duration / PPQ]);
+    expect(shape(68, 72)).toEqual(shape(46, 50));
+    expect(shape(75, 79)).toEqual(shape(51, 55));
+  });
 });
