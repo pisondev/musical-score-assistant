@@ -1,0 +1,424 @@
+{
+  "arrangements": [
+    {
+      "id": "alberti-bass",
+      "name": "Alberti bass",
+      "level": "intermediate",
+      "style": "Classical",
+      "summary": "A light broken-chord pulse supports the melody without crowding the refrain.",
+      "tips": [
+        "Keep the fifth even; let the melody carry the phrase."
+      ],
+      "patterns": [
+        {
+          "name": "Broken chord",
+          "notation": "(1 5) (3 5) (3 5) (3 5)",
+          "description": "Alternate the root and fifth with the chord third."
+        }
+      ],
+      "measures": [
+        {
+          "measure": 1,
+          "left": "[C](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 2,
+          "left": "[G/B](3 5) (2' 5) (3 5) (2' 5)"
+        },
+        {
+          "measure": 3,
+          "left": "[Am](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 4,
+          "left": "[Dm](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 5,
+          "left": "[G](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 6,
+          "left": "[C](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 7,
+          "left": "[F](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 8,
+          "left": "[C](1 5) (3 5) (1' 5) (1' 1)",
+          "note": "Fill: a distinct rising figure keeps the pulse through the link and lands on C for the refrain."
+        },
+        {
+          "measure": 9,
+          "left": "[C](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 10,
+          "left": "[G](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 11,
+          "left": "[F](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 12,
+          "left": "[C](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 13,
+          "left": "[G](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 14,
+          "left": "[C](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 15,
+          "left": "[F](1 5) (3 5) (3 5) (3 5)"
+        },
+        {
+          "measure": 16,
+          "left": "[C](1 5) (3 5) (3 5) (3 5)"
+        }
+      ]
+    },
+    {
+      "id": "gospel",
+      "name": "Gospel",
+      "level": "intermediate",
+      "style": "Gospel",
+      "summary": "A steady root and fifth gives the verse a grounded pulse and the refrain a little lift.",
+      "tips": [
+        "Keep the octave relaxed and let the refrain grow in volume."
+      ],
+      "patterns": [
+        {
+          "name": "Root and octave",
+          "notation": "1 5 1' 5",
+          "description": "Move from the root to the fifth and octave, then return."
+        }
+      ],
+      "measures": [
+        {
+          "measure": 1,
+          "left": "[C]1 5 1' 5"
+        },
+        {
+          "measure": 2,
+          "left": "[G/B]3 5 1' 5"
+        },
+        {
+          "measure": 3,
+          "left": "[Am]1 5 1' 5"
+        },
+        {
+          "measure": 4,
+          "left": "[Dm]1 5 1' 5"
+        },
+        {
+          "measure": 5,
+          "left": "[G]1 5 1' 5"
+        },
+        {
+          "measure": 6,
+          "left": "[C]1 5 1' 5"
+        },
+        {
+          "measure": 7,
+          "left": "[F]1 5 1' 5"
+        },
+        {
+          "measure": 8,
+          "left": "[C](1 2) (3 4) (5 6) (7 1')",
+          "note": "Fill: a distinct rising figure keeps the pulse through the link and lands on C for the refrain."
+        },
+        {
+          "measure": 9,
+          "left": "[C]1 5 1' 5"
+        },
+        {
+          "measure": 10,
+          "left": "[G]1 5 1' 5"
+        },
+        {
+          "measure": 11,
+          "left": "[F]1 5 1' 5"
+        },
+        {
+          "measure": 12,
+          "left": "[C]1 5 1' 5"
+        },
+        {
+          "measure": 13,
+          "left": "[G]1 5 1' 5"
+        },
+        {
+          "measure": 14,
+          "left": "[C]1 5 1' 5"
+        },
+        {
+          "measure": 15,
+          "left": "[F]1 5 1' 5"
+        },
+        {
+          "measure": 16,
+          "left": "[C]1 5 1' 5"
+        }
+      ]
+    },
+    {
+      "id": "jazz",
+      "name": "Jazz",
+      "level": "advanced",
+      "style": "Jazz",
+      "summary": "Compact chord tones outline the changes while leaving space around the tune.",
+      "tips": [
+        "Release each shell cleanly before the next beat."
+      ],
+      "patterns": [
+        {
+          "name": "Shell and fifth",
+          "notation": "<1 7> 5 <3 7> 5",
+          "description": "Use root-seventh and third-seventh shells with a fifth between."
+        }
+      ],
+      "measures": [
+        {
+          "measure": 1,
+          "left": "[C]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 2,
+          "left": "[G/B]3 7 3' 5"
+        },
+        {
+          "measure": 3,
+          "left": "[Am]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 4,
+          "left": "[Dm]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 5,
+          "left": "[G]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 6,
+          "left": "[C]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 7,
+          "left": "[F]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 8,
+          "left": "[C](1 2) (3 5) (4 5) (7 1')",
+          "note": "Fill: a distinct rising figure keeps the pulse through the link and lands on C for the refrain."
+        },
+        {
+          "measure": 9,
+          "left": "[C]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 10,
+          "left": "[G]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 11,
+          "left": "[F]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 12,
+          "left": "[C]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 13,
+          "left": "[G]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 14,
+          "left": "[C]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 15,
+          "left": "[F]<1 7> 5 <3 7> 5"
+        },
+        {
+          "measure": 16,
+          "left": "[C]<1 7> 5 <3 7> 5"
+        }
+      ]
+    },
+    {
+      "id": "new-chords",
+      "name": "Contemporary chords",
+      "level": "intermediate",
+      "style": "Contemporary",
+      "summary": "A gentle fifth-and-sixth movement adds a modern pulse to the printed harmony.",
+      "tips": [
+        "Keep the sixth soft when the melody reaches a long note."
+      ],
+      "patterns": [
+        {
+          "name": "Sixth colour",
+          "notation": "1 5 6 5",
+          "description": "Add the sixth on the third beat, then settle on the fifth."
+        }
+      ],
+      "measures": [
+        {
+          "measure": 1,
+          "left": "[C]1 5 6 5"
+        },
+        {
+          "measure": 2,
+          "left": "[G/B]3 5 6 5"
+        },
+        {
+          "measure": 3,
+          "left": "[Am]1 5 6 5"
+        },
+        {
+          "measure": 4,
+          "left": "[Dm]1 5 6 5"
+        },
+        {
+          "measure": 5,
+          "left": "[G]1 5 6 5"
+        },
+        {
+          "measure": 6,
+          "left": "[C]1 5 6 5"
+        },
+        {
+          "measure": 7,
+          "left": "[F]1 5 6 5"
+        },
+        {
+          "measure": 8,
+          "left": "[C](1 2) (2 3) (3 4) (4 5)",
+          "note": "Fill: a distinct rising figure keeps the pulse through the link and lands on C for the refrain."
+        },
+        {
+          "measure": 9,
+          "left": "[C]1 5 6 5"
+        },
+        {
+          "measure": 10,
+          "left": "[G]1 5 6 5"
+        },
+        {
+          "measure": 11,
+          "left": "[F]1 5 6 5"
+        },
+        {
+          "measure": 12,
+          "left": "[C]1 5 6 5"
+        },
+        {
+          "measure": 13,
+          "left": "[G]1 5 6 5"
+        },
+        {
+          "measure": 14,
+          "left": "[C]1 5 6 5"
+        },
+        {
+          "measure": 15,
+          "left": "[F]1 5 6 5"
+        },
+        {
+          "measure": 16,
+          "left": "[C]1 5 6 5"
+        }
+      ]
+    },
+    {
+      "id": "majestic",
+      "name": "Majestic",
+      "level": "advanced",
+      "style": "Majestic",
+      "summary": "Broad chord strikes open the refrain and settle into a firm tonic close.",
+      "tips": [
+        "Use a wide, even sound; keep the verse quieter than the refrain."
+      ],
+      "patterns": [
+        {
+          "name": "Broad chords",
+          "notation": "<1 5 1'> . <3 5 1'> .",
+          "description": "Hold a root-position chord, then answer with the third at the top."
+        }
+      ],
+      "measures": [
+        {
+          "measure": 1,
+          "left": "[C]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 2,
+          "left": "[G/B]<3 1'> 5 <3 1'> 5"
+        },
+        {
+          "measure": 3,
+          "left": "[Am]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 4,
+          "left": "[Dm]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 5,
+          "left": "[G]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 6,
+          "left": "[C]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 7,
+          "left": "[F]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 8,
+          "left": "[C](1 5) (5 1') (1' 5') (1' 1)",
+          "note": "Fill: a distinct rising figure keeps the pulse through the link and lands on C for the refrain."
+        },
+        {
+          "measure": 9,
+          "left": "[C]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 10,
+          "left": "[G]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 11,
+          "left": "[F]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 12,
+          "left": "[C]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 13,
+          "left": "[G]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 14,
+          "left": "[C]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 15,
+          "left": "[F]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        },
+        {
+          "measure": 16,
+          "left": "[C]<1 5 1'> <1 5 1'> <1 5 1'> <1 5 1'>"
+        }
+      ]
+    }
+  ]
+}
