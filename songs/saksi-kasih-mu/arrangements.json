@@ -6,9 +6,7 @@
       "level": "intermediate",
       "style": "Classical",
       "summary": "A light broken-chord pulse supports the melody without crowding the refrain.",
-      "tips": [
-        "Keep the fifth even; let the melody carry the phrase."
-      ],
+      "tips": ["Keep the fifth even; let the melody carry the phrase."],
       "patterns": [
         {
           "name": "Broken chord",
@@ -90,9 +88,7 @@
       "level": "intermediate",
       "style": "Gospel",
       "summary": "A steady root and fifth gives the verse a grounded pulse and the refrain a little lift.",
-      "tips": [
-        "Keep the octave relaxed and let the refrain grow in volume."
-      ],
+      "tips": ["Keep the octave relaxed and let the refrain grow in volume."],
       "patterns": [
         {
           "name": "Root and octave",
@@ -174,9 +170,7 @@
       "level": "advanced",
       "style": "Jazz",
       "summary": "Compact chord tones outline the changes while leaving space around the tune.",
-      "tips": [
-        "Release each shell cleanly before the next beat."
-      ],
+      "tips": ["Release each shell cleanly before the next beat."],
       "patterns": [
         {
           "name": "Shell and fifth",
@@ -258,9 +252,7 @@
       "level": "intermediate",
       "style": "Contemporary",
       "summary": "A gentle fifth-and-sixth movement adds a modern pulse to the printed harmony.",
-      "tips": [
-        "Keep the sixth soft when the melody reaches a long note."
-      ],
+      "tips": ["Keep the sixth soft when the melody reaches a long note."],
       "patterns": [
         {
           "name": "Sixth colour",
@@ -342,9 +334,7 @@
       "level": "advanced",
       "style": "Majestic",
       "summary": "Broad chord strikes open the refrain and settle into a firm tonic close.",
-      "tips": [
-        "Use a wide, even sound; keep the verse quieter than the refrain."
-      ],
+      "tips": ["Use a wide, even sound; keep the verse quieter than the refrain."],
       "patterns": [
         {
           "name": "Broad chords",
