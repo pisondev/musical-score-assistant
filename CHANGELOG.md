@@ -281,6 +281,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Retranscribe the melody of "Saksi Kasih-Mu" from both verse and both refrain recordings:
+  restore low G3/A3 notes, omitted and repeated attacks, and sixteenth-note timing. The song
+  now plays melody only at 68 BPM, with the earlier speculative harmonization removed.
+  Include a numbered-notation PDF, a melody MIDI, and a source timestamp table checked
+  against the parsed score and exported MIDI.
+
 - Gaps in compound meters. In 6/8, 9/8, and 12/8 the checker counted every note of three
   beats as a place where the melody waits, so a song in nine-eight was all gaps. Such meters
   are now counted in pulses of three beats: a gap is a wait of two pulses or more, the left

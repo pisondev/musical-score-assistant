@@ -1,37 +1,72 @@
-# Reading
+# Melody transcription
 
-## Text
+## Source and scope
 
-The supplied files are instrumental references for the verse and refrain; they contain no
-discernible sung lyrics to transcribe. The title, “Saksi Kasih-Mu” (“Witness to Your Love”),
-frames the piece as Christian worship, but the words and their verse-by-verse meaning were not
-provided. The score therefore leaves lyric rows blank rather than inventing text.
+"Saksi Kasih-Mu", credited to Putu Edo Bestuana, is transcribed from four references supplied
+by its composer: `verse-sample-1.m4a`, `verse-sample-2.m4a`, `reff-sample-1.m4a`, and
+`reff-sample-2.m4a`. The composer confirmed permission to publish the song. The original
+recordings remain under `.local/incoming/saksi-kasih-mu/raw/`, outside version control.
 
-## Tune
+This revision contains the melody only. No lyric text was supplied. The earlier speculative
+chords and arrangements are removed from playback: `baseline.leftHand` is `empty` and there
+are no alternative arrangements. The numbered score, staff score, and MIDI use the same
+parsed `song.txt`, with no additions to its melody.
 
-The samples support a C-major melody with a compact verse register around B3–A4 and a refrain
-that rises to F5. The verse moves in short repeated tones and stepwise cadences, settling on C;
-the refrain opens with a rising C-major arpeggio, repeats a G–A figure, and reaches its high
-point in the F5–E5–D5 descent before returning to C. Both sections fit a four-beat pulse. The
-tempo of 72 is a practical reading of the differently paced takes.
+## Method and evidence
 
-## Harmony
+The first transcription selected the strongest spectral peak above 240 Hz in a 512 ms window.
+That cutoff excludes A3 and G3, allowing their harmonics to be mistaken for melody notes.
+The long window also blurs adjacent attacks, and detecting pitch changes alone misses
+repeated strikes of the same note. Passing the notation checker did not establish fidelity
+to the recordings.
 
-The samples do not provide a clear, stable chord layer to transcribe independently. The written
-changes are a restrained C-major harmonization inferred from the melody and its cadences:
-tonic and dominant motion, with Am, F, and Dm supporting the inner phrases. Each measure has one
-printed chord so the generated left-hand pattern remains easy to follow.
+The revision uses an 8 ms analysis step, detects attacks with spectral flux, and compares
+the spectral fundamentals against pYIN pitch estimates over 100-900 Hz. Both takes of each
+section are aligned note by note. A spectral-flux peak during a ringing note is not counted
+as a new strike when the waveform, pitch trajectory, and other take do not support one.
+Conversely, the repeated notes shared by both takes are retained.
 
-## Character
+`transcription.csv` records every melody attack, its absolute MIDI pitch, measure, one-based
+beat position, notated duration, and timestamp in each source take. Source timestamps locate
+the attacks to approximately 20 ms; they are not an instruction to reproduce the recordings'
+free timing. `saksi-kasih-mu-melody.mid` is exported from the app's core MIDI writer and is
+checked against this table.
 
-The melody is devotional and measured, with a modest rise in the refrain. A warm worship-ballad
-sound at 72 beats per minute suits its range and repeated phrases. The high point belongs to the
-refrain; the close returns to C without an added flourish.
+## Pitches and phrases
 
-## What the arrangements should do
+- **Verse:** 43 attacks, G3-G4. The opening is E4, E4, D4, E4, G4, C4. The A notes at the
+  ends of the opening phrases are A3, not A4. G3 occurs in measures 3, 6, and 7; the G4
+  attacks in measures 1 and 5 stay in their higher register. The F4-E4-D4-C4-D4 phrase in
+  measure 4 and the F4-E4-D4-C4-C4 close in measure 8 retain their short-long rhythm.
+- **Refrain:** 46 attacks, C4-F5. The opening is C4, E4, G4, A4, G4, A4, E5, D5. Measure 11
+  includes F4-E4-F4 before C5; the second F4 was absent from the earlier transcription.
+  The E5-F5-E5-D5-C5 high phrase and the repeated C5 attacks near the close are preserved.
 
-The supplied samples have no words, so there are no text-led dynamics or fills to prescribe.
-Keep the verse accompaniment steady and light; let the refrain broaden without covering its
-melody. The printed chord progression is deliberately simple, and the default left hand gives
-the production player a playable MIDI accompaniment. More elaborate styles and written
-surroundings can follow when the complete lyrics or a chord reference is available.
+The pitch names above refer to sounding pitch: middle C is C4 (MIDI 60). `octave: 4` pins
+the numbered notation to this register instead of allowing automatic octave selection.
+
+## Meter, tempo, and editorial choices
+
+The score uses C major and the composer's suggested 4/4. Attacks are written on a
+sixteenth-note grid, including dotted eighths, ties over beats and barlines, and repeated
+notes. Each section has eight notated measures. Bar placement is an interpretation of
+unaccompanied references, which contain no metronome or printed barlines.
+
+The takes do not keep one fixed tempo. Straight-line fits of the notated attacks give
+65.46 and 72.43 BPM for the verse takes, and 68.44 and 70.70 BPM for the refrain takes.
+The fixed playback tempo is 68 BPM. Fit residuals are approximately 138/148 ms for the verse
+and 62/99 ms for the refrain; phrase pauses are regularized rather than encoded as tempo
+changes. Short notes were not all rounded to eighth notes.
+
+The final C5 anticipates the last bar by a sixteenth note. Its attack is source-derived;
+letting it ring through the final full bar is an editorial close. Recording tail length
+does not determine an exact final note value. No extra final attack, fill, introduction,
+key change, harmony, or lyric is inferred from that tail.
+
+## Musical reading
+
+The title suggests Christian worship, but a reading of the words must wait for the lyrics.
+The verse alternates a middle-register line with low A3 and G3 responses and closes on C4.
+The refrain rises into the C5 register and reaches F5 before descending to its final C5.
+Future arrangements should preserve these register changes, repeated notes, and
+syncopations. This pass does not prescribe their texture or harmony.

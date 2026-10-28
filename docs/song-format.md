@@ -28,6 +28,14 @@ Every song from a hymnal goes under `songs/private/`, even an old one, because t
 texts and translations are licensed; the owner sees those songs, nobody else does. `npm run
 check` fails a public song that names a hymnal.
 
+An original song may also be public when its rights holder explicitly authorizes publication.
+For an audio transcription, keep the source recordings locally and document their names and
+the permission in `analysis.md`. A melody-only transcription uses an empty baseline and no
+alternative arrangements. An optional `transcription.csv` can record each note's section,
+measure, one-based beat, absolute MIDI pitch, duration in beats, and timestamp in each take;
+it is an audit reference, not input to the player. Exported MIDI must use the same parsed song
+and core MIDI writer as playback. See `songs/saksi-kasih-mu/` for an example with a PDF and MIDI.
+
 ## `song.txt`
 
 A plain-text file with a header followed by the melody.

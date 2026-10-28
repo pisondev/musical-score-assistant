@@ -8,6 +8,11 @@ It runs at <https://music-assistant.tierratie.com>. Anybody can open the public 
 anybody can sign in with Google to keep favourites, recent songs, and settings with an account.
 The owner also sees the licensed hymnal songs and keeps notes for their revision.
 
+The composer-authorized public song [Saksi Kasih-Mu](songs/saksi-kasih-mu/song.txt) is available
+as a melody-only transcription, with a [numbered score PDF](songs/saksi-kasih-mu/saksi-kasih-mu-score.pdf),
+a [melody MIDI](songs/saksi-kasih-mu/saksi-kasih-mu-melody.mid), and an
+[audit of the four source recordings](songs/saksi-kasih-mu/analysis.md).
+
 ![The home page: the song that was practised last, and a card for every song](docs/images/home.png)
 
 ![The score of Amazing Grace with a written introduction and a gospel left hand during playback](docs/images/screenshot.png)
