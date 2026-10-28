@@ -78,8 +78,9 @@ The composer clarified the join in two follow-up notes:
   both takes place the following attacks about a quarter beat later than the earlier grid,
   at 1.61, 1.91, 2.43, 2.73, 3.89, 4.40, 4.71, 5.49, and 6.00 beats (mean of the two takes,
   scaled to the final C5). C5 now opens measure 16 and the final C5 opens measure 17. The
-  repeated C5 on beat 4.5 of measure 15 (1.61 beats) is written as an eighth; the takes
-  differ on whether it falls on 4.5 or 4.75.
+  takes differed on the repeated C5 at the end of measure 15 (1.61 beats); the composer
+  confirmed it as a sixteenth on beat 4.75, so the C5 on beat 3 holds for one and three
+  quarter beats.
 
 The source files are separate takes, so the composer supplies the silent verse-to-refrain
 join and the corrected metrical entry points. The score has 17 full measures (68 beats).

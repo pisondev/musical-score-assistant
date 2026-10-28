@@ -154,5 +154,10 @@ describe('Saksi Kasih-Mu melody transcription', () => {
       events.slice(from, to).map(({ tick, duration }) => [(tick / PPQ) % 4, duration / PPQ]);
     expect(shape(68, 72)).toEqual(shape(46, 50));
     expect(shape(75, 79)).toEqual(shape(51, 55));
+    // The last C5 of measure 15 is a sixteenth leading into measure 16.
+    expect([79, 80].map(onDownbeat)).toEqual([
+      { midi: 72, beat: 58, duration: 1.75 },
+      { midi: 72, beat: 59.75, duration: 0.25 },
+    ]);
   });
 });

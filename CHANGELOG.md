@@ -284,7 +284,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Apply the composer's notes on measures 11-15 of "Saksi Kasih-Mu": every later refrain
   phrase now opens on a downbeat. `4` opens measure 12 and `5` measure 13; measure 13 repeats
   the refrain pickup as `5-6-5`, so measure 14 opens like measure 10 and measure 15 like
-  measure 11. The closing `1'` notes land on the downbeats of measures 16 and 17. Update the
+  measure 11. The last `1'` of measure 15 is a sixteenth leading into measure 16, and the
+  closing `1'` notes land on the downbeats of measures 16 and 17. Update the
   score, source audit, PDF, and melody MIDI together.
 
 - Apply the composer's follow-up timing notes for "Saksi Kasih-Mu": stop the verse melody
