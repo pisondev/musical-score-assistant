@@ -9,14 +9,20 @@ octave: 4
 
 section: Verse
 | 3 3 (2 3) (5 1) | . (. 1) (7, 1) (3 6,) | . (6, (7, 1)) (. 5,) . | (4 (3 2)) (. 1) 2 . |
-// Measure 8 closes 4-3-2-1-1, then rests for one and a half beats.
-| 3 3 (2 (5 5)) (. 7,) | 1 . (7, 3) (3 (5, 6,)) | (. 6,) (7, 1) (5, (1 1)) . | (4 (3 2)) (. 1) (1 0) 0 ||
+L: Ka-sih-Mu ya Tu-han, da-lam hi-dup-ku, nya-ta da-lam ke-hi-dup-an-ku.
+// Measure 8 closes 4-3-2-1-1; the last 1 holds over the barline into measure 9.
+| 3 3 (2 (5 5)) (. 7,) | 1 . (7, 3) (3 (5, 6,)) | (. 6,) (7, 1) (5, (1 1)) . | (4 (3 2)) (. 1) 1 . ||
+L: Pe-nyer-ta-an-Mu Tu-han, a-tas G're-ja-Mu, ter-buk-ti di da-lam se-ti-ap wak-tu.
 
 section: Refrain
-// Measure 9 starts with two and a half beats of rest, then the 1-3-5 pickup.
+// The refrain is sung twice with the same words.
+// Measure 9 holds that 1 for two beats, breathes for half a beat, then the 1-3-5 pickup.
 // Each phrase of the refrain opens on a downbeat: 6 in measure 10, 5 in 11, 4 in 12.
-| 0 0 (0 1) (3 5) | (6 (5 6)) (. 3') 2' . | (5 (3 5)) (. 2') 1' . | (4 (3 4)) (. 1') (7 1') (7 6) |
+| . . (0 1) (3 5) | (6 (5 6)) (. 3') 2' . | (5 (3 5)) (. 2') 1' . | (4 (3 4)) (. 1') (7 1') (7 6) |
+L: Oh Tu-han ja-di-kan a-ku sak-si ka-sih-Mu da-lam se-tiap ja-lan hi-dup-
 // Measure 13 repeats the pickup as 5-6-5; measure 14 opens like measure 10,
 // measure 15 like measure 11, and the last 1' lands on the downbeat of measure 17.
 | 5 . (. 5) (6 5) | (6 (5 6)) (. 3') 2' (. (1' 2')) | (3' (4' 3')) (. 2') 1' (. (. 1')) | (1' (6 1')) . (1' (7 6)) (. 7) |
+L: ku. Ku ta-hu Kau pim-pin lang-kah-ku, 'tuk se-tia pa-da-Mu hing-ga a-khir na-fas hi-dup-
 | 1' . . . ||
+L: ku.

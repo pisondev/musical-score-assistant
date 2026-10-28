@@ -158,13 +158,14 @@ Rules:
 - Every other measure must add up exactly; otherwise the checker reports an error and the app
   marks the measure.
 
-A refrain can start with a full measure of leading rests followed by pickup notes. Put
-`section: Refrain` before that measure when the pickup belongs to the refrain, as requested
-by the composer. In "Saksi Kasih-Mu", measure 8 closes the verse and rests, measure 9 starts
-the refrain with two and a half beats of rest before `1-3-5`, and `6` opens measure 10.
-A note that begins a phrase belongs on the downbeat it leads to, not half a beat before the
-barline; hold the preceding note longer instead. Use `0` for a silent pause: hold dots keep the previous note sounding. Update the audit
-table and exports whenever timing or barlines change.
+A refrain can start with a measure that only leads in: the end of the verse, held over the
+barline or followed by rests, and then the pickup notes. Put `section: Refrain` before that
+measure when the pickup belongs to the refrain, as requested by the composer. In "Saksi
+Kasih-Mu", the last `1` of the verse holds from measure 8 into measure 9 (`. .` at the start
+of measure 9), a single `0` gives the half-beat breath, `1-3-5` follows, and `6` opens measure 10. A held note sounds; a `0` is silent, so write `0` only where the singers breathe. A note
+that begins a phrase belongs on the downbeat it leads to, not half a beat before the barline;
+hold the preceding note longer instead. Update the audit table and exports whenever timing or
+barlines change.
 
 ### Rolled chords
 

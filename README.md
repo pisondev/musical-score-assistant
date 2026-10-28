@@ -9,11 +9,11 @@ anybody can sign in with Google to keep favourites, recent songs, and settings w
 The owner also sees the licensed hymnal songs and keeps notes for their revision.
 
 The composer-authorized public song [Saksi Kasih-Mu](songs/saksi-kasih-mu/song.txt) is available
-as a melody-only transcription, with a [numbered score PDF](songs/saksi-kasih-mu/saksi-kasih-mu-score.pdf),
+as a melody transcription with the composer's lyrics, a [numbered score PDF](songs/saksi-kasih-mu/saksi-kasih-mu-score.pdf),
 a [melody MIDI](songs/saksi-kasih-mu/saksi-kasih-mu-melody.mid), and an
 [audit of the four source recordings](songs/saksi-kasih-mu/analysis.md).
-Its verse ends with a written rest in measure 8. The refrain starts in measure 9 with rests
-before the `1-3-5` pickup; `6` opens measure 10, and every later phrase opens on a downbeat.
+Its verse ends on a `1` held over the barline into measure 9, where a half-beat breath
+leads to the refrain's `1-3-5` pickup; `6` opens measure 10, and every later phrase opens on a downbeat.
 Measure 13 repeats the pickup as `5-6-5`, so measures 14 and 15 open like measures 10 and 11,
 as corrected by the composer.
 

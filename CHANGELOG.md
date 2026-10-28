@@ -281,6 +281,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Add the composer's lyrics to "Saksi Kasih-Mu": both lines of the verse and the refrain,
+  which is sung twice with the same words, one syllable per note, in `song.txt` and in the
+  numbered score PDF. Its `analysis.md` now reads the text and marks the climax on the F5 of
+  _se-tia_. Following the composer's note on measure 8, the verse's last `1` holds over the
+  barline into measure 9 instead of a bar and a half of rests; one half-beat breath remains
+  before the refrain's `1-3-5` pickup.
+
 - Apply the composer's notes on measures 11-15 of "Saksi Kasih-Mu": every later refrain
   phrase now opens on a downbeat. `4` opens measure 12 and `5` measure 13; measure 13 repeats
   the refrain pickup as `5-6-5`, so measure 14 opens like measure 10 and measure 15 like

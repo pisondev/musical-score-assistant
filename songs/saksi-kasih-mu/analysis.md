@@ -1,4 +1,4 @@
-# Melody transcription
+# Melody, text, and transcription
 
 ## Source and scope
 
@@ -7,10 +7,10 @@ by its composer: `verse-sample-1.m4a`, `verse-sample-2.m4a`, `reff-sample-1.m4a`
 `reff-sample-2.m4a`. The composer confirmed permission to publish the song. The original
 recordings remain under `.local/incoming/saksi-kasih-mu/raw/`, outside version control.
 
-This revision contains the melody only. No lyric text was supplied. The earlier speculative
-chords and arrangements are removed from playback: `baseline.leftHand` is `empty` and there
+The composer later supplied the lyrics, which `song.txt` now carries under the melody. The
+earlier speculative chords and arrangements are removed from playback: `baseline.leftHand` is `empty` and there
 are no alternative arrangements. The numbered score, staff score, and MIDI use the same
-parsed `song.txt`, with no additions to its melody.
+parsed `song.txt`, with no additions to its melody; the numbered score prints the lyrics.
 
 ## Method and evidence
 
@@ -56,13 +56,12 @@ sixteenth-note grid, including dotted eighths, ties over beats and barlines, and
 notes. The verse occupies measures 1-8 and the refrain measures 9-17, including its entry bar.
 The composer clarified the join in two follow-up notes:
 
-- Measure 8 closes with F4-E4-D4-C4-C4 (`4-3-2-1-1`). The last C4 lasts half a beat from
-  beat 3, followed by a genuine silent rest for the remaining 1.5 beats. It is not tied
-  across the pause.
-- Measure 9 belongs to the refrain. It begins with 2.5 beats of rest and contains only the
-  three-eighth C4-E4-G4 (`1-3-5`) pickup on beats 3.5, 4, and 4.5. The first A4 (`6`)
-  therefore opens measure 10. There are four silent beats between the verse's final C4
-  release and the refrain's first C4 attack.
+- Measure 8 closes with F4-E4-D4-C4-C4 (`4-3-2-1-1`). A later note from the composer
+  replaced the silent bar and a half that first followed it: the last C4 now holds from
+  beat 3 over the barline into measure 9, four beats in all, for the sung `wak-tu`.
+- Measure 9 belongs to the refrain. It continues that C4 for two beats, keeps one half-beat
+  rest as the breath, and contains the three-eighth C4-E4-G4 (`1-3-5`) pickup on beats 3.5,
+  4, and 4.5. The first A4 (`6`) therefore opens measure 10.
 - The G4 (`5`) previously anticipated the next bar by half a beat. D5 (`2'`) now holds for
   two full beats, from beat 3 of measure 10 to its barline, and G4 begins measure 11 on beat
   one. G4 still lasts half a beat: its entry, rather than its note value, is corrected.
@@ -82,26 +81,53 @@ The composer clarified the join in two follow-up notes:
   confirmed it as a sixteenth on beat 4.75, so the C5 on beat 3 holds for one and three
   quarter beats.
 
-The source files are separate takes, so the composer supplies the silent verse-to-refrain
-join and the corrected metrical entry points. The score has 17 full measures (68 beats).
+The source files are separate takes, so the composer supplies the verse-to-refrain join and the corrected metrical entry points. The score has 17 full measures (68 beats).
 
 The takes do not keep one fixed tempo. Before the composer's timing corrections, fits gave
 65.46 and 72.43 BPM for the verse takes, and 68.44 and 70.70 BPM for the refrain takes.
 The fixed playback tempo is 68 BPM. That earlier alignment had residuals of approximately
-138/148 ms for the verse and 62/99 ms for the refrain. The latest rests and the extended held notes
+138/148 ms for the verse and 62/99 ms for the refrain. The breath and the extended held notes
 follow the composer's written corrections; they do not claim to reproduce the free timing
 of the separate recordings. Short notes were not all rounded to eighth notes.
 
 With the corrected bar placement, the final C5 enters on the downbeat of measure 17. Letting
 it ring through that bar remains an editorial close: four beats, keeping the song at 17 full
 measures. Recording tail length does not determine an exact final note value.
-No extra final attack, fill, introduction, key change, harmony, or lyric is inferred from
-that tail. Source timestamps and all 89 pitches remain unchanged by these timing corrections.
+No extra final attack, fill, introduction, key change, or harmony is inferred from that
+tail. Source timestamps and all 89 pitches remain unchanged by these timing corrections.
+
+## Lyrics and syllables
+
+The verse has one stanza in two lines, one per four measures. The refrain is sung twice
+with the same words; `song.txt` writes it once.
+
+- Verse, measures 1-4: _Kasih-Mu ya Tuhan, dalam hidupku, nyata dalam kehidupanku._
+  Twenty syllables for twenty notes; _-han_ and _-ku_ fall on the long C4 and A3.
+- Verse, measures 5-8: _Penyertaan-Mu Tuhan, atas G'reja-Mu, terbukti di dalam setiap
+  waktu._ Twenty-three syllables for twenty-three notes; _wak-tu_ ends on the held C4.
+- Refrain, measures 9-13: _Oh Tuhan jadikan aku saksi kasih-Mu dalam setiap jalan
+  hidupku._ The pickup carries _Oh Tu-han_; the held D5 is the _-ku_ of _a-ku_, the held C5
+  the _-Mu_ of _ka-sih-Mu_, and the G4 on the downbeat of measure 13 the last _-ku_.
+- Refrain, measures 13-17: _Ku tahu Kau pimpin langkahku, 'tuk setia pada-Mu hingga akhir
+  nafas hidupku._ The `5-6-5` pickup carries _Ku ta-hu_; the sixteenths at the end of
+  measure 14 carry _-ku, 'tuk_ into measure 15, where the held C5 is the _-Mu_ of _pa-da-Mu_; the last
+  sixteenth of measure 15 is _hing-_, and the final C5 is _-ku_.
+
+The refrain sings _setiap_ and _setia_ as two syllables each (_se-tiap_, _se-tia_), as the
+melody has one note for each. The verse sings _se-ti-ap_ in three.
 
 ## Musical reading
 
-The title suggests Christian worship, but a reading of the words must wait for the lyrics.
-The verse alternates a middle-register line with low A3 and G3 responses and closes on C4.
-The refrain rises into the C5 register and reaches F5 before descending to its final C5.
-Future arrangements should preserve these register changes, repeated notes, and
-syncopations. This pass does not prescribe their texture or harmony.
+The text is a personal confession that becomes a prayer of dedication. The verse looks back:
+the love of the Lord is real in one's own life (first line) and His guidance of the Church
+is proven at all times (second line), moving from the personal to the congregation. The
+refrain answers with a request, _make me a witness of Your love_, and a trust that He leads
+each step towards faithfulness until the last breath.
+
+The verse alternates a middle-register line with low A3 and G3 responses and closes on C4,
+quiet and reflective. The refrain rises into the C5 register; its second half climbs from
+the same `6-5-6` figure to F5 on _se-tia_, the climax of the song, then settles on C5 for
+_hi-dup-ku_. The refrain is sung twice, so the second pass can carry the most weight.
+Future arrangements should keep the verse light, open the refrain fuller, build to the F5
+of measure 15, and fill the long notes on _-ku_ (measures 8-9 and 13) and _-Mu_ (measures
+11 and 15). This pass does not prescribe their texture or harmony.

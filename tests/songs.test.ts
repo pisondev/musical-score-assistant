@@ -82,7 +82,7 @@ describe('Saksi Kasih-Mu melody transcription', () => {
     expect(saved).toEqual(Buffer.from(expected));
   });
 
-  it('separates the verse close from a dedicated refrain pickup bar and puts A4 on beat one', () => {
+  it('holds the verse close into a dedicated refrain pickup bar and puts A4 on beat one', () => {
     expect(
       events.slice(42, 49).map(({ midi, tick, duration }) => ({
         midi,
@@ -90,7 +90,7 @@ describe('Saksi Kasih-Mu melody transcription', () => {
         duration: duration / PPQ,
       })),
     ).toEqual([
-      { midi: 60, beat: 30, duration: 0.5 },
+      { midi: 60, beat: 30, duration: 4 },
       { midi: 60, beat: 34.5, duration: 0.5 },
       { midi: 64, beat: 35, duration: 0.5 },
       { midi: 67, beat: 35.5, duration: 0.5 },
@@ -101,12 +101,13 @@ describe('Saksi Kasih-Mu melody transcription', () => {
     const refrain = bundle.song.measures.find((measure) => measure.section === 'Refrain');
     expect(refrain?.number).toBe(9);
     expect(refrain?.startTick).toBe(32 * PPQ);
-    expect(refrain?.slots[0].kind).toBe('rest');
+    expect(refrain?.slots[0].kind).toBe('hold');
     expect(
       refrain?.slots.filter((slot) => slot.kind === 'note').map((slot) => slot.pitches[0].midi),
     ).toEqual([60, 64, 67]);
-    expect(bundle.song.measures[7].slots.at(-1)?.kind).toBe('rest');
-    expect(events[43].tick - (events[42].tick + events[42].duration)).toBe(4 * PPQ);
+    // The verse's last C4 rings over the barline; one half-beat breath precedes the pickup.
+    expect(refrain?.slots.filter((slot) => slot.kind === 'rest')).toHaveLength(1);
+    expect(events[43].tick - (events[42].tick + events[42].duration)).toBe(PPQ / 2);
     const firstFullRefrainBar = bundle.song.measures[9];
     expect(firstFullRefrainBar.startTick).toBe(36 * PPQ);
     expect(firstFullRefrainBar.slots[0].pitches[0].midi).toBe(69);
@@ -159,5 +160,16 @@ describe('Saksi Kasih-Mu melody transcription', () => {
       { midi: 72, beat: 58, duration: 1.75 },
       { midi: 72, beat: 59.75, duration: 0.25 },
     ]);
+  });
+
+  it('sings one syllable on every melody note', () => {
+    const syllables = bundle.song.measures.flatMap((measure) =>
+      measure.slots.filter((slot) => slot.kind === 'note').map((slot) => slot.lyric),
+    );
+    expect(syllables).toHaveLength(89);
+    expect(syllables.every((syllable) => syllable !== undefined)).toBe(true);
+    expect(syllables.slice(0, 6).join(' ')).toBe('Ka- sih- Mu ya Tu- han,');
+    expect(syllables.slice(43, 51).join(' ')).toBe('Oh Tu- han ja- di- kan a- ku');
+    expect(syllables.at(-1)).toBe('ku.');
   });
 });
