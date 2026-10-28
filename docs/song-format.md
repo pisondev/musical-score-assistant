@@ -62,6 +62,11 @@ Before sending them, inspect `npm run songs:push -- --dry-run` for unrelated cha
 deletions. Neither source recordings nor private song content belong in a public commit,
 release note, public bundle, or CI artifact.
 
+The owner's later measure notes take precedence over an earlier transcription. When a note
+corrects a repeated phrase, correct its other occurrence too, preserve the note's original text,
+and update the audit table and exports. Publish the corrected private score before publishing
+the resolved reply, so the answer always refers to a revision the owner can open.
+
 ## `song.txt`
 
 A plain-text file with a header followed by the melody.

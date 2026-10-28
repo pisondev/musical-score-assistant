@@ -9,6 +9,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- A documented revision sequence for private melody reviews: apply measure-note corrections
+  to repeated phrases, refresh the audit and exports, and upload the score before its replies.
+
 - A documented melody-only workflow for silent tutorial videos with separate audio, including
   concert-pitch settings, rhythm checks, source disagreements, and private score uploads.
 - The local `temp/` reference folder is excluded from Git to keep unpublished audio and video

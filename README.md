@@ -325,6 +325,9 @@ the resulting score under `songs/private/`. A melody review uses an empty left-h
 its audit records timestamps and any disagreement between written and played notes. See
 [the transcription workflow](docs/song-format.md#video-and-audio-transcriptions).
 
+For a correction from the owner's measure notes, update the matching repeated phrase and
+the local audit and exports together, then publish the private score before its reply.
+
 1. Create a folder under `songs/private/` for a licensed song (every hymnal song), named after
    the hymnal, the number, and the title: `pkj-184-nama-yesus-termulia`. Only a song whose
    melody and text are both in the public domain goes directly under `songs/`.
