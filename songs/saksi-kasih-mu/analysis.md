@@ -39,8 +39,9 @@ checked against this table.
   attacks in measures 1 and 5 stay in their higher register. The F4-E4-D4-C4-D4 phrase in
   measure 4 and the F4-E4-D4-C4-C4 close in measure 8 retain their short-long rhythm.
 - **Refrain:** 46 attacks, C4-F5. The opening is C4, E4, G4, A4, G4, A4, E5, D5. C4-E4-G4
-  is the pickup at the end of measure 8, and the first A4 starts measure 9 on beat one.
-  Measures 10-11 include F4-E4-F4 before C5; the second F4 was absent from the earlier transcription.
+  is the pickup after leading rests in measure 9, and the first A4 starts measure 10 on beat one.
+  The following G4 phrase starts measure 11. Measures 11-12 include F4-E4-F4 before C5;
+  the second F4 was absent from the earlier transcription.
   The E5-F5-E5-D5-C5 high phrase and the repeated C5 attacks near the close are preserved.
 
 The pitch names above refer to sounding pitch: middle C is C4 (MIDI 60). `octave: 4` pins
@@ -50,23 +51,36 @@ the numbered notation to this register instead of allowing automatic octave sele
 
 The score uses C major and the composer's suggested 4/4. Attacks are written on a
 sixteenth-note grid, including dotted eighths, ties over beats and barlines, and repeated
-notes. The verse occupies measures 1-8 and the full refrain measures are 9-16. The composer's
-correction places the first A4 (degree 6) on beat one of measure 9. C4-E4-G4 is a three-eighth
-pickup on beats 3.5, 4, and 4.5 of measure 8. The final verse C4 on beat 3 is therefore a half
-beat long, and the refrain's internal note intervals are preserved as its barlines move.
-The source files are separate takes, so the composer supplies this verse-to-refrain join.
+notes. The verse occupies measures 1-8 and the refrain measures 9-17, including its entry bar.
+The composer clarified the join in two follow-up notes:
 
-The takes do not keep one fixed tempo. Straight-line fits of the notated attacks give
+- Measure 8 closes with F4-E4-D4-C4-C4 (`4-3-2-1-1`). The last C4 lasts half a beat from
+  beat 3, followed by a genuine silent rest for the remaining 1.5 beats. It is not tied
+  across the pause.
+- Measure 9 belongs to the refrain. It begins with 2.5 beats of rest and contains only the
+  three-eighth C4-E4-G4 (`1-3-5`) pickup on beats 3.5, 4, and 4.5. The first A4 (`6`)
+  therefore opens measure 10. There are four silent beats between the verse's final C4
+  release and the refrain's first C4 attack.
+- The G4 (`5`) previously anticipated the next bar by half a beat. D5 (`2'`) now holds for
+  two full beats, from beat 3 of measure 10 to its barline, and G4 begins measure 11 on beat
+  one. G4 still lasts half a beat: its entry, rather than its note value, is corrected.
+  The following notes retain their internal spacing and move half a beat later together.
+
+The source files are separate takes, so the composer supplies the silent verse-to-refrain
+join and the corrected metrical entry points. The score now has 17 full measures (68 beats).
+
+The takes do not keep one fixed tempo. Before the composer's timing corrections, fits gave
 65.46 and 72.43 BPM for the verse takes, and 68.44 and 70.70 BPM for the refrain takes.
-The fixed playback tempo is 68 BPM. Fit residuals are approximately 138/148 ms for the verse
-and 62/99 ms for the refrain; phrase pauses are regularized rather than encoded as tempo
-changes. Short notes were not all rounded to eighth notes.
+The fixed playback tempo is 68 BPM. That earlier alignment had residuals of approximately
+138/148 ms for the verse and 62/99 ms for the refrain. The latest rests and the extended D5
+follow the composer's written corrections; they do not claim to reproduce the free timing
+of the separate recordings. Short notes were not all rounded to eighth notes.
 
-With the corrected bar placement, the final C5 enters on beat 3.25 of measure 15. Letting it
-ring through the final full bar remains an editorial close: 5.75 beats now, keeping the song
-at 16 full measures. Recording tail length does not determine an exact final note value.
+With the corrected bar placement, the final C5 enters on beat 3.75 of measure 16. Letting it
+ring through the final full bar remains an editorial close: 5.25 beats, keeping the song
+at 17 full measures. Recording tail length does not determine an exact final note value.
 No extra final attack, fill, introduction, key change, harmony, or lyric is inferred from
-that tail. Source timestamps and all 89 pitches remain unchanged by the pickup correction.
+that tail. Source timestamps and all 89 pitches remain unchanged by these timing corrections.
 
 ## Musical reading
 

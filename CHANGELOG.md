@@ -281,6 +281,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Apply the composer's follow-up timing notes for "Saksi Kasih-Mu": stop the verse melody
+  after `4-3-2-1-1`, add a separate refrain pickup bar with leading rests, and put the
+  following `5` phrase on the next downbeat by holding the preceding high `2` for two beats.
+  Update the 17-measure score, source audit, PDF, and melody MIDI together.
+
 - Align the opening of the "Saksi Kasih-Mu" refrain with the composer's correction: `1-3-5`
   forms a three-eighth pickup at the end of measure 8, and the first `6` lands on beat one
   of measure 9. Rebar the following melody and update the source audit, PDF, and MIDI together.

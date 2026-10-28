@@ -158,10 +158,12 @@ Rules:
 - Every other measure must add up exactly; otherwise the checker reports an error and the app
   marks the measure.
 
-A refrain's pickup belongs at the end of the preceding full measure; label the following
-downbeat with `section: Refrain`. For example, the `1-3-5` pickup of "Saksi Kasih-Mu" occupies
-the final one and a half beats of measure 8, and `6` begins measure 9. Preserve the melody's
-internal intervals when moving barlines, and update the audit table and exports with the score.
+A refrain can start with a full measure of leading rests followed by pickup notes. Put
+`section: Refrain` before that measure when the pickup belongs to the refrain, as requested
+by the composer. In "Saksi Kasih-Mu", measure 8 closes the verse and rests, measure 9 starts
+the refrain with two and a half beats of rest before `1-3-5`, and `6` opens measure 10.
+Use `0` for a silent pause: hold dots keep the previous note sounding. Update the audit
+table and exports whenever timing or barlines change.
 
 ### Rolled chords
 

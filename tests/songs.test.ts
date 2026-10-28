@@ -70,7 +70,7 @@ describe('Saksi Kasih-Mu melody transcription', () => {
     expect(events.map(({ midi, tick, duration }) => ({ midi, tick, duration }))).toEqual(expected);
     expect(Math.min(...events.map((event) => event.midi))).toBe(55);
     expect(Math.max(...events.map((event) => event.midi))).toBe(77);
-    expect(bundle.song.totalTicks).toBe(64 * PPQ);
+    expect(bundle.song.totalTicks).toBe(68 * PPQ);
   });
 
   it('ships a MIDI identical to the melody exported by the production core', () => {
@@ -82,7 +82,7 @@ describe('Saksi Kasih-Mu melody transcription', () => {
     expect(saved).toEqual(Buffer.from(expected));
   });
 
-  it('leads into the refrain with a three-eighth pickup and puts the first A4 on beat one', () => {
+  it('separates the verse close from a dedicated refrain pickup bar and puts A4 on beat one', () => {
     expect(
       events.slice(42, 49).map(({ midi, tick, duration }) => ({
         midi,
@@ -91,16 +91,41 @@ describe('Saksi Kasih-Mu melody transcription', () => {
       })),
     ).toEqual([
       { midi: 60, beat: 30, duration: 0.5 },
-      { midi: 60, beat: 30.5, duration: 0.5 },
-      { midi: 64, beat: 31, duration: 0.5 },
-      { midi: 67, beat: 31.5, duration: 0.5 },
-      { midi: 69, beat: 32, duration: 0.5 },
-      { midi: 67, beat: 32.5, duration: 0.25 },
-      { midi: 69, beat: 32.75, duration: 0.75 },
+      { midi: 60, beat: 34.5, duration: 0.5 },
+      { midi: 64, beat: 35, duration: 0.5 },
+      { midi: 67, beat: 35.5, duration: 0.5 },
+      { midi: 69, beat: 36, duration: 0.5 },
+      { midi: 67, beat: 36.5, duration: 0.25 },
+      { midi: 69, beat: 36.75, duration: 0.75 },
     ]);
     const refrain = bundle.song.measures.find((measure) => measure.section === 'Refrain');
     expect(refrain?.number).toBe(9);
     expect(refrain?.startTick).toBe(32 * PPQ);
-    expect(refrain?.slots[0].pitches.map((pitch) => pitch.midi)).toEqual([69]);
+    expect(refrain?.slots[0].kind).toBe('rest');
+    expect(
+      refrain?.slots.filter((slot) => slot.kind === 'note').map((slot) => slot.pitches[0].midi),
+    ).toEqual([60, 64, 67]);
+    expect(bundle.song.measures[7].slots.at(-1)?.kind).toBe('rest');
+    expect(events[43].tick - (events[42].tick + events[42].duration)).toBe(4 * PPQ);
+    const firstFullRefrainBar = bundle.song.measures[9];
+    expect(firstFullRefrainBar.startTick).toBe(36 * PPQ);
+    expect(firstFullRefrainBar.slots[0].pitches[0].midi).toBe(69);
+  });
+
+  it('holds the preceding D5 through the barline and starts the next phrase on G4', () => {
+    expect(
+      events.slice(50, 54).map(({ midi, tick, duration }) => ({
+        midi,
+        beat: tick / PPQ,
+        duration: duration / PPQ,
+      })),
+    ).toEqual([
+      { midi: 74, beat: 38, duration: 2 },
+      { midi: 67, beat: 40, duration: 0.5 },
+      { midi: 64, beat: 40.5, duration: 0.25 },
+      { midi: 67, beat: 40.75, duration: 0.75 },
+    ]);
+    expect(bundle.song.measures[10].startTick).toBe(40 * PPQ);
+    expect(bundle.song.measures[10].slots[0].pitches[0].midi).toBe(67);
   });
 });
