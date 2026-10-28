@@ -318,6 +318,13 @@ What the installed app does differently:
 
 ## Adding a song
 
+For a tutorial supplied as a silent video and separate audio, read the video's numbered
+notes, octave marks, chords, lyrics, and setup card first, then check note lengths and phrase
+entries against the audio. Keep unpublished references in the git-ignored `temp/` folder and
+the resulting score under `songs/private/`. A melody review uses an empty left-hand baseline;
+its audit records timestamps and any disagreement between written and played notes. See
+[the transcription workflow](docs/song-format.md#video-and-audio-transcriptions).
+
 1. Create a folder under `songs/private/` for a licensed song (every hymnal song), named after
    the hymnal, the number, and the title: `pkj-184-nama-yesus-termulia`. Only a song whose
    melody and text are both in the public domain goes directly under `songs/`.

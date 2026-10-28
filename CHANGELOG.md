@@ -9,6 +9,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- A documented melody-only workflow for silent tutorial videos with separate audio, including
+  concert-pitch settings, rhythm checks, source disagreements, and private score uploads.
+- The local `temp/` reference folder is excluded from Git to keep unpublished audio and video
+  out of the public repository.
+
 - Answers to the player's notes. A note in `notes.json` can carry a `reply`, `repliedAt`, and
   `resolved`, written by whoever revised the song. The notes of a measure read like a
   conversation, the note to the right and the answer under it to the left, signed _Composer

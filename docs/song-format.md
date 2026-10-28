@@ -36,6 +36,32 @@ measure, one-based beat, absolute MIDI pitch, duration in beats, and timestamp i
 it is an audit reference, not input to the player. Exported MIDI must use the same parsed song
 and core MIDI writer as playback. See `songs/saksi-kasih-mu/` for an example with a PDF and MIDI.
 
+## Video and audio transcriptions
+
+When a silent tutorial video and its audio are supplied separately, inspect the complete
+video before transcribing. Record the title, key, keyboard transpose setting, meter, tempo,
+and section order from its setup cards. Use full-resolution frames for the printed digits,
+octave dots, hold dots, beams, chord positions, and lyrics. The keyboard's accompaniment style
+does not determine the written time signature; distinguish a fingering key from concert pitch.
+
+Use the audio to establish the beat grid, repeated attacks, rests, held notes, phrase pickups,
+and subdivisions. Ignore harmonics and octave layers of the keyboard voice when identifying
+the single melody. Document the chosen melody register. When the user names the video as the
+pitch authority, retain its explicit notes where the performance differs and identify the
+measure and timestamp in the local `analysis.md` for review. Do not silently replace them.
+
+Unpublished recordings stay in the git-ignored `temp/` folder. Private transcriptions, their
+audit, and any MIDI or score exports stay under `songs/private/<id>/`. A melody-only review
+sets `"baseline": { "leftHand": "empty" }` and `"arrangements": []`; no accompaniment is
+written until requested. Write out repeats whose cadences differ and keep lyrics aligned
+across measure and music-line boundaries. Check the song with `--dump` and verify that its
+playback contains only right-hand melody events before uploading.
+
+Private scores are uploaded with `npm run songs:push`, independently of the code deployment.
+Before sending them, inspect `npm run songs:push -- --dry-run` for unrelated changes or
+deletions. Neither source recordings nor private song content belong in a public commit,
+release note, public bundle, or CI artifact.
+
 ## `song.txt`
 
 A plain-text file with a header followed by the melody.

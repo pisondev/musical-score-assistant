@@ -23,3 +23,5 @@ songs/**/source.*
 songs/**/notes.json
 songs/**/comments.json
 .local/
+# Unpublished audio/video references supplied for private transcription.
+temp/
