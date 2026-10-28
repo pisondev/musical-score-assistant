@@ -281,6 +281,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Align the opening of the "Saksi Kasih-Mu" refrain with the composer's correction: `1-3-5`
+  forms a three-eighth pickup at the end of measure 8, and the first `6` lands on beat one
+  of measure 9. Rebar the following melody and update the source audit, PDF, and MIDI together.
+
 - Retranscribe the melody of "Saksi Kasih-Mu" from both verse and both refrain recordings:
   restore low G3/A3 notes, omitted and repeated attacks, and sixteenth-note timing. The song
   now plays melody only at 68 BPM, with the earlier speculative harmonization removed.

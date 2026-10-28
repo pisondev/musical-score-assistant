@@ -81,4 +81,26 @@ describe('Saksi Kasih-Mu melody transcription', () => {
     const saved = readFileSync(join(folder, 'saksi-kasih-mu-melody.mid'));
     expect(saved).toEqual(Buffer.from(expected));
   });
+
+  it('leads into the refrain with a three-eighth pickup and puts the first A4 on beat one', () => {
+    expect(
+      events.slice(42, 49).map(({ midi, tick, duration }) => ({
+        midi,
+        beat: tick / PPQ,
+        duration: duration / PPQ,
+      })),
+    ).toEqual([
+      { midi: 60, beat: 30, duration: 0.5 },
+      { midi: 60, beat: 30.5, duration: 0.5 },
+      { midi: 64, beat: 31, duration: 0.5 },
+      { midi: 67, beat: 31.5, duration: 0.5 },
+      { midi: 69, beat: 32, duration: 0.5 },
+      { midi: 67, beat: 32.5, duration: 0.25 },
+      { midi: 69, beat: 32.75, duration: 0.75 },
+    ]);
+    const refrain = bundle.song.measures.find((measure) => measure.section === 'Refrain');
+    expect(refrain?.number).toBe(9);
+    expect(refrain?.startTick).toBe(32 * PPQ);
+    expect(refrain?.slots[0].pitches.map((pitch) => pitch.midi)).toEqual([69]);
+  });
 });

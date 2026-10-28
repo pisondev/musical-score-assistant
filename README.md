@@ -12,6 +12,8 @@ The composer-authorized public song [Saksi Kasih-Mu](songs/saksi-kasih-mu/song.t
 as a melody-only transcription, with a [numbered score PDF](songs/saksi-kasih-mu/saksi-kasih-mu-score.pdf),
 a [melody MIDI](songs/saksi-kasih-mu/saksi-kasih-mu-melody.mid), and an
 [audit of the four source recordings](songs/saksi-kasih-mu/analysis.md).
+Its refrain enters with a three-eighth `1-3-5` pickup in measure 8; the first `6` starts
+measure 9 on beat one, as corrected by the composer.
 
 ![The home page: the song that was practised last, and a card for every song](docs/images/home.png)
 

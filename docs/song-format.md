@@ -158,6 +158,11 @@ Rules:
 - Every other measure must add up exactly; otherwise the checker reports an error and the app
   marks the measure.
 
+A refrain's pickup belongs at the end of the preceding full measure; label the following
+downbeat with `section: Refrain`. For example, the `1-3-5` pickup of "Saksi Kasih-Mu" occupies
+the final one and a half beats of measure 8, and `6` begins measure 9. Preserve the melody's
+internal intervals when moving barlines, and update the audit table and exports with the score.
+
 ### Rolled chords
 
 A stack written with `~` in front is a rolled chord, in either hand and in every kind of part:
