@@ -328,6 +328,12 @@ its audit records timestamps and any disagreement between written and played not
 For a correction from the owner's measure notes, update the matching repeated phrase and
 the local audit and exports together, then publish the private score before its reply.
 
+Once the melody is approved, a complete arrangement review keeps **My style** as a familiar
+reference and adds Alberti, gospel, jazz, contemporary, and majestic alternatives. Each has
+its own melody chords, fills, and accompaniment; the introductions, bridge, key lift, and
+endings are written separately. Private sets stay in the owner's library and are checked
+against the approved melody before they are uploaded.
+
 1. Create a folder under `songs/private/` for a licensed song (every hymnal song), named after
    the hymnal, the number, and the title: `pkj-184-nama-yesus-termulia`. Only a song whose
    melody and text are both in the public domain goes directly under `songs/`.

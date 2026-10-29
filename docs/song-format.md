@@ -844,6 +844,14 @@ not been sent yet.
 
 ## Checking
 
+For an arrangement release, retain a local snapshot of the approved melody and compare its
+note pitches, start times, and full held durations after adding the new parts. A Melody +
+fills part must preserve the original melody row. Check every right-hand mode for every
+left-hand arrangement, including a complete performance with the written introduction,
+ending, and repeat a half step and a whole step higher. Phrase answers should differ within
+an arrangement and point into the next harmony. Keep private MIDI files and performance
+audit reports beside the private score; they are not public build or CI artifacts.
+
 ```bash
 npm run check                       # every song
 npm run check -- songs/amazing-grace

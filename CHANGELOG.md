@@ -9,6 +9,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- A complete private arrangement review workflow: five stylistic alternatives beside the
+  familiar baseline, three right-hand parts per arrangement, four introductions, a bridge,
+  a key lift, and five endings. Local performance audits preserve approved melody timing,
+  check each phrase answer, and cover repeats a half step and a whole step higher.
+
 - A documented revision sequence for private melody reviews: apply measure-note corrections
   to repeated phrases, refresh the audit and exports, and upload the score before its replies.
 
